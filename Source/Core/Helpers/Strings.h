@@ -1,0 +1,66 @@
+/*
+MicroBuild
+Copyright (C) 2016 TwinDrills
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#pragma once
+
+#include "Core/Platform/Path.h"
+
+namespace MicroBuild {
+namespace Strings {
+
+// Does a case-inesitive equality comparison between two strings.
+bool CaseInsensitiveEquals(const std::string& a, const std::string& b);
+
+// Converts an std::string to lowercase.
+std::string ToLowercase(const std::string& input);
+
+// Joins the given string list with the given glue value inbetween each
+// part.
+std::string Join(int argc, char* argv[], std::string glue);
+
+// Cracks the given string into multiple values. This works like the command 
+// line syntax - eg, you can quote values to prevent them being cracked.
+std::vector<std::string> Crack(std::string value, char seperator = ' ');
+
+// Splits a string into a left and right fragment at the given character 
+// position.
+void SplitOnIndex(const std::string& input, size_t index, 
+	std::string& leftOut, std::string& rightOut);
+
+// Returns the last index of any of the needles in the input string.
+size_t LastIndexOfAny(const std::string& input, 
+	std::vector<std::string>& needles);
+
+// Returns the first index of any of the needles in the input string.
+size_t IndexOfAny(const std::string& input,
+	std::vector<std::string>& needles);
+
+// Reads a file from the given path into a string.
+bool ReadFile(const Platform::Path& path, std::string& data);
+
+// Writes a string to the given path.
+bool WriteFile(const Platform::Path& path, const std::string& data);
+
+// Formats the string with the given format and arguments.
+std::string Format(std::string format, ...);
+
+// Formats the string with the given format and arguments.
+std::string FormatVa(std::string format, va_list list);
+
+}; // namespace StringHelper
+}; // namespace MicroBuild

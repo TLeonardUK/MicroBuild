@@ -1,0 +1,239 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="App">
+      <UniqueIdentifier>{46D6870B-B2DF-877C-3B5B-9E7CA763937C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Commands">
+      <UniqueIdentifier>{47E05D82-3343-ED26-DCC8-25DDC80AB9A9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Ides">
+      <UniqueIdentifier>{3AF0A22E-26BD-FD39-4FD6-EBE13B0233C8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Ides\MSBuild">
+      <UniqueIdentifier>{5958A70C-4551-C65E-6E83-ABE35ADBA56A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Platforms">
+      <UniqueIdentifier>{0DAD9A68-796D-169F-42A8-5F1CAE275B7B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Commands">
+      <UniqueIdentifier>{2FE39506-9BA3-113D-64DE-5ABAD05D5619}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Config">
+      <UniqueIdentifier>{73EFF66E-DFA4-6F64-6899-693BD44D6668}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Helpers">
+      <UniqueIdentifier>{F0B245B7-DC15-D55B-859B-0D1271DDA0DE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Platform">
+      <UniqueIdentifier>{42848203-AE44-FE39-777F-47B7E3FE4216}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Platforms\Windows_x64">
+      <UniqueIdentifier>{b7be9f78-317b-422f-a0ac-46f4f106f6bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Platforms\Windows_x86">
+      <UniqueIdentifier>{92d93e88-d667-4f9d-9a83-35e4a90670dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Workspace">
+      <UniqueIdentifier>{178f366d-897a-4f44-820a-8b5c326fa320}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Project">
+      <UniqueIdentifier>{3a696afb-4652-4154-858d-66728c73503c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\Source\App\App.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\BuildInfo.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Commands\Build.h">
+      <Filter>App\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Commands\Clean.h">
+      <Filter>App\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Commands\Deploy.h">
+      <Filter>App\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Commands\Generate.h">
+      <Filter>App\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Commands\Help.h">
+      <Filter>App\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Commands\Version.h">
+      <Filter>App\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Ides\IdeType.h">
+      <Filter>App\Ides</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Ides\MSBuild\MSBuild.h">
+      <Filter>App\Ides\MSBuild</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Platforms\PlatformType.h">
+      <Filter>App\Platforms</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Commands\Command.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Commands\CommandArgument.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Commands\CommandComboArgument.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Commands\CommandFlagArgument.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Commands\CommandLineParser.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Commands\CommandPathArgument.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Commands\CommandStringArgument.h">
+      <Filter>Core\Commands</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Compiler.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Config\ConfigFile.h">
+      <Filter>Core\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Helpers\Strings.h">
+      <Filter>Core\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Log.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Platform\Path.h">
+      <Filter>Core\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Platform\Platform.h">
+      <Filter>Core\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\PCH.h" />
+    <ClInclude Include="..\..\..\Source\App\Platforms\Windows_x64\Windows_x64.h">
+      <Filter>App\Platforms\Windows_x64</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Platforms\Windows_x86\Windows_x86.h">
+      <Filter>App\Platforms\Windows_x86</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\IDEs\MSBuild\VisualStudio_2015.h">
+      <Filter>App\Ides\MSBuild</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Workspace\WorkspaceFIle.h">
+      <Filter>App\Workspace</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\App\Project\ProjectFile.h">
+      <Filter>App\Project</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Config\ConfigTokenizer.h">
+      <Filter>Core\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\Source\Core\Helpers\Time.h">
+      <Filter>Core\Helpers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\Source\App\App.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\App\Commands\Build.cpp">
+      <Filter>App\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\App\Commands\Clean.cpp">
+      <Filter>App\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\App\Commands\Deploy.cpp">
+      <Filter>App\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\App\Commands\Generate.cpp">
+      <Filter>App\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\App\Commands\Help.cpp">
+      <Filter>App\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\App\Commands\Version.cpp">
+      <Filter>App\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\App\EntryPoint.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Commands\Command.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Commands\CommandArgument.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Commands\CommandComboArgument.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Commands\CommandFlagArgument.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Commands\CommandLineParser.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Commands\CommandPathArgument.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Commands\CommandStringArgument.cpp">
+      <Filter>Core\Commands</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Config\ConfigFile.cpp">
+      <Filter>Core\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Helpers\Strings.cpp">
+      <Filter>Core\Helpers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Log.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Platform\Path.cpp">
+      <Filter>Core\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Platform\Path_Linux.cpp">
+      <Filter>Core\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Platform\Path_MacOS.cpp">
+      <Filter>Core\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Platform\Path_Windows.cpp">
+      <Filter>Core\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Platform\Platform_Linux.cpp">
+      <Filter>Core\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Platform\Platform_MacOS.cpp">
+      <Filter>Core\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Platform\Platform_Windows.cpp">
+      <Filter>Core\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\PCH.cpp" />
+    <ClCompile Include="..\..\..\Source\App\Platforms\Windows_x64\Windows_x64.cpp">
+      <Filter>App\Platforms\Windows_x64</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\App\Platforms\Windows_x86\Windows_x86.cpp">
+      <Filter>App\Platforms\Windows_x86</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\App\Ides\MSBuild\MSBuild.cpp">
+      <Filter>App\Ides\MSBuild</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\App\Ides\MSBuild\VisualStudio_2015.cpp">
+      <Filter>App\Ides\MSBuild</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Config\ConfigTokenizer.cpp">
+      <Filter>Core\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Source\Core\Helpers\Time.cpp">
+      <Filter>Core\Helpers</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
