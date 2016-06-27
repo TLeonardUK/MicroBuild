@@ -20,7 +20,7 @@ project "MicroBuild"
 	kind "ConsoleApp"
 	language "C++"
 	location(MBRoot .. "/Build/Bootstrap/ProjectFiles/")
-	targetdir(MBRoot .. "/Engine/Binaries/")
+	targetdir(MBRoot .. "/Binaries/")
 	targetname("microbuild_%{cfg.system:lower()}_%{cfg.buildcfg:lower()}_%{cfg.architecture:lower()}")
 	objdir(MBRoot .. "/Build/Bootstrap/ProjectFiles/Obj/%{cfg.system:lower()}.%{cfg.buildcfg:lower()}.%{cfg.architecture:lower()}/")
 			

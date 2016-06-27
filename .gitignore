@@ -13,6 +13,7 @@
 # Local documents
 *todo*
 output.*
+ProjectFiles/
 
 # Build results
 Binaries/
