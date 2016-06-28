@@ -81,7 +81,9 @@ int App::Run()
 			ConfigFile file;
 			if (file.Parse("D:/Perforce/TLeonard_Main/TLeonard_Main/MicroBuild/Build/Workspace.ini"))
 			{
-
+				file.SetOrAddValue("", "SolutionDir", "ThisIsAFakeSolutionDir");
+ 				file.SetOrAddValue("", "WorkspaceDir", "ThisIsAFakeWorkspaceDir$(Workspace.Name)");
+				file.Resolve();
 			}
 		}
 	}

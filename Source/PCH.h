@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cassert>
 #include <stdarg.h>
 #include <chrono>
+#include <map>
 
 #include "Core/Compiler.h"
 #include "Core/Log.h"

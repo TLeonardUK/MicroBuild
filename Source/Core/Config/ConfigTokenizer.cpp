@@ -26,6 +26,7 @@ namespace MicroBuild {
 
 const char* TokenTypeLiteral[(int)TokenType::COUNT] = {
 	"unknown",
+	"expression",
 
 	// Sections
 	"group",
@@ -178,7 +179,8 @@ bool ConfigTokenizer::IsLiteralChar(char chr)
 	if ((chr >= '0' && chr <= '9') ||
 		(chr >= 'a' && chr <= 'z') ||
 		(chr >= 'A' && chr <= 'Z') ||
-		 chr == '_')
+		 chr == '_' ||
+		 chr == '.')
 	{
 		return true;
 	}
@@ -476,6 +478,16 @@ bool ConfigTokenizer::ReadToken()
 	}
 
 	return true;
+}
+
+Token& ConfigTokenizer::GetToken(int index)
+{
+	return m_tokens[index];
+}
+
+int ConfigTokenizer::GetTokenCount()
+{
+	return (int)m_tokens.size();
 }
 
 bool ConfigTokenizer::Tokenize(const Platform::Path& path)

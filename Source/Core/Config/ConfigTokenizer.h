@@ -24,7 +24,9 @@ namespace MicroBuild {
 
 enum class TokenType
 {
+	// Internal
 	Unknown,
+	Expression,
 
 	// Sections
 	Group,
@@ -68,6 +70,15 @@ struct Token
 	int Line;
 	int Column;
 
+	Token(TokenType type)
+		: Type(type)
+		, Literal("Unknown")
+		, File("")
+		, Line(0)
+		, Column(0)
+	{
+	}
+
 	Token(int column, const Platform::Path& path, int line, TokenType type, const std::string& lit)
 		: Type(type)
 		, Literal(lit)
@@ -78,13 +89,21 @@ struct Token
 	}
 };
 
+// Takes a file path and splits it up into individual tokens.
 class ConfigTokenizer
 {
 public:
 	ConfigTokenizer();
 	~ConfigTokenizer();
 
+	// Tokenizes the file at the given path.
 	bool Tokenize(const Platform::Path& path);
+
+	// Gets a reference to the token at the given index.
+	Token& GetToken(int index);
+
+	// Gets the number of tokens that were successfully extracted.
+	int GetTokenCount();
 
 protected:
 	void Error(const Token& token, const char* format, ...);
