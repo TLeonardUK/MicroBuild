@@ -562,9 +562,10 @@ void ConfigFile::SetOrAddValue(
 	}
 }
 
-std::string ConfigFile::ResolveTokenReplacement(
+bool ConfigFile::ResolveTokenReplacement(
 	const std::string& key,
-	const std::string& group)
+	const std::string& group,
+	std::string& result)
 {
 	std::string finalKey = key;
 	std::string finalGroup = group;
@@ -580,7 +581,7 @@ std::string ConfigFile::ResolveTokenReplacement(
 		bIsExplicitGroup = true;
 	}
 
-	std::string result = "";
+	result = "";
 
 	auto iter = m_groups.find(finalGroup);
 	if (iter != m_groups.end())
@@ -613,13 +614,13 @@ std::string ConfigFile::ResolveTokenReplacement(
 
 					result = value.ResolvedValue;
 
-					break;
+					return true;
 				}
 			}
 		}
 	}
 
-	return result;
+	return false;
 }
 
 std::string ConfigFile::ReplaceTokens(
@@ -640,9 +641,17 @@ std::string ConfigFile::ReplaceTokens(
 				start_offset + 2,
 				(end_offset - start_offset) - 2);
 
-			std::string resolvedToken = ResolveTokenReplacement(
+			std::string resolvedToken;
+			bool res = ResolveTokenReplacement(
 				key, 
-				baseGroup);
+				baseGroup,
+				resolvedToken);
+
+			if (!res)
+			{
+				// todo: emit a warning here?
+				resolvedToken = "[Invalid Token Expansion]";
+			}
 
 			result.erase(
 				result.begin() + start_offset,
@@ -661,14 +670,144 @@ std::string ConfigFile::ReplaceTokens(
 	return result;
 }
 
+ConfigFileExpressionResult ConfigFile::EvaluateExpression(
+	ConfigFileExpression& expression,
+	const std::string& baseGroup)
+{
+	ConfigFileExpressionResult result;
+
+	switch (expression.Operator)
+	{
+	case TokenType::Expression:
+		{
+			result = EvaluateExpression(expression.Children[0], baseGroup);
+			break;
+		}
+	case TokenType::Not:
+		{
+			result = EvaluateExpression(expression.Children[0], baseGroup);
+			result = !result.ToBool();
+			break;
+		}
+	case TokenType::Greater:
+		{
+			ConfigFileExpressionResult lValueResult =
+				EvaluateExpression(expression.Children[0], baseGroup);
+			ConfigFileExpressionResult rValueResult =
+				EvaluateExpression(expression.Children[1], baseGroup);
+
+			result = (lValueResult.ToFloat() > rValueResult.ToFloat());
+
+			break;
+		}
+	case TokenType::GreaterEqual:
+		{
+			ConfigFileExpressionResult lValueResult =
+				EvaluateExpression(expression.Children[0], baseGroup);
+			ConfigFileExpressionResult rValueResult =
+				EvaluateExpression(expression.Children[1], baseGroup);
+
+			result = (lValueResult.ToFloat() >= rValueResult.ToFloat());
+
+			break;
+		}
+	case TokenType::Less:
+		{
+			ConfigFileExpressionResult lValueResult =
+				EvaluateExpression(expression.Children[0], baseGroup);
+			ConfigFileExpressionResult rValueResult =
+				EvaluateExpression(expression.Children[1], baseGroup);
+
+			result = (lValueResult.ToFloat() < rValueResult.ToFloat());
+
+			break;
+		}
+	case TokenType::LessEqual:
+		{
+			ConfigFileExpressionResult lValueResult =
+				EvaluateExpression(expression.Children[0], baseGroup);
+			ConfigFileExpressionResult rValueResult =
+				EvaluateExpression(expression.Children[1], baseGroup);
+
+			result = (lValueResult.ToFloat() <= rValueResult.ToFloat());
+
+			break;
+		}
+	case TokenType::Equal:
+		{
+			ConfigFileExpressionResult lValueResult =
+				EvaluateExpression(expression.Children[0], baseGroup);
+			ConfigFileExpressionResult rValueResult =
+				EvaluateExpression(expression.Children[1], baseGroup);
+
+			result = (lValueResult.Result == rValueResult.Result);
+
+			break;
+		}
+	case TokenType::NotEqual:
+		{
+			ConfigFileExpressionResult lValueResult =
+				EvaluateExpression(expression.Children[0], baseGroup);
+			ConfigFileExpressionResult rValueResult =
+				EvaluateExpression(expression.Children[1], baseGroup);
+
+			result = (lValueResult.Result != rValueResult.Result);
+
+			break;
+		}
+	case TokenType::And:
+		{
+			ConfigFileExpressionResult lValueResult =
+				EvaluateExpression(expression.Children[0], baseGroup);
+			ConfigFileExpressionResult rValueResult =
+				EvaluateExpression(expression.Children[1], baseGroup);
+
+			result = lValueResult.ToBool() && rValueResult.ToBool();
+
+			break;
+		}
+	case TokenType::Or:
+		{
+			ConfigFileExpressionResult lValueResult = 
+				EvaluateExpression(expression.Children[0], baseGroup);
+			ConfigFileExpressionResult rValueResult =
+				EvaluateExpression(expression.Children[1], baseGroup);
+
+			result = lValueResult.ToBool() || rValueResult.ToBool();
+
+			break;
+		}
+	case TokenType::Literal:
+		{
+			bool ret = ResolveTokenReplacement(
+				expression.Value, baseGroup, result.Result
+			);
+
+			if (!ret)
+			{
+				result.Result = expression.Value;
+			}
+
+			break;
+		}
+	}
+
+	if (expression.Invert)
+	{
+		result = !result.ToBool();
+	}
+
+	return result;
+}
+
 void ConfigFile::Resolve()
 {
-	// Go through each key, and attempt to resolve each expression reference.
+	// Go through each key value and do token replacement.
 	{
 		Time::TimedScope scope(
-			Strings::Format("[%s] Reference Resolving", 
+			Strings::Format("[%s] Pre Resolve Setup",
 				m_path.ToString().c_str())
-		);
+			);
 
 		for (auto groupIter : m_groups)
 		{
@@ -676,35 +815,18 @@ void ConfigFile::Resolve()
 			{
 				for (auto valueIter : keyIter.second.Values)
 				{
-					// TODO
-					/*
-					valueIter.ConditionResult = ResolveExpressionReferences(
-						);
-					{
-
-					}
-					*/
+					valueIter.HasResolvedValue = false;
 				}
 			}
 		}
 	}
 
-	// Evaluate each expression.
-	{
-		Time::TimedScope scope(
-			Strings::Format("[%s] Expression Evaluation", 
-				m_path.ToString().c_str())
-		);
-
-		// TODO
-	}
-
 	// Go through each key value and do token replacement.
 	{
 		Time::TimedScope scope(
-			Strings::Format("[%s] Token Replacement", 
+			Strings::Format("[%s] Token Replacement",
 				m_path.ToString().c_str())
-		);
+			);
 
 		for (auto groupIter : m_groups)
 		{
@@ -718,7 +840,35 @@ void ConfigFile::Resolve()
 						valueIter.ResolvedValue = ReplaceTokens(
 							valueIter.Value,
 							groupIter.second.Name
-						);
+							);
+					}
+				}
+			}
+		}
+	}
+
+	// Evaluate each expression.
+	{
+		Time::TimedScope scope(
+			Strings::Format("[%s] Expression Evaluation", 
+				m_path.ToString().c_str())
+		);
+
+		for (auto groupIter : m_groups)
+		{
+			for (auto keyIter : groupIter.second.Keys)
+			{
+				for (auto valueIter : keyIter.second.Values)
+				{
+					valueIter.ConditionResult = true;
+
+					for (auto cond : valueIter.Conditions)
+					{
+						if (!EvaluateExpression(cond, groupIter.second.Name)
+							.ToBool())
+						{
+							valueIter.ConditionResult = false;
+						}
 					}
 				}
 			}

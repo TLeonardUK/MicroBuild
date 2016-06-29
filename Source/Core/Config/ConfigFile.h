@@ -23,6 +23,56 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+// Result of an config file expression evaluation.
+struct ConfigFileExpressionResult
+{
+	std::string Result;
+
+	ConfigFileExpressionResult()
+		: Result("")
+	{
+	}
+
+	std::string ToString()
+	{
+		return Result;
+	}
+
+	float ToFloat()
+	{
+		return (float)atof(Result.c_str());
+	}
+
+	bool ToBool()
+	{
+		return (ToFloat() != 0);
+	}
+
+	void operator=(const float& lvalue)
+	{
+		char buffer[128];
+		sprintf(buffer, "%f", lvalue);
+		Result = buffer;
+	}
+
+	void operator=(const std::string& lvalue)
+	{
+		Result = lvalue;
+	}
+
+	void operator=(const int& lvalue)
+	{
+		char buffer[128];
+		sprintf(buffer, "%i", lvalue);
+		Result = buffer;
+	}
+
+	void operator=(const bool& lvalue)
+	{
+		Result = (lvalue ? "1" : "0");
+	}
+};
+
 // A condition that determines if a key exists with the given defines/config.
 struct ConfigFileExpression
 {
@@ -127,13 +177,18 @@ protected:
 	bool ParseGroup();
 	bool ParseBlock();
 
+	ConfigFileExpressionResult EvaluateExpression(
+		ConfigFileExpression& expression, 
+		const std::string& baseGroup);
+
 	std::string ReplaceTokens(
 		const std::string& value,
 		const std::string& baseGroup);
 
-	std::string ResolveTokenReplacement(
+	bool ResolveTokenReplacement(
 		const std::string& key,
-		const std::string& group);
+		const std::string& group,
+		std::string& result);
 
 private:
 	Platform::Path m_path;

@@ -416,6 +416,16 @@ bool ConfigTokenizer::ReadToken()
 		{
 			type = TokenType::Else;
 		}
+		else if (lit == "true")
+		{
+			lit = "1";
+			type = TokenType::Literal;
+		}
+		else if (lit == "false")
+		{
+			lit = "0";
+			type = TokenType::Literal;
+		}
 
 		m_tokens.push_back(Token(m_column, m_path, m_line,
 			type, lit));
