@@ -176,8 +176,6 @@ bool ConfigFile::ParseAssignment()
 	keyValue.Conditions = m_expressionStack;
 	keyValue.ConditionResult = true;
 
-	//PrettyPrintExpressions(keyValue.Conditions);
-
 	ConfigFileGroup& group = m_groups[m_currentGroup];
 
 	auto iter = group.Keys.find(keyName);
@@ -821,32 +819,6 @@ void ConfigFile::Resolve()
 		}
 	}
 
-	// Go through each key value and do token replacement.
-	{
-		Time::TimedScope scope(
-			Strings::Format("[%s] Token Replacement",
-				m_path.ToString().c_str())
-			);
-
-		for (auto groupIter : m_groups)
-		{
-			for (auto keyIter : groupIter.second.Keys)
-			{
-				for (auto valueIter : keyIter.second.Values)
-				{
-					if (!valueIter.HasResolvedValue)
-					{
-						valueIter.HasResolvedValue = true;
-						valueIter.ResolvedValue = ReplaceTokens(
-							valueIter.Value,
-							groupIter.second.Name
-							);
-					}
-				}
-			}
-		}
-	}
-
 	// Evaluate each expression.
 	{
 		Time::TimedScope scope(
@@ -874,6 +846,33 @@ void ConfigFile::Resolve()
 			}
 		}
 	}
+
+	// Go through each key value and do token replacement.
+	{
+		Time::TimedScope scope(
+			Strings::Format("[%s] Token Replacement",
+				m_path.ToString().c_str())
+			);
+
+		for (auto groupIter : m_groups)
+		{
+			for (auto keyIter : groupIter.second.Keys)
+			{
+				for (auto valueIter : keyIter.second.Values)
+				{
+					if (!valueIter.HasResolvedValue)
+					{
+						valueIter.HasResolvedValue = true;
+						valueIter.ResolvedValue = ReplaceTokens(
+							valueIter.Value,
+							groupIter.second.Name
+							);
+					}
+				}
+			}
+		}
+	}
+
 }
 
 std::vector<std::string> ConfigFile::GetValues(
