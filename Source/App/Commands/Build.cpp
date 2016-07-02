@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
+#include "App/App.h"
 #include "App/Commands/Build.h"
 #include "Core/Commands/CommandLineParser.h"
 #include "Core/Commands/CommandComboArgument.h"
@@ -26,7 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-BuildCommand::BuildCommand()
+BuildCommand::BuildCommand(App* app)
+	: m_app(app)
 {
 	SetName("build");
 	SetShortName("b");
@@ -42,7 +44,7 @@ BuildCommand::BuildCommand()
 	workspaceFile->SetExpectsExisting(true);
 	workspaceFile->SetRequired(true);
 	workspaceFile->SetPositional(true);
-	workspaceFile->SetOutput(&m_workspaceFile);
+	workspaceFile->SetOutput(&m_workspaceFilePath);
 	RegisterArgument(workspaceFile);
 
 	CommandFlagArgument* rebuild = new CommandFlagArgument();
@@ -80,9 +82,7 @@ BuildCommand::BuildCommand()
 }
 
 bool BuildCommand::Invoke(CommandLineParser* parser)
-{
-	// todo
-
+{	
 	return true;
 }
 

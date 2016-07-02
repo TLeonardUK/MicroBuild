@@ -18,6 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "App/Workspace/WorkspaceFile.h"
+#include "App/Project/ProjectFile.h"
+
 namespace MicroBuild {
 
 // Base class for all IDE targets.
@@ -25,9 +28,25 @@ class IdeType
 {
 public:
 
+	IdeType();
+
+	// Gets the short-named use on the command line and in config files
+	// to refer to this IDE.
+	std::string GetShortName();
+
+	// Takes a fully resolved workspace file and generates the project
+	// files it defines.
+	virtual bool Generate(
+		WorkspaceFile& workspaceFile, 
+		std::vector<ProjectFile>& projectFiles) = 0;
+
 protected:
 
+	void SetShortName(const std::string& value);
+
 private:
+
+	std::string m_shortName;
 
 };
 

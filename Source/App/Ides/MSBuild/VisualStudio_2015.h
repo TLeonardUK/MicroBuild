@@ -27,6 +27,11 @@ class Ide_VisualStudio_2015
 	: public Ide_MSBuild
 {
 public:
+	Ide_VisualStudio_2015();
+
+	virtual bool Generate(
+		WorkspaceFile& workspaceFile,
+		std::vector<ProjectFile>& projectFiles) override;
 
 protected:
 

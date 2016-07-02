@@ -27,7 +27,7 @@ class Ide_MSBuild
 	: public IdeType
 {
 public:
-
+	
 protected:
 
 private:

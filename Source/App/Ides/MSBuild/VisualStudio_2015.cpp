@@ -18,3 +18,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Ides/MSBuild/VisualStudio_2015.h"
+
+namespace MicroBuild {
+
+Ide_VisualStudio_2015::Ide_VisualStudio_2015()
+{
+	SetShortName("vs2015");
+}
+
+bool Ide_VisualStudio_2015::Generate(
+	WorkspaceFile& workspaceFile,
+	std::vector<ProjectFile>& projectFiles)
+{
+
+
+	return true;
+}
+
+}; // namespace MicroBuild

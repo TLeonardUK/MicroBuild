@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Core/Config/ConfigFile.h"
 #include "Core/Helpers/Time.h"
+#include "Core/Helpers/Strings.h"
 
 namespace MicroBuild {
 
@@ -43,17 +44,17 @@ App::App(int argc, char* argv[])
 	, m_argv(argv)
 	, m_commandLineParser(MB_NAME, MB_DESCRIPTION, MB_COPYRIGHT)
 {
-	m_commandLineParser.RegisterCommand(new GenerateCommand());
-	m_commandLineParser.RegisterCommand(new BuildCommand());
-	m_commandLineParser.RegisterCommand(new DeployCommand());
-	m_commandLineParser.RegisterCommand(new CleanCommand());
-	m_commandLineParser.RegisterCommand(new HelpCommand());
-	m_commandLineParser.RegisterCommand(new VersionCommand());
-
 	m_ides.push_back(new Ide_VisualStudio_2015());
 
 	m_platforms.push_back(new Platform_Windows_x86());
 	m_platforms.push_back(new Platform_Windows_x64());
+
+	m_commandLineParser.RegisterCommand(new GenerateCommand(this));
+	m_commandLineParser.RegisterCommand(new BuildCommand(this));
+	m_commandLineParser.RegisterCommand(new DeployCommand(this));
+	m_commandLineParser.RegisterCommand(new CleanCommand(this));
+	m_commandLineParser.RegisterCommand(new HelpCommand(this));
+	m_commandLineParser.RegisterCommand(new VersionCommand(this));
 }
 
 App::~App()
@@ -71,24 +72,30 @@ App::~App()
 	m_ides.clear();
 }
 
-int App::Run()
+std::vector<IdeType*> App::GetIdes() const
 {
-	{
-		Time::TimedScope scope("Iteration Test");
+	return m_ides;
+}
 
-		//for (int i = 0; i < 10000; i++)
+std::vector<PlatformType*> App::GetPlatforms() const
+{
+	return m_platforms;
+}
+
+IdeType* App::GetIdeByShortName(const std::string& shortName) const
+{
+	for (IdeType* type : m_ides)
+	{
+		if (Strings::CaseInsensitiveEquals(shortName, type->GetShortName()))
 		{
-			ConfigFile file;
-			if (file.Parse("D:/Perforce/TLeonard_Main/TLeonard_Main/MicroBuild/Build/Workspace.ini"))
-			{
-				file.SetOrAddValue("", "SolutionDir", "ThisIsAFakeSolutionDir");
- 				file.SetOrAddValue("", "WorkspaceDir", "ThisIsAFakeWorkspaceDir$(Workspace.Name)");
-				file.Resolve();
-			}
+			return type;
 		}
 	}
+	return nullptr;
+}
 
-
+int App::Run()
+{
 	if (m_commandLineParser.Parse(m_argc, m_argv))
 	{
 		if (m_commandLineParser.HasCommands())

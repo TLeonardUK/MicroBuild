@@ -18,35 +18,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "Core/Commands/Command.h"
-#include "Core/Platform/Path.h"
-#include "App/Workspace/WorkspaceFile.h"
-#include "App/Project/ProjectFile.h"
+#include "Core/Config/ConfigFile.h"
 
 namespace MicroBuild {
 
-class App;
-
-// Generates a set of project files from the given workspace file.
-class GenerateCommand : public Command
+// Base config file that our project/workspace files are based off, used to
+// define various file-agnostic variables (host vars etc).
+class BaseConfigFile : public ConfigFile
 {
 public:
-	GenerateCommand(App* app);
+	BaseConfigFile();
+	~BaseConfigFile();
+
+	// Set the target configuration we are extracting data for.
+	void SetTargetConfiguration(const std::string& config);
+
+	// Set the target platform we are extracting data for.
+	void SetTargetPlatform(const std::string& platform);
+
+	// Set the target ide we are extracting data for.
+	void SetTargetIde(const std::string& ide);
+
+	virtual void Resolve() override;
 
 protected:
-	virtual bool Invoke(CommandLineParser* parser) override;
+
 
 private:
-	App* m_app;
-
+	std::string m_targetConfiguration;
+	std::string m_targetPlatform;
 	std::string m_targetIde;
-
-	WorkspaceFile m_workspaceFile;
-	std::vector<ProjectFile> m_projectFiles;
-
-	Platform::Path m_workspaceFilePath;
-
-	bool m_regenerate;
 
 };
 

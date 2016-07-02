@@ -43,10 +43,10 @@ std::vector<Path> Path::GetFiles() const
 		do
 		{
 			std::string Filename = Data.cFileName;
-			Path FullPath = m_cachedString + Seperator + Filename;
-
 			if (Filename != "." && Filename != "..")
 			{
+				Path FullPath = AppendFragment(Filename);
+
 				if (FullPath.IsFile())
 				{
 					Result.push_back(Filename);
@@ -75,10 +75,10 @@ std::vector<Path> Path::GetDirectories() const
 		do
 		{
 			std::string Filename = Data.cFileName;
-			Path FullPath = m_cachedString + Seperator + Filename;
-
 			if (Filename != "." && Filename != "..")
 			{
+				Path FullPath = AppendFragment(Filename);
+
 				if (FullPath.IsDirectory())
 				{
 					Result.push_back(Filename);
@@ -272,7 +272,6 @@ std::time_t Path::GetModifiedTime() const
 		return ull.QuadPart / 10000000ULL - 11644473600ULL;
 	}
 }
-
 
 }; // namespace Platform
 }; // namespace MicroBuild

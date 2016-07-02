@@ -22,16 +22,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+class App;
+
 // Prints out version information when invoked.
 class VersionCommand : public Command
 {
 public:
-	VersionCommand();
+	VersionCommand(App* app);
 
 protected:
 	virtual bool Invoke(CommandLineParser* parser) override;
 
 private:
+	App* m_app;
 
 };
 

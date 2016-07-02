@@ -59,6 +59,13 @@ public:
 	// same as GetName except in situations like multiple-option arguments.
 	virtual std::string ToString();
 
+	enum 
+	{
+		// How much padding the printed example string should have between
+		// the command and the description.
+		ExampleStringPadding = 25
+	};
+
 protected:
 	friend class CommandLineParser;
 

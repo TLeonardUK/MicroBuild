@@ -87,6 +87,10 @@ public:
 	// Returns a path with the same value but a different directory.
 	Path ChangeDirectory(const Path& Value) const;
 
+	// Appends a fragment to the path and returns it. This is a faster
+	// way of doing concatanation. 
+	Path AppendFragment(const std::string& Value) const;
+
 	// Returns a list of files in the directory this path points to.
 	std::vector<Path> GetFiles() const;
 
@@ -133,6 +137,15 @@ public:
 	// Creates a path that represents a relative reference from this path
 	// to the given destination path.
 	Path RelativeTo(const Path& Destination) const;
+
+	// Attempts to find all file or directories that match the given filter.
+	// Filters can use * for wildcards, and ** for recursive wildcards.
+	// eg. 
+	//	./MyFolder/*.ini 
+	//	./MyFolder/**/Project.ini
+	//	./**.ini
+	// Input path should be absolute.
+	static std::vector<Path> MatchFilter(const Path& path);
 
 };
 

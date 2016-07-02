@@ -97,11 +97,14 @@ struct ConfigFileValue
 	// Post resolve values.
 	bool HasResolvedValue;
 	std::string ResolvedValue;
+
+	bool HasResolvedCondition;
 	bool ConditionResult;
 
 	ConfigFileValue()
 		: HasResolvedValue(false)
 		, ConditionResult(true)
+		, HasResolvedCondition(false)
 	{
 	}
 };
@@ -110,14 +113,14 @@ struct ConfigFileValue
 struct ConfigFileKey
 {
 	std::string Name;
-	std::vector<ConfigFileValue> Values;
+	std::vector<ConfigFileValue*> Values;
 };
 
 // An individual group of config keys.
 struct ConfigFileGroup
 {
 	std::string Name;
-	std::map<std::string, ConfigFileKey> Keys;
+	std::map<std::string, ConfigFileKey*> Keys;
 };
 
 // Our base config file class. Implements a simple INI style file format.
@@ -142,7 +145,7 @@ public:
 
 	// Resolves all expression references and evaluates them. It also
 	// performs token replacement within values.
-	void Resolve();
+	virtual void Resolve();
 
 	// Gets all the values of a given key in the given group.
 	std::vector<std::string> GetValues(
@@ -177,6 +180,10 @@ protected:
 	bool ParseGroup();
 	bool ParseBlock();
 
+	bool EvaluateConditions(
+		std::vector<ConfigFileExpression>& conditions,
+		std::string groupName);
+
 	ConfigFileExpressionResult EvaluateExpression(
 		ConfigFileExpression& expression, 
 		const std::string& baseGroup);
@@ -190,6 +197,8 @@ protected:
 		const std::string& group,
 		std::string& result);
 
+	Platform::Path GetPath();
+
 private:
 	Platform::Path m_path;
 	FILE* m_file;
@@ -198,7 +207,7 @@ private:
 	int m_tokenIndex;
 
 	std::string m_currentGroup;
-	std::map<std::string, ConfigFileGroup> m_groups;
+	std::map<std::string, ConfigFileGroup*> m_groups;
 
 	std::vector<ConfigFileExpression> m_expressionStack;
 	

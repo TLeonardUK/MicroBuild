@@ -16,28 +16,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "PCH.h"
+#include "App/Project/ProjectFile.h"
 
 namespace MicroBuild {
 
-// Severity of the log message, determines color and what priority the log 
-// has for printing (based on -verbose flag). 
-enum class LogSeverity
+ProjectFile::ProjectFile()
 {
-	Verbose,
-	Info,
-	Fatal,
-	Warning,
-	Success
-};
+}
 
-// Toggles verbose logging, if on all LogSeverity::Verbose entries will be 
-// dumped, otherwise they will be omitted.
-void LogSetVerbose(bool bVerbose);
+ProjectFile::~ProjectFile()
+{
+}
 
-// Writes a log to stdout in the same style as printf. Seveirty determines
-// if it will be printed (based on -verbose flag) and what color it will be
-// printed in.
-void Log(LogSeverity severity, const char* format, ...);
+void ProjectFile::Resolve()
+{
+	SetOrAddValue("Project", "Directory", GetPath().GetDirectory().ToString());
+	SetOrAddValue("Project", "File", GetPath().ToString());
+
+	ConfigFile::Resolve();
+}
 
 }; // namespace MicroBuild

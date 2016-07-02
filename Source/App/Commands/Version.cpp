@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
+#include "App/App.h"
 #include "App/Commands/Version.h"
 
 #include "Core/Commands/CommandComboArgument.h"
@@ -26,10 +27,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-VersionCommand::VersionCommand()
+VersionCommand::VersionCommand(App* app)
+	: m_app(app)
 {
 	SetName("version");
-	SetShortName("v");
+	SetShortName("q");
 	SetDescription("Shows version and compile date information.");
 }
 

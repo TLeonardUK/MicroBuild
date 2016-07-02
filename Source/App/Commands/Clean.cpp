@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
+#include "App/App.h"
 #include "App/Commands/Clean.h"
 #include "Core/Commands/CommandLineParser.h"
 #include "Core/Commands/CommandComboArgument.h"
@@ -26,7 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-CleanCommand::CleanCommand()
+CleanCommand::CleanCommand(App* app)
+	: m_app(app)
 {
 	SetName("clean");
 	SetShortName("c");

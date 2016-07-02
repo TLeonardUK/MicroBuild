@@ -59,6 +59,8 @@ bool CommandComboArgument::ValidateAndSet(std::string value)
 
 	if (bExists)
 	{
+		*m_output = value;
+
 		return true;
 	}
 	else
@@ -66,8 +68,6 @@ bool CommandComboArgument::ValidateAndSet(std::string value)
 		Log(LogSeverity::Fatal,
 			"Invalid value '%s' for argument '%s'.\n",
 			value.c_str(), GetName().c_str());
-
-		*m_output = value;
 
 		return false;
 	}

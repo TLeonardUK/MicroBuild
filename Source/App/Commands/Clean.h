@@ -23,16 +23,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+class App;
+
 // Cleans all temporary intermediate files that have been previously generated.
 class CleanCommand : public Command
 {
 public:
-	CleanCommand();
+	CleanCommand(App* app);
 
 protected:
 	virtual bool Invoke(CommandLineParser* parser) override;
 
 private:
+	App* m_app;
+
 	Platform::Path m_workspaceFile;
 
 };

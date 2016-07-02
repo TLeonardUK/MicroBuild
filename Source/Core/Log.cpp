@@ -27,8 +27,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+bool g_logVerboseOn = false; 
+
+void LogSetVerbose(bool bVerbose)
+{
+	g_logVerboseOn = bVerbose;
+}
+
 void Log(LogSeverity severity, const char* format, ...)
 {
+	if (severity == LogSeverity::Verbose && !g_logVerboseOn)
+	{
+		return;
+	}
+
 	va_list list;
 	va_start(list, format);
 	std::string result = Strings::FormatVa(format, list);

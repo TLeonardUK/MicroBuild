@@ -17,27 +17,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
+#include "App/App.h"
+#include "App/Ides/IdeType.h"
 #include "App/Commands/Generate.h"
 #include "Core/Commands/CommandLineParser.h"
 #include "Core/Commands/CommandComboArgument.h"
 #include "Core/Commands/CommandPathArgument.h"
 #include "Core/Commands/CommandFlagArgument.h"
 
+#include "Core/Helpers/Time.h"
+
 namespace MicroBuild {
 
-GenerateCommand::GenerateCommand()
+GenerateCommand::GenerateCommand(App* app)
+	: m_app(app)
 {
 	SetName("generate");
 	SetShortName("g");
 	SetDescription("Generates project files for the given platform from "
 				   "the given workspace file.");
 
+	std::vector<std::string> ideOptions;
+	std::vector<IdeType*> ideTypes = m_app->GetIdes();
+	for (auto ide : ideTypes)
+	{
+		ideOptions.push_back(ide->GetShortName());
+	}
+
 	CommandComboArgument* targetIde = new CommandComboArgument();
 	targetIde->SetName("TargetIDE");
 	targetIde->SetShortName("t");
 	targetIde->SetDescription("The target IDE that project files should be "
 							  "generated for.");
-	targetIde->SetOptions({ "vs2015", "xcode4", "makefile" });
+	targetIde->SetOptions(ideOptions);
 	targetIde->SetRequired(true);
 	targetIde->SetPositional(true);
 	targetIde->SetOutput(&m_targetIde);
@@ -52,7 +64,7 @@ GenerateCommand::GenerateCommand()
 	workspaceFile->SetExpectsExisting(true);
 	workspaceFile->SetRequired(true);
 	workspaceFile->SetPositional(true);
-	workspaceFile->SetOutput(&m_workspaceFile);
+	workspaceFile->SetOutput(&m_workspaceFilePath);
 	RegisterArgument(workspaceFile);
 
 	CommandFlagArgument* regenerate = new CommandFlagArgument();
@@ -69,7 +81,60 @@ GenerateCommand::GenerateCommand()
 
 bool GenerateCommand::Invoke(CommandLineParser* parser)
 {
-	// todo
+	Time::TimedScope timingScope;
+
+	// Load the workspace.
+	if (m_workspaceFile.Parse(m_workspaceFilePath))
+	{
+		m_workspaceFile.Resolve();
+
+		// Load all projects.
+		std::vector<Platform::Path> projectPaths =
+			m_workspaceFile.GetProjectPaths();
+
+		m_projectFiles.resize(projectPaths.size());
+
+		for (unsigned int i = 0; i < projectPaths.size(); i++)
+		{
+			if (m_projectFiles[i].Parse(projectPaths[i]))
+			{
+				m_projectFiles[i].Resolve();
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+	else
+	{
+		return false;
+	}
+
+	// If we are regenerating, delete any existing files.
+	if (m_regenerate)
+	{
+		Log(LogSeverity::Info, 
+			"Performing full rebuilding, deleting old files.\n",
+			m_targetIde.c_str());
+		
+		// todo
+	}
+
+	// Find and generate project files for our chosen ide.
+	IdeType* type = m_app->GetIdeByShortName(m_targetIde);
+	assert(type != nullptr);
+
+	Log(LogSeverity::Info, "Generating project files for '%s'.\n", 
+		m_targetIde.c_str());
+
+	if (type->Generate(m_workspaceFile, m_projectFiles))
+	{
+		Log(LogSeverity::Info, "Finished generation in %.2f ms.\n",
+			timingScope.GetElapsed());
+
+		return true;
+	}
 
 	return true;
 }

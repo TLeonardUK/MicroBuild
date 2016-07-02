@@ -31,6 +31,22 @@ ConfigFile::ConfigFile()
 
 ConfigFile::~ConfigFile()
 {
+	for (auto& groupIter : m_groups)
+	{
+		for (auto& keyIter : groupIter.second->Keys)
+		{
+			for (auto& valueIter : keyIter.second->Values)
+			{
+				delete valueIter;
+			}
+
+			delete keyIter.second;
+		}
+
+		delete groupIter.second;
+	}
+
+	m_groups.clear();
 }
 
 bool ConfigFile::EndOfTokens()
@@ -146,10 +162,10 @@ bool ConfigFile::ParseGroup()
 	auto iter = m_groups.find(groupName);
 	if (iter == m_groups.end())
 	{
-		ConfigFileGroup group;
-		group.Name = groupName;
+		ConfigFileGroup* group = new ConfigFileGroup();
+		group->Name = groupName;
 		m_groups.insert(
-			std::pair<std::string, ConfigFileGroup>(groupName, group)
+			std::pair<std::string, ConfigFileGroup*>(groupName, group)
 		);
 	}
 
@@ -171,26 +187,26 @@ bool ConfigFile::ParseAssignment()
 		return false;
 	}
 
-	ConfigFileValue keyValue;
-	keyValue.Value = CurrentToken().Literal;
-	keyValue.Conditions = m_expressionStack;
-	keyValue.ConditionResult = true;
+	ConfigFileValue* keyValue = new ConfigFileValue();
+	keyValue->Value = CurrentToken().Literal;
+	keyValue->Conditions = m_expressionStack;
+	keyValue->ConditionResult = true;
 
-	ConfigFileGroup& group = m_groups[m_currentGroup];
+	ConfigFileGroup* group = m_groups[m_currentGroup];
 
-	auto iter = group.Keys.find(keyName);
-	if (iter == group.Keys.end())
+	auto iter = group->Keys.find(keyName);
+	if (iter == group->Keys.end())
 	{
-		ConfigFileKey key;
-		key.Name = keyName;
-		key.Values.push_back(keyValue);
-		group.Keys.insert(
-			std::pair<std::string, ConfigFileKey>(keyName, key)
+		ConfigFileKey* key = new ConfigFileKey();
+		key->Name = keyName;
+		key->Values.push_back(keyValue);
+		group->Keys.insert(
+			std::pair<std::string, ConfigFileKey*>(keyName, key)
 		);
 	}
 	else
 	{
-		iter->second.Values.push_back(keyValue);
+		iter->second->Values.push_back(keyValue);
 	}
 
 	return true;
@@ -491,10 +507,10 @@ bool ConfigFile::Parse(const Platform::Path& path)
 	m_expressionStack.clear();
 
 	// Insert the global group.
-	ConfigFileGroup globalGroup;
-	globalGroup.Name = "";
+	ConfigFileGroup* globalGroup = new ConfigFileGroup();
+	globalGroup->Name = "";
 	m_groups.insert(
-		std::pair<std::string, ConfigFileGroup>(globalGroup.Name, globalGroup)
+		std::pair<std::string, ConfigFileGroup*>(globalGroup->Name, globalGroup)
 	);
 
 	// Break the file down into tokens.
@@ -530,33 +546,33 @@ void ConfigFile::SetOrAddValue(
 	auto iter = m_groups.find(group);
 	if (iter == m_groups.end())
 	{
-		ConfigFileGroup newGroup;
-		newGroup.Name = group;
+		ConfigFileGroup* newGroup = new ConfigFileGroup();
+		newGroup->Name = group;
 		m_groups.insert(
-			std::pair<std::string, ConfigFileGroup>(newGroup.Name, newGroup)
+			std::pair<std::string, ConfigFileGroup*>(newGroup->Name, newGroup)
 		);
 	}
 
-	ConfigFileValue keyValue;
-	keyValue.Value = value;
-	keyValue.ConditionResult = true;
+	ConfigFileValue* keyValue = new ConfigFileValue();
+	keyValue->Value = value;
+	keyValue->ConditionResult = true;
 
-	ConfigFileGroup& realGroup = m_groups[group];
+	ConfigFileGroup* realGroup = m_groups[group];
 
 	// Create key if it dosesn't exist, otherwise add it.
-	auto keyIter = realGroup.Keys.find(key);
-	if (keyIter == realGroup.Keys.end())
+	auto keyIter = realGroup->Keys.find(key);
+	if (keyIter == realGroup->Keys.end())
 	{
-		ConfigFileKey newKey;
-		newKey.Name = key;
-		newKey.Values.push_back(keyValue);
-		realGroup.Keys.insert(
-			std::pair<std::string, ConfigFileKey>(newKey.Name, newKey)
+		ConfigFileKey* newKey = new ConfigFileKey();
+		newKey->Name = key;
+		newKey->Values.push_back(keyValue);
+		realGroup->Keys.insert(
+			std::pair<std::string, ConfigFileKey*>(newKey->Name, newKey)
 		);
 	}
 	else
 	{
-		keyIter->second.Values.push_back(keyValue);
+		keyIter->second->Values.push_back(keyValue);
 	}
 }
 
@@ -584,33 +600,40 @@ bool ConfigFile::ResolveTokenReplacement(
 	auto iter = m_groups.find(finalGroup);
 	if (iter != m_groups.end())
 	{
-		ConfigFileGroup& newGroup = iter->second;
-		auto keyIter = newGroup.Keys.find(finalKey);
+		ConfigFileGroup* newGroup = iter->second;
+		auto keyIter = newGroup->Keys.find(finalKey);
 		
 		// If key is not in the group we are in, and group was not
 		// explicitly set, then try and find it in the global scope.
-		if (keyIter == newGroup.Keys.end() && !bIsExplicitGroup)
+		if (keyIter == newGroup->Keys.end() && !bIsExplicitGroup)
 		{
-			newGroup = m_groups[""];
-			keyIter = newGroup.Keys.find(finalKey);
+			newGroup = m_groups.at("");
+			keyIter = newGroup->Keys.find(finalKey);
 		}
-
-		if (keyIter != newGroup.Keys.end())
+		
+		if (keyIter != newGroup->Keys.end())
 		{
-			for (ConfigFileValue& value : keyIter->second.Values)
+			for (ConfigFileValue* value : keyIter->second->Values)
 			{
-				if (value.ConditionResult)
+				if (!value->HasResolvedCondition)
 				{
-					if (!value.HasResolvedValue)
+					value->HasResolvedCondition = true;
+					value->ConditionResult = EvaluateConditions(
+						value->Conditions, newGroup->Name);
+				}
+
+				if (value->ConditionResult)
+				{
+					if (!value->HasResolvedValue)
 					{
-						value.HasResolvedValue = true;
-						value.ResolvedValue = ReplaceTokens(
-							value.Value,
-							newGroup.Name
+						value->HasResolvedValue = true;
+						value->ResolvedValue = ReplaceTokens(
+							value->Value,
+							newGroup->Name
 						);
 					}
 
-					result = value.ResolvedValue;
+					result = value->ResolvedValue;
 
 					return true;
 				}
@@ -678,17 +701,21 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 	{
 	case TokenType::Expression:
 		{
+			assert(expression.Children.size() == 1);
 			result = EvaluateExpression(expression.Children[0], baseGroup);
 			break;
 		}
 	case TokenType::Not:
 		{
+			assert(expression.Children.size() == 1);
 			result = EvaluateExpression(expression.Children[0], baseGroup);
 			result = !result.ToBool();
 			break;
 		}
 	case TokenType::Greater:
 		{
+			assert(expression.Children.size() == 2);
+
 			ConfigFileExpressionResult lValueResult =
 				EvaluateExpression(expression.Children[0], baseGroup);
 			ConfigFileExpressionResult rValueResult =
@@ -700,6 +727,8 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 		}
 	case TokenType::GreaterEqual:
 		{
+			assert(expression.Children.size() == 2);
+
 			ConfigFileExpressionResult lValueResult =
 				EvaluateExpression(expression.Children[0], baseGroup);
 			ConfigFileExpressionResult rValueResult =
@@ -711,6 +740,8 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 		}
 	case TokenType::Less:
 		{
+			assert(expression.Children.size() == 2);
+
 			ConfigFileExpressionResult lValueResult =
 				EvaluateExpression(expression.Children[0], baseGroup);
 			ConfigFileExpressionResult rValueResult =
@@ -722,6 +753,8 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 		}
 	case TokenType::LessEqual:
 		{
+			assert(expression.Children.size() == 2);
+
 			ConfigFileExpressionResult lValueResult =
 				EvaluateExpression(expression.Children[0], baseGroup);
 			ConfigFileExpressionResult rValueResult =
@@ -733,6 +766,8 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 		}
 	case TokenType::Equal:
 		{
+			assert(expression.Children.size() == 2);
+
 			ConfigFileExpressionResult lValueResult =
 				EvaluateExpression(expression.Children[0], baseGroup);
 			ConfigFileExpressionResult rValueResult =
@@ -744,6 +779,8 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 		}
 	case TokenType::NotEqual:
 		{
+			assert(expression.Children.size() == 2);
+
 			ConfigFileExpressionResult lValueResult =
 				EvaluateExpression(expression.Children[0], baseGroup);
 			ConfigFileExpressionResult rValueResult =
@@ -755,6 +792,8 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 		}
 	case TokenType::And:
 		{
+			assert(expression.Children.size() == 2);
+
 			ConfigFileExpressionResult lValueResult =
 				EvaluateExpression(expression.Children[0], baseGroup);
 			ConfigFileExpressionResult rValueResult =
@@ -766,6 +805,8 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 		}
 	case TokenType::Or:
 		{
+			assert(expression.Children.size() == 2);
+
 			ConfigFileExpressionResult lValueResult = 
 				EvaluateExpression(expression.Children[0], baseGroup);
 			ConfigFileExpressionResult rValueResult =
@@ -777,9 +818,14 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 		}
 	case TokenType::Literal:
 		{
+			assert(expression.Children.size() == 0);
+
+			assert((int)expression.Operator != 0xdddddddd);
 			bool ret = ResolveTokenReplacement(
 				expression.Value, baseGroup, result.Result
 			);
+			assert((int)expression.Operator != 0xdddddddd);
+
 
 			if (!ret)
 			{
@@ -798,6 +844,24 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 	return result;
 }
 
+bool ConfigFile::EvaluateConditions(
+	std::vector<ConfigFileExpression>& conditions, 
+	std::string groupName)
+{
+	bool bResult = true;
+
+	for (ConfigFileExpression& cond : conditions)
+	{
+		if (!EvaluateExpression(cond, groupName).ToBool())
+		{
+			bResult = false;
+			break;
+		}
+	}
+
+	return bResult;
+}
+
 void ConfigFile::Resolve()
 {
 	// Go through each key value and do token replacement.
@@ -807,13 +871,14 @@ void ConfigFile::Resolve()
 				m_path.ToString().c_str())
 			);
 
-		for (auto groupIter : m_groups)
+		for (auto& groupIter : m_groups)
 		{
-			for (auto keyIter : groupIter.second.Keys)
+			for (auto& keyIter : groupIter.second->Keys)
 			{
-				for (auto valueIter : keyIter.second.Values)
+				for (auto& valueIter : keyIter.second->Values)
 				{
-					valueIter.HasResolvedValue = false;
+					valueIter->HasResolvedValue = false;
+					valueIter->HasResolvedCondition = false;
 				}
 			}
 		}
@@ -822,25 +887,23 @@ void ConfigFile::Resolve()
 	// Evaluate each expression.
 	{
 		Time::TimedScope scope(
-			Strings::Format("[%s] Expression Evaluation", 
+			Strings::Format("[%s] Expression Evaluation",
 				m_path.ToString().c_str())
-		);
+			);
 
-		for (auto groupIter : m_groups)
+		for (auto& groupIter : m_groups)
 		{
-			for (auto keyIter : groupIter.second.Keys)
+			for (auto& keyIter : groupIter.second->Keys)
 			{
-				for (auto valueIter : keyIter.second.Values)
+				for (auto& valueIter : keyIter.second->Values)
 				{
-					valueIter.ConditionResult = true;
-
-					for (auto cond : valueIter.Conditions)
+					if (!valueIter->HasResolvedCondition)
 					{
-						if (!EvaluateExpression(cond, groupIter.second.Name)
-							.ToBool())
-						{
-							valueIter.ConditionResult = false;
-						}
+						valueIter->HasResolvedCondition = true;
+						valueIter->ConditionResult = EvaluateConditions(
+							valueIter->Conditions,
+							groupIter.second->Name
+						);
 					}
 				}
 			}
@@ -854,25 +917,24 @@ void ConfigFile::Resolve()
 				m_path.ToString().c_str())
 			);
 
-		for (auto groupIter : m_groups)
+		for (auto& groupIter : m_groups)
 		{
-			for (auto keyIter : groupIter.second.Keys)
+			for (auto& keyIter : groupIter.second->Keys)
 			{
-				for (auto valueIter : keyIter.second.Values)
+				for (auto& valueIter : keyIter.second->Values)
 				{
-					if (!valueIter.HasResolvedValue)
+					if (!valueIter->HasResolvedValue)
 					{
-						valueIter.HasResolvedValue = true;
-						valueIter.ResolvedValue = ReplaceTokens(
-							valueIter.Value,
-							groupIter.second.Name
-							);
+						valueIter->HasResolvedValue = true;
+						valueIter->ResolvedValue = ReplaceTokens(
+							valueIter->Value,
+							groupIter.second->Name
+						);
 					}
 				}
 			}
 		}
 	}
-
 }
 
 std::vector<std::string> ConfigFile::GetValues(
@@ -884,21 +946,26 @@ std::vector<std::string> ConfigFile::GetValues(
 	auto iter = m_groups.find(group);
 	if (iter != m_groups.end())
 	{
-		ConfigFileGroup& newGroup = iter->second;
-		auto keyIter = newGroup.Keys.find(key);
-		if (keyIter != newGroup.Keys.end())
+		ConfigFileGroup* newGroup = iter->second;
+		auto keyIter = newGroup->Keys.find(key);
+		if (keyIter != newGroup->Keys.end())
 		{
-			for (const ConfigFileValue& value : keyIter->second.Values)
+			for (const ConfigFileValue* value : keyIter->second->Values)
 			{
-				if (value.ConditionResult)
+				if (value->ConditionResult)
 				{
-					result.push_back(value.ResolvedValue);
+					result.push_back(value->ResolvedValue);
 				}
 			}
 		}
 	}
 
 	return result;
+}
+
+Platform::Path ConfigFile::GetPath()
+{
+	return m_path;
 }
 
 }; // namespace MicroBuild

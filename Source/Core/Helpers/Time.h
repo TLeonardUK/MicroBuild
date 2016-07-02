@@ -26,6 +26,12 @@ namespace Time {
 // Times the scope its contained within and prints out a log at the end.
 struct TimedScope
 {
+	TimedScope()
+	{
+		m_scope = "";
+		m_start = std::chrono::high_resolution_clock::now();
+	}
+
 	TimedScope(const std::string& name)
 	{
 		m_scope = name;
@@ -34,18 +40,27 @@ struct TimedScope
 
 	~TimedScope()
 	{
-		std::chrono::duration<long long, std::nano> elapsed = 
+		if (!m_scope.empty())
+		{
+			float elapsedMs = GetElapsed();
+
+			Log(LogSeverity::Verbose, "%s took %.2f ms.\n",
+				m_scope.c_str(), elapsedMs);
+		}
+	}
+
+	float GetElapsed()
+	{
+		std::chrono::duration<long long, std::nano> elapsed =
 			std::chrono::high_resolution_clock::now() - m_start;
 
-		float elapsedMs = elapsed.count() / 1000000.0f;
-
-		Log(LogSeverity::Verbose, "%s took %.2f ms.\n",
-			m_scope.c_str(), elapsedMs);
+		return elapsed.count() / 1000000.0f;
 	}
 
 private:
 	std::string m_scope;
 	std::chrono::time_point<std::chrono::steady_clock> m_start;
+
 };
 
 }; // namespace Time

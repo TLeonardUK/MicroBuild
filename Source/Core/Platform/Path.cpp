@@ -306,6 +306,38 @@ Path Path::ChangeDirectory(const Path& Value) const
 	return Result;
 }
 
+Path Path::AppendFragment(const std::string& Value) const
+{
+	Path Result = *this;
+
+	// Filename gets pushed into directory stack.
+	if (!Result.m_filename.empty() && !Result.m_extension.empty())
+	{
+		Result.m_directories.push_back(
+			Result.m_filename + "." + Result.m_extension
+		);
+	}
+
+	// Filename now becomes appended value.
+	size_t PeriodIndex = Value.find_last_of(".");
+	if (PeriodIndex != std::string::npos)
+	{
+		Strings::SplitOnIndex(Value, PeriodIndex,
+			Result.m_filename, Result.m_extension);
+	}
+	else
+	{
+		Result.m_filename = Value;
+		Result.m_extension = "";
+	}
+
+	Result.m_cachedString += Seperator;
+	Result.m_cachedString += Value;
+
+	return Result;
+}
+
+
 bool Path::IsEmpty() const
 {
 	return m_mount.empty() && m_filename.empty() 
@@ -350,7 +382,7 @@ Path Path::RelativeTo(const Path& Destination) const
 
 	// Work out which directories are matching.
 	int MatchingDirs = 0;
-	int MinDirCount = min(
+	size_t MinDirCount = min(
 		Destination.m_directories.size(), 
 		m_directories.size());
 
@@ -366,13 +398,13 @@ Path Path::RelativeTo(const Path& Destination) const
 		}
 	}
 
-	int DirsToGoUp = m_directories.size() - MatchingDirs;
+	size_t DirsToGoUp = m_directories.size() - MatchingDirs;
 	for (int i = 0; i < DirsToGoUp; i++)
 	{
 		Result.m_directories.push_back("..");
 	}
 
-	int DirsToAdd = Destination.m_directories.size() - MatchingDirs;
+	size_t DirsToAdd = Destination.m_directories.size() - MatchingDirs;
 	for (int i = 0; i < DirsToAdd; i++)
 	{
 		Result.m_directories.push_back(
@@ -382,6 +414,336 @@ Path Path::RelativeTo(const Path& Destination) const
 	Result.UpdateCachedString();
 
 	return Result;
+}
+
+struct PathMatchFragment
+{
+	Path full;
+	std::string remaining;
+};
+
+void MatchFilter_GetDirectories_r(const Path& base, std::vector<Path>& results)
+{
+	std::string seperatorString(1, Path::Seperator);
+	std::vector<Path> dirs = base.GetDirectories();
+	for (Path& path : dirs)
+	{
+		Path fullPath = base + seperatorString + path;
+		results.push_back(fullPath);
+		MatchFilter_GetDirectories_r(fullPath, results);
+	}
+}
+
+std::vector<Path> MatchFilter_r(
+	const Path& base, 
+	const std::vector<std::string>& matches)
+{
+	std::vector<Path> result;
+
+	std::string seperatorString(1, Path::Seperator);
+
+	std::string matchType = matches[0];
+	
+	// Nothing to match again? Game over.
+	if (matches.size() == 0)
+	{
+		result.push_back(base);
+		return result;
+	}
+
+	// Try and match up as much as possible.
+	else
+	{
+		std::vector<PathMatchFragment> potentialMatches;
+
+		std::vector<Path> dirs = base.GetDirectories();
+		std::vector<Path> files = base.GetFiles();
+		
+		for (Path& path : dirs)
+		{
+			PathMatchFragment frag;
+			frag.full = base + seperatorString + path;
+			frag.remaining = path.ToString();
+			potentialMatches.push_back(frag);
+		}
+
+		for (Path& path : files)
+		{
+			PathMatchFragment frag;
+			frag.full = base + seperatorString + path;
+			frag.remaining = path.ToString();
+			potentialMatches.push_back(frag);
+		}
+		
+		bool bFinished = false;
+
+		std::vector<std::string> matchStack(matches);
+		while (matchStack.size() > 0 && !bFinished)
+		{
+			std::string match = matchStack[0];
+			matchStack.erase(matchStack.begin());
+
+			// Non-recursive match.
+			if (match == "*")
+			{
+				// If we are at the end, or next is a directory, we can 
+				// just accept all potentials.
+				if (matchStack.size() == 0 || 
+					matchStack[0] == seperatorString)
+				{
+					for (unsigned int i = 0; i < potentialMatches.size(); i++)
+					{
+						PathMatchFragment& frag = potentialMatches[i];
+						frag.remaining = "";
+					}
+				}
+				else
+				{
+					std::string nextFragment = matchStack[0];
+
+					// Try and match up any potentials.
+					for (unsigned int i = 0; i < potentialMatches.size(); i++)
+					{
+						PathMatchFragment& frag = potentialMatches[i];
+						
+						size_t offset = frag.remaining.find(
+							nextFragment.c_str()
+						);
+
+						if (offset != std::string::npos)
+						{
+							frag.remaining.erase(
+								frag.remaining.begin(),
+								frag.remaining.begin() + offset);
+						}
+						else
+						{
+							potentialMatches.erase(potentialMatches.begin() + i);
+							i--;
+						}
+					}
+				}
+			}
+			
+			// Recursive match.
+			else if (match == "**")
+			{
+				// Get a list of all directories below this sub-directory, 
+				// try and perform a match for the reset of the stack on each
+				// of these directories.
+				std::vector<Path> dirs;
+
+				MatchFilter_GetDirectories_r(base, dirs);
+
+				// If we have a seperator next, we don't want
+				// to pass in the base path as matches have to be at least
+				// one directory level down.
+				if (matchStack.size() > 0 && 
+					matchStack[0] == seperatorString)
+				{
+					matchStack.erase(matchStack.begin());
+				}
+				else
+				{
+					dirs.push_back(base);
+				}
+
+				for (unsigned int i = 0; i < dirs.size(); i++)
+				{
+					std::vector<Path> subResult =
+						MatchFilter_r(dirs[i], matchStack);
+
+					for (Path& path : subResult)
+					{
+						result.push_back(path);
+					}
+				}
+
+				// No more matching at this level.
+				bFinished = true;
+			}
+
+			// Expected directory.
+			else if (match == seperatorString)
+			{
+				// Recurse into each directory.
+				for (unsigned int i = 0; i < potentialMatches.size(); i++)
+				{
+					PathMatchFragment& frag = potentialMatches[i];
+					if (frag.remaining.empty())
+					{						
+						if (frag.full.IsDirectory())
+						{
+							std::vector<Path> subResult = 
+								MatchFilter_r(frag.full, matchStack);
+
+							for (Path& subPath : subResult)
+							{
+								result.push_back(subPath);
+							}
+						}
+					}
+				}
+
+				// No more matching at this level.
+				bFinished = true;
+			}
+			
+			// Literal match.
+			else
+			{
+				for (unsigned int i = 0; i < potentialMatches.size(); i++) 
+				{
+					PathMatchFragment& frag = potentialMatches[i];
+
+					if (frag.remaining.size() >= match.size() &&
+						frag.remaining.substr(0, match.size()) == match)
+					{
+						frag.remaining.erase(
+							frag.remaining.begin(), 
+							frag.remaining.begin() + match.size());
+					}
+					else
+					{
+						potentialMatches.erase(potentialMatches.begin() + i);
+						i--;
+					}
+				}
+			}
+		}
+
+		// If we are not finished, but we are out of matches, see if any 
+		// potential matches are now empty.
+		if (!bFinished)
+		{
+			for (unsigned int i = 0; i < potentialMatches.size(); i++)
+			{
+				PathMatchFragment& frag = potentialMatches[i];
+				if (frag.remaining.empty())
+				{
+					result.push_back(frag.full);
+				}
+			}
+		}
+	}
+	
+	return result;
+}
+
+std::vector<Path> Path::MatchFilter(const Path& path)
+{
+	std::vector<std::string> matchStack;
+	std::string pathString = path.ToString();
+	size_t offset = 0;
+
+	std::vector<Path> result;
+
+	// No match filters, early-out.
+	if (path.ToString().find('*') == std::string::npos)
+	{
+		result.push_back(path);
+		return result;
+	}
+
+	// Split up into * ** and path fragments
+	while (offset < pathString.size())
+	{
+		size_t seperatorIndex = pathString.find_first_of(Seperator, offset);
+		size_t matchIndex = pathString.find_first_of('*', offset);
+
+		size_t splitIndex = seperatorIndex;
+		if (splitIndex == std::string::npos || 
+			matchIndex < seperatorIndex)
+		{
+			splitIndex = matchIndex;
+		}
+
+		if (splitIndex == std::string::npos)
+		{
+			matchStack.push_back(pathString.substr(offset));
+			break;
+		}
+		else
+		{
+			std::string split = pathString.substr(splitIndex, 1);
+
+			std::string fragment = pathString.substr(offset, splitIndex - offset);
+			if (!fragment.empty())
+			{
+				matchStack.push_back(fragment);
+			}
+
+			offset = splitIndex + 1;
+
+			if (split == "*")
+			{
+				if (*matchStack.rbegin() == "*" ||
+					*matchStack.rbegin() == "**")
+				{
+					Log(LogSeverity::Fatal, 
+						"Wildcard followed by another wildcard in value '%s', "
+						"this is ambiguous and cannot be expanded.", 
+						pathString.c_str());
+
+					return result;
+				}
+
+				if (offset < pathString.size())
+				{
+					if (pathString[offset] == '*')
+					{
+						split += "*";
+						offset++;
+					}
+				}
+			}
+
+			if (!split.empty())
+			{
+				matchStack.push_back(split);
+			}
+		}
+	}
+
+	// If we only have one split, we are done.
+	if (matchStack.size() == 1)
+	{
+		result.push_back(matchStack[0]);
+	}
+	else
+	{
+		// Start at the first directory before a match value.
+		unsigned int firstValidStartIndex = 0;
+		std::string seperatorString(1, Seperator);
+
+		for (unsigned int i = 0; i < matchStack.size(); i++)
+		{
+			std::string sub = matchStack[i];
+			if (sub == seperatorString)
+			{
+				firstValidStartIndex = i;
+			}
+			else if (sub == "*" || sub == "**")
+			{
+				break;
+			}
+		}
+
+		std::string subValue = "";
+		for (unsigned int i = 0; i <= firstValidStartIndex; i++)
+		{
+			subValue += matchStack[i];
+		}
+
+		matchStack.erase(
+			matchStack.begin(),
+			matchStack.begin() + (firstValidStartIndex + 1)
+		);
+
+		result = MatchFilter_r(subValue, matchStack);
+	}
+
+	return result;
 }
 
 }; // namespace Platform

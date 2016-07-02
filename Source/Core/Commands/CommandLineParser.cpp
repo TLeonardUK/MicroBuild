@@ -56,6 +56,14 @@ bool CommandLineParser::Parse(int argc, char* argv[])
 		{
 			const char* commandName = argv[i];
 
+			// Hard-coded options, bleh.
+			if (commandName == "-v" || 
+				commandName == "--verbose")
+			{
+				LogSetVerbose(true);
+				continue;
+			}
+
 			// Skip the - and -- at the start of the command name.
 			if (commandName == "-")
 			{
@@ -297,6 +305,15 @@ void CommandLineParser::PrintHelp()
 			}
 		}		
 	}
+
+	std::string verboseExampleString = "-v | --verbose";
+	while (verboseExampleString.size() < CommandArgumentBase::ExampleStringPadding)
+	{
+		verboseExampleString.push_back(' ');
+	}
+
+	Log(LogSeverity::Info, "\t%s\n",
+		verboseExampleString.c_str());
 }
 
 }; // namespace MicroBuild

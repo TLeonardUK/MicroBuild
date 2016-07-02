@@ -112,7 +112,7 @@ std::string CommandArgumentBase::GetExampleString(bool bWithDescription)
 			result += "=" + ToString();
 		}
 
-		while (result.size() < 25)
+		while (result.size() < ExampleStringPadding)
 		{
 			result.push_back(' ');
 		}

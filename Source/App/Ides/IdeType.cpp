@@ -16,28 +16,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "PCH.h"
+#include "App/Ides/IdeType.h"
 
 namespace MicroBuild {
 
-// Severity of the log message, determines color and what priority the log 
-// has for printing (based on -verbose flag). 
-enum class LogSeverity
+IdeType::IdeType()
+	: m_shortName("")
 {
-	Verbose,
-	Info,
-	Fatal,
-	Warning,
-	Success
-};
+}
 
-// Toggles verbose logging, if on all LogSeverity::Verbose entries will be 
-// dumped, otherwise they will be omitted.
-void LogSetVerbose(bool bVerbose);
+std::string IdeType::GetShortName()
+{
+	return m_shortName;
+}
 
-// Writes a log to stdout in the same style as printf. Seveirty determines
-// if it will be printed (based on -verbose flag) and what color it will be
-// printed in.
-void Log(LogSeverity severity, const char* format, ...);
+void IdeType::SetShortName(const std::string& value)
+{
+	m_shortName = value;
+}
 
-}; // namespace MicroBuild
+
+} // namespace MicroBuild

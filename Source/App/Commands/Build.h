@@ -20,22 +20,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Core/Commands/Command.h"
 #include "Core/Platform/Path.h"
+#include "App/Workspace/WorkspaceFIle.h"
 
 namespace MicroBuild {
+
+class App;
 
 // Builds the project files that have previously been generated.
 class BuildCommand : public Command
 {
 public:
-	BuildCommand();
+	BuildCommand(App* app);
 
 protected:
 	virtual bool Invoke(CommandLineParser* parser) override;
 
 private:
-	Platform::Path m_workspaceFile;
+	App* m_app;
+
+	WorkspaceFile m_workspaceFile;
+	Platform::Path m_workspaceFilePath;
+
 	std::string m_configuration;
 	std::string m_platform;
+
 	bool m_rebuild;
 
 };

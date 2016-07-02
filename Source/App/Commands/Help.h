@@ -22,16 +22,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+class App;
+
 // Prints out the help information.
 class HelpCommand : public Command
 {
 public:
-	HelpCommand();
+	HelpCommand(App* app);
 
 protected:
 	virtual bool Invoke(CommandLineParser* parser) override;
 
 private:
+	App* m_app;
 
 };
 

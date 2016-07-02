@@ -23,16 +23,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+class App;
+
 // Deploys a project for the given platform with the given configuration.
 class DeployCommand : public Command
 {
 public:
-	DeployCommand();
+	DeployCommand(App* app);
 
 protected:
 	virtual bool Invoke(CommandLineParser* parser) override;
 
 private:
+	App* m_app;
+
 	Platform::Path m_workspaceFile;
 	std::string m_configuration;
 	std::string m_platform;

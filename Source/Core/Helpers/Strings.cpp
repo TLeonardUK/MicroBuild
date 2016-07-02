@@ -136,7 +136,7 @@ bool ReadFile(const Platform::Path& path, std::string& output)
 		std::vector<char> data;
 		data.resize(length);
 
-		int ret = fread(data.data(), 1, length, file);
+		size_t ret = fread(data.data(), 1, length, file);
 		data.resize(ret);
 
 		fclose(file);
@@ -154,7 +154,7 @@ bool WriteFile(const Platform::Path& path, const std::string& data)
 	FILE* file = fopen(path.ToString().c_str(), "w");
 	if (file)
 	{
-		int ret = fwrite(data.c_str(), 1, data.size(), file);
+		size_t ret = fwrite(data.c_str(), 1, data.size(), file);
 		if (ret != data.size())
 		{
 			return false;
