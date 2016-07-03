@@ -29,10 +29,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Ides/IdeType.h"
 #include "App/Ides/MSBuild/VisualStudio_2015.h"
 
-#include "App/Platforms/PlatformType.h"
-#include "App/Platforms/Windows_x86/Windows_x86.h"
-#include "App/Platforms/Windows_x64/Windows_x64.h"
-
 #include "Core/Config/ConfigFile.h"
 #include "Core/Helpers/Time.h"
 #include "Core/Helpers/Strings.h"
@@ -45,9 +41,6 @@ App::App(int argc, char* argv[])
 	, m_commandLineParser(MB_NAME, MB_DESCRIPTION, MB_COPYRIGHT)
 {
 	m_ides.push_back(new Ide_VisualStudio_2015());
-
-	m_platforms.push_back(new Platform_Windows_x86());
-	m_platforms.push_back(new Platform_Windows_x64());
 
 	m_commandLineParser.RegisterCommand(new GenerateCommand(this));
 	m_commandLineParser.RegisterCommand(new BuildCommand(this));
@@ -63,23 +56,13 @@ App::~App()
 	{
 		delete type;
 	}
-	for (PlatformType* type : m_platforms)
-	{
-		delete type;
-	}
 
-	m_platforms.clear();
 	m_ides.clear();
 }
 
 std::vector<IdeType*> App::GetIdes() const
 {
 	return m_ides;
-}
-
-std::vector<PlatformType*> App::GetPlatforms() const
-{
-	return m_platforms;
 }
 
 IdeType* App::GetIdeByShortName(const std::string& shortName) const

@@ -62,5 +62,15 @@ std::string Format(std::string format, ...);
 // Formats the string with the given format and arguments.
 std::string FormatVa(std::string format, va_list list);
 
+// Hashes a string. Not particularly collision tolerant, but should be fine
+// for our purposes.
+unsigned int Hash(const std::string& value);
+
+// Trims whitespace from the start and end of a value.
+std::string Trim(const std::string& input);
+
+// Splits the string into fragments deliminated by the given seperator.
+std::vector<std::string> Split(char seperator, const std::string& value);
+
 }; // namespace StringHelper
 }; // namespace MicroBuild

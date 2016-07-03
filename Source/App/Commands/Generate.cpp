@@ -88,9 +88,14 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 	{
 		m_workspaceFile.Resolve();
 
+		if (!m_workspaceFile.Validate())
+		{
+			return false;
+		}
+
 		// Load all projects.
 		std::vector<Platform::Path> projectPaths =
-			m_workspaceFile.GetProjectPaths();
+			m_workspaceFile.Get_Projects_Project();
 
 		m_projectFiles.resize(projectPaths.size());
 
@@ -98,6 +103,7 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 		{
 			if (m_projectFiles[i].Parse(projectPaths[i]))
 			{
+				m_projectFiles[i].Merge(m_workspaceFile);
 				m_projectFiles[i].Resolve();
 			}
 			else

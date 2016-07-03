@@ -18,19 +18,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "App/Platforms/PlatformType.h"
+#include "Core/Platform/Path.h"
+
+#include <sstream>
 
 namespace MicroBuild {
 
-// Platform target for native windows 32 bit.
-class Platform_Windows_x86
-	: public PlatformType
+// This class provides a nice wrapper interface for reading and writing
+// text data to files/string output.
+class TextStream
 {
 public:
+	TextStream();
+	~TextStream();
 
-protected:
+	void Indent();
+	void Undent();
+
+	void Write(const char* format, ...);
+	void WriteLine(const char* format, ...);
+
+	bool WriteToFile(Platform::Path& path);
 
 private:
+	int m_indentLevel;
+	std::stringstream m_stream;
 
 };
 

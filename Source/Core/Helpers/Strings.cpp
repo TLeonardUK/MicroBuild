@@ -202,5 +202,86 @@ std::string FormatVa(std::string format, va_list args)
 	return result;
 }
 
+unsigned int Hash(const std::string& value)
+{
+	unsigned int hash = 0;
+	const char* Value = value.c_str();
+
+	for (; *Value; ++Value)
+	{
+		hash += *Value;
+		hash += (hash << 10);
+		hash ^= (hash >> 6);
+	}
+
+	hash += (hash << 3);
+	hash ^= (hash >> 11);
+	hash += (hash << 15);
+
+	return hash;
+}
+
+std::string Trim(const std::string& input)
+{
+	if (input.size() == 0)
+	{
+		return "";
+	}
+
+	size_t startIndex = 0;
+	while (startIndex < input.size())
+	{
+		if (input[startIndex] == ' ' || input[startIndex] == '\t')
+		{
+			startIndex++;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	size_t endIndex = input.size() - 1;
+	while (endIndex >= startIndex)
+	{
+		if (input[endIndex] == ' ' || input[endIndex] == '\t')
+		{
+			endIndex--;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return input.substr(startIndex, (endIndex - startIndex) + 1);
+}
+
+std::vector<std::string> Split(char seperator, const std::string& value)
+{
+	std::vector<std::string> result;
+
+	size_t offset = 0;
+	while (offset < value.size())
+	{
+		size_t endOffset = value.find(seperator, offset);
+		if (endOffset != std::string::npos)
+		{
+			std::string frag = value.substr(offset, endOffset - offset);
+			result.push_back(Trim(frag));
+
+			offset = endOffset + 1;
+		}
+		else
+		{
+			std::string frag = value.substr(offset);
+			result.push_back(Trim(frag));
+			break;
+		}
+	}
+
+	return result;
+}
+
 }; // namespace Strings
 }; // namespace MicroBuild

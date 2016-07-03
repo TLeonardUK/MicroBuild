@@ -38,9 +38,6 @@ public:
 	// Gets a list of all supported ides we can generated files for.
 	std::vector<IdeType*> GetIdes() const;
 
-	// Gets a list of all supported platforms we can generated files for.
-	std::vector<PlatformType*> GetPlatforms() const;
-
 	// Gets an ide given its short name.
 	IdeType* GetIdeByShortName(const std::string& shortName) const;
 
@@ -53,7 +50,6 @@ private:
 	int m_argc;
 
 	std::vector<IdeType*> m_ides;
-	std::vector<PlatformType*> m_platforms;
 
 }; 
 

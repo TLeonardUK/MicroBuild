@@ -434,6 +434,8 @@ void MatchFilter_GetDirectories_r(const Path& base, std::vector<Path>& results)
 	}
 }
 
+// todo: support .. and .
+
 std::vector<Path> MatchFilter_r(
 	const Path& base, 
 	const std::vector<std::string>& matches)

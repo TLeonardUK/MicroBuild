@@ -37,7 +37,7 @@ VersionCommand::VersionCommand(App* app)
 
 bool VersionCommand::Invoke(CommandLineParser* parser)
 {
-	Log(LogSeverity::Info, "Version %s\n", MB_VERSION);
+	Log(LogSeverity::Info, "Version %.2f\n", MB_VERSION);
 	Log(LogSeverity::Info, "Compiled on %s\n", MB_COMPILE_DATE);
 	return true;
 }

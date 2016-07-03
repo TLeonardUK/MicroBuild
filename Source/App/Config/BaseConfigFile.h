@@ -19,8 +19,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "Core/Config/ConfigFile.h"
+#include "Core/Helpers/Strings.h"
+#include "Core/Helpers/StringConverter.h"
 
 namespace MicroBuild {
+
+#define SCHEMA_FILE "App/Config/BaseSchema.inc"
+#define SCHEMA_CLASS BaseConfigFile
+#include "App/Config/SchemaGlobalDecl.h"
+#undef SCHEMA_FILE
+#undef SCHEMA_CLASS
 
 // Base config file that our project/workspace files are based off, used to
 // define various file-agnostic variables (host vars etc).
@@ -30,24 +38,40 @@ public:
 	BaseConfigFile();
 	~BaseConfigFile();
 
-	// Set the target configuration we are extracting data for.
-	void SetTargetConfiguration(const std::string& config);
-
-	// Set the target platform we are extracting data for.
-	void SetTargetPlatform(const std::string& platform);
-
-	// Set the target ide we are extracting data for.
-	void SetTargetIde(const std::string& ide);
-
 	virtual void Resolve() override;
+
+	// Shows a validation error.
+	void ValidateError(const char* format, ...) const;
 
 protected:
 
+	// If path is relative it is made absolute based on the workspace file 
+	// path, otherwise it is returned as-is.
+	Platform::Path ResolvePath(Platform::Path& value) const;
+
+	// Validates this configuration file works with this version of microbuild.
+	bool ValidateVersion(std::vector<std::string>& values) const;
+
+	// Expands any wildcard filters in the given path list.
+	bool ExpandPaths(std::vector<std::string>& options) const;
+
+	// Validates that all the values in the given array are also in 
+	// the optins arrays.
+	bool ValidateOptions(
+		std::vector<std::string>& values,
+		std::vector<std::string>& options,
+		std::string& group,
+		std::string& key) const;
 
 private:
-	std::string m_targetConfiguration;
-	std::string m_targetPlatform;
-	std::string m_targetIde;
+
+#define SCHEMA_FILE "App/Config/BaseSchema.inc"
+#define SCHEMA_CLASS BaseConfigFile
+#define SCHEMA_IS_BASE1
+#include "App/Config/SchemaDecl.h"
+#undef SCHEMA_FILE
+#undef SCHEMA_CLASS
+#undef SCHEMA_IS_BASE
 
 };
 

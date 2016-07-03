@@ -1,0 +1,37 @@
+R"(
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2015
+{% for project in projects %}
+Project("{% project.guid %}") = "{% project.name %}", "{% project.location %}", "{% project.parentGuid %}"
+EndProject
+{% end %}
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+{% for config in configurations %}
+{% for platform in platforms %}
+		{% config.id %}|{% platform.id %} = {% config.id %}|{% platform.id %}
+{% end %}
+{% end %}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+{% for project in projects %}
+{% for config in configurations %}
+{% for platform in platforms %}
+		{% project.guid %}.{% config.id %}|{% platform.id %}.ActiveCfg = {% config.id %}|{% platform.id %}
+		{% project.guid %}.{% config.id %}|{% platform.id %}.Build.0 = {% config.id %}|{% platform.id %}
+{% end %}
+{% end %}
+{% end %}
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = {% hideSolutionNode %}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+{% for project in nestedProjects %}
+		{% project.parentGuid %} = {% project.guid %}
+{% end %}
+	EndGlobalSection
+EndGlobal
+
+)"

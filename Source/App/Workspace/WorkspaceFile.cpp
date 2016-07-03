@@ -29,50 +29,18 @@ WorkspaceFile::~WorkspaceFile()
 {
 }
 
-std::vector<std::string> WorkspaceFile::GetConfigurations()
-{
-	return GetValues("Configurations", "Configuration");
-}
-
-std::vector<std::string> WorkspaceFile::GetPlatform()
-{
-	return GetValues("Platforms", "Platform");
-}
-
-std::vector<Platform::Path> WorkspaceFile::GetProjectPaths()
-{
-	std::vector<std::string> values = GetValues("Projects", "Project");
-	std::vector<Platform::Path> result;
-	for (std::string val : values)
-	{
-		Platform::Path path = val;
-
-		std::vector<Platform::Path> matches = 
-			Platform::Path::MatchFilter(ResolvePath(path));
-
-		result.insert(result.begin(), matches.begin(), matches.end()); 
-	}
-	return result;	 
-}
-
-Platform::Path WorkspaceFile::ResolvePath(Platform::Path& value)
-{
-	if (value.IsAbsolute())
-	{
-		return value;
-	}
-	else
-	{
-		return GetPath() + std::string(1, Platform::Path::Seperator) + value;
-	}
-}
-
 void WorkspaceFile::Resolve()
 {
-	SetOrAddValue("Workspace", "Directory", GetPath().GetDirectory().ToString());
-	SetOrAddValue("Workspace", "File", GetPath().ToString());
+	Set_Workspace_Directory(GetPath().GetDirectory());
+	Set_Workspace_File(GetPath());
 
-	ConfigFile::Resolve();
+	BaseConfigFile::Resolve();
 }
+
+#define SCHEMA_FILE "App/Workspace/WorkspaceSchema.inc"
+#define SCHEMA_CLASS WorkspaceFile
+#include "App/Config/SchemaImpl.h"
+#undef SCHEMA_FILE
+#undef SCHEMA_CLASS
 
 }; // namespace MicroBuild

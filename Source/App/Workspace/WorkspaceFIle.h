@@ -20,9 +20,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "App/Workspace/WorkspaceFile.h"
 #include "Core/Platform/Path.h"
+#include "Core/Helpers/Strings.h"
 #include "App/Config/BaseConfigFile.h"
 
 namespace MicroBuild {
+
+#define SCHEMA_FILE "App/Workspace/WorkspaceSchema.inc"
+#define SCHEMA_CLASS WorkspaceFile
+#include "App/Config/SchemaGlobalDecl.h"
+#undef SCHEMA_FILE
+#undef SCHEMA_CLASS
 
 // Stores and manages a configuration file for a workspace config file.
 class WorkspaceFile : public BaseConfigFile
@@ -31,25 +38,17 @@ public:
 	WorkspaceFile();
 	~WorkspaceFile();
 
-	// Gets all build configurations defined by this workspace file.
-	std::vector<std::string> GetConfigurations();
-
-	// Gets all build platforms defined by this workspace file.
-	std::vector<std::string> GetPlatform();
-
-	// Gets all the project files that were referenced by this workspace file.
-	std::vector<Platform::Path> GetProjectPaths();
-
 	virtual void Resolve() override;
 
 protected:
-	
-	// If path is relative it is made absolute based on the workspace file 
-	// path, otherwise it is returned as-is.
-	Platform::Path ResolvePath(Platform::Path& value);
 
 private:
 
+#define SCHEMA_FILE "App/Workspace/WorkspaceSchema.inc"
+#define SCHEMA_CLASS WorkspaceFile
+#include "App/Config/SchemaDecl.h"
+#undef SCHEMA_FILE
+#undef SCHEMA_CLASS
 
 };
 

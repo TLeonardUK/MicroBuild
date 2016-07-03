@@ -141,7 +141,15 @@ public:
 	void SetOrAddValue(
 		const std::string& group,
 		const std::string& key,
-		const std::string& value); 
+		const std::string& value,
+		bool bOverwrite = false); 
+
+	// Sets or adds all the values to the group with the given name.
+	void SetOrAddValue(
+		const std::string& group,
+		const std::string& key,
+		const std::vector<std::string>& value,
+		bool bOverwrite = false);
 
 	// Resolves all expression references and evaluates them. It also
 	// performs token replacement within values.
@@ -152,7 +160,25 @@ public:
 		const std::string& group, 
 		const std::string& key);
 
+	// Same as GetValues except only gets the first value.
+	std::string GetValue(
+		const std::string& group,
+		const std::string& key);
+
+	// Same as GetValue except returns default if not defined.
+	std::string GetValue(
+		const std::string& group,
+		const std::string& key,
+		const std::string& defValue);
+
 protected:
+
+	std::vector<ConfigFileValue*> SetOrAddValue_Internal(
+		const std::string& group,
+		const std::string& key,
+		const std::vector<std::string>& values,
+		bool bOverwrite = false);
+
 	void Error(const Token& token, const char* format, ...);
 
 	void UnexpectedToken(const Token& tok);
@@ -197,7 +223,7 @@ protected:
 		const std::string& group,
 		std::string& result);
 
-	Platform::Path GetPath();
+	Platform::Path GetPath() const;
 
 private:
 	Platform::Path m_path;

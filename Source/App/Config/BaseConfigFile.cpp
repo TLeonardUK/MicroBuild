@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Config/BaseConfigFile.h"
+#include "Core/Helpers/Strings.h"
 
 namespace MicroBuild {
 
@@ -29,44 +30,132 @@ BaseConfigFile::~BaseConfigFile()
 {
 }
 
-void BaseConfigFile::SetTargetConfiguration(const std::string& config)
-{
-	m_targetConfiguration = config;
-}
-
-void BaseConfigFile::SetTargetPlatform(const std::string& platform)
-{
-	m_targetPlatform = platform;
-}
-
-void BaseConfigFile::SetTargetIde(const std::string& ide)
-{
-	m_targetIde = ide;
-}
-
 void BaseConfigFile::Resolve()
 {
 	// Host settings.
 #if defined(MB_PLATFORM_WINDOWS)
-	SetOrAddValue("Host", "Platform", "Windows");
+	Set_Host_Platform(EHostPlatform::Windows);
 #elif defined(MB_PLATFORM_LINUX)
-	SetOrAddValue("Host", "Platform", "Linux");
+	Set_Host_Platform(EHostPlatform::Linux);
 #elif defined(MB_PLATFORM_MACOS)
-	SetOrAddValue("Host", "Platform", "MacOS");
+	Set_Host_Platform(EHostPlatform::MacOS);
 #else
 	#error Unimplemented platform.
 #endif
 
-	// Target settings
-	SetOrAddValue("Target", "Ide", m_targetIde  );
-	SetOrAddValue("Target", "Platform", m_targetPlatform);
-	SetOrAddValue("Target", "Configuration", m_targetConfiguration);
-
-	// Environment settings.
-	// todo
-	//SetOrAddValue("Environment", "WorkingDir", Path::GetWorkingDir());
-
 	ConfigFile::Resolve();
 }
+
+Platform::Path BaseConfigFile::ResolvePath(Platform::Path& value) const
+{
+	if (value.IsAbsolute())
+	{
+		return value;
+	}
+	else
+	{
+		return GetPath() + std::string(1, Platform::Path::Seperator) + value;
+	}
+}
+
+void BaseConfigFile::ValidateError(const char* format, ...) const
+{
+	va_list list;
+	va_start(list, format);
+
+	std::string message = Strings::FormatVa(format, list);
+
+	va_end(list);
+
+	std::string value = Strings::Format("%s: %s\n",
+		GetPath().ToString().c_str(),
+		message.c_str());
+
+	Log(LogSeverity::Fatal, "%s", value.c_str());
+}
+
+bool BaseConfigFile::ValidateVersion(std::vector<std::string>& values) const
+{
+	if (values.size() >= 1)
+	{
+		float version = (float)atof(values[0].c_str());
+		if (version > MB_VERSION)
+		{
+			ValidateError(
+				"Requires version %.2f of MicroBuild to use.",
+				version);
+
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+	return true;
+}
+
+bool BaseConfigFile::ExpandPaths(std::vector<std::string>& values) const
+{
+	std::vector<std::string> expanded; 
+	for (std::string& val : values) 
+	{ 
+		Platform::Path path = val; 
+		
+		std::vector<Platform::Path> matches = 
+			Platform::Path::MatchFilter(ResolvePath(path)); 
+		
+		for (Platform::Path& path : matches) 
+		{ 
+			expanded.push_back(path.ToString()); 
+		} 
+	} 
+	
+	values = expanded;
+
+	return true;
+}
+
+bool BaseConfigFile::ValidateOptions(
+	std::vector<std::string>& values,
+	std::vector<std::string>& options,
+	std::string& group,
+	std::string& key) const
+{
+	for (std::string& value : values)
+	{
+		bool bExists = false;;
+
+		for (std::string& opt : options)
+		{
+			if (Strings::CaseInsensitiveEquals(value, opt))
+			{
+				bExists = true;
+			}
+		}
+
+		if (!bExists)
+		{
+			ValidateError(
+				"Value '%s' is not a value option for %s.%s.",
+				value.c_str(),
+				group.c_str(),
+				key.c_str()
+			);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+#define SCHEMA_FILE "App/Config/BaseSchema.inc"
+#define SCHEMA_CLASS BaseConfigFile
+#define SCHEMA_IS_BASE 1
+#include "App/Config/SchemaImpl.h"
+#undef SCHEMA_FILE
+#undef SCHEMA_CLASS
+#undef SCHEMA_IS_BASE
 
 }; // namespace MicroBuild

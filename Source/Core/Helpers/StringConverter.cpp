@@ -19,9 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "PCH.h"
-#include "App/Platforms/Windows_x86/Windows_x86.h"
+#include "Core/Helpers/StringConverter.h"
 
 namespace MicroBuild {
-
 
 }; // namespace MicroBuild

@@ -31,11 +31,11 @@ ConfigFile::ConfigFile()
 
 ConfigFile::~ConfigFile()
 {
-	for (auto& groupIter : m_groups)
+	for (auto groupIter : m_groups)
 	{
-		for (auto& keyIter : groupIter.second->Keys)
+		for (auto keyIter : groupIter.second->Keys)
 		{
-			for (auto& valueIter : keyIter.second->Values)
+			for (auto valueIter : keyIter.second->Values)
 			{
 				delete valueIter;
 			}
@@ -540,7 +540,29 @@ bool ConfigFile::Parse(const Platform::Path& path)
 void ConfigFile::SetOrAddValue(
 	const std::string& group,
 	const std::string& key,
-	const std::string& value)
+	const std::string& value,
+	bool bOverwrite)
+{
+	std::vector<std::string> values;
+	values.push_back(value);
+
+	SetOrAddValue_Internal(group, key, values, bOverwrite);
+}
+
+void ConfigFile::SetOrAddValue(
+	const std::string& group,
+	const std::string& key,
+	const std::vector<std::string>& value,
+	bool bOverwrite)
+{
+	SetOrAddValue_Internal(group, key, value, bOverwrite);
+}
+
+std::vector<ConfigFileValue*> ConfigFile::SetOrAddValue_Internal(
+	const std::string& group,
+	const std::string& key,
+	const std::vector<std::string>& values,
+	bool bOverwrite)
 {
 	// Create group if it dosen't exist.
 	auto iter = m_groups.find(group);
@@ -553,10 +575,15 @@ void ConfigFile::SetOrAddValue(
 		);
 	}
 
-	ConfigFileValue* keyValue = new ConfigFileValue();
-	keyValue->Value = value;
-	keyValue->ConditionResult = true;
-
+	std::vector<ConfigFileValue*> keyValues;
+	for (const std::string& value : values)
+	{
+		ConfigFileValue* keyValue = new ConfigFileValue();
+		keyValue->Value = value;
+		keyValue->ConditionResult = true;
+		keyValues.push_back(keyValue);
+	}
+	
 	ConfigFileGroup* realGroup = m_groups[group];
 
 	// Create key if it dosesn't exist, otherwise add it.
@@ -565,15 +592,30 @@ void ConfigFile::SetOrAddValue(
 	{
 		ConfigFileKey* newKey = new ConfigFileKey();
 		newKey->Name = key;
-		newKey->Values.push_back(keyValue);
+		newKey->Values.insert(
+			newKey->Values.end(), keyValues.begin(), keyValues.end()
+		);
 		realGroup->Keys.insert(
 			std::pair<std::string, ConfigFileKey*>(newKey->Name, newKey)
-		);
+			);
 	}
 	else
 	{
-		keyIter->second->Values.push_back(keyValue);
+		if (bOverwrite)
+		{
+			for (auto iter : keyIter->second->Values)
+			{
+				delete iter;
+			}
+			keyIter->second->Values.clear();
+		}
+
+		keyIter->second->Values.insert(
+			keyIter->second->Values.end(), keyValues.begin(), keyValues.end()
+		);
 	}
+
+	return keyValues;
 }
 
 bool ConfigFile::ResolveTokenReplacement(
@@ -820,11 +862,9 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 		{
 			assert(expression.Children.size() == 0);
 
-			assert((int)expression.Operator != 0xdddddddd);
 			bool ret = ResolveTokenReplacement(
 				expression.Value, baseGroup, result.Result
 			);
-			assert((int)expression.Operator != 0xdddddddd);
 
 
 			if (!ret)
@@ -841,6 +881,9 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 		result = !result.ToBool();
 	}
 
+
+	assert((int)expression.Operator != 0xdddddddd);
+
 	return result;
 }
 
@@ -849,8 +892,12 @@ bool ConfigFile::EvaluateConditions(
 	std::string groupName)
 {
 	bool bResult = true;
+	
+	// todo: fix this, this should be totally unneccessary, without it
+	//		 at the moment we end up with some invalidated-iter problems.
+	std::vector<ConfigFileExpression> copy = conditions;
 
-	for (ConfigFileExpression& cond : conditions)
+	for (ConfigFileExpression& cond : copy)
 	{
 		if (!EvaluateExpression(cond, groupName).ToBool())
 		{
@@ -871,11 +918,11 @@ void ConfigFile::Resolve()
 				m_path.ToString().c_str())
 			);
 
-		for (auto& groupIter : m_groups)
+		for (auto groupIter : m_groups)
 		{
-			for (auto& keyIter : groupIter.second->Keys)
+			for (auto keyIter : groupIter.second->Keys)
 			{
-				for (auto& valueIter : keyIter.second->Values)
+				for (auto valueIter : keyIter.second->Values)
 				{
 					valueIter->HasResolvedValue = false;
 					valueIter->HasResolvedCondition = false;
@@ -891,11 +938,11 @@ void ConfigFile::Resolve()
 				m_path.ToString().c_str())
 			);
 
-		for (auto& groupIter : m_groups)
+		for (auto groupIter : m_groups)
 		{
-			for (auto& keyIter : groupIter.second->Keys)
+			for (auto keyIter : groupIter.second->Keys)
 			{
-				for (auto& valueIter : keyIter.second->Values)
+				for (auto valueIter : keyIter.second->Values)
 				{
 					if (!valueIter->HasResolvedCondition)
 					{
@@ -917,11 +964,11 @@ void ConfigFile::Resolve()
 				m_path.ToString().c_str())
 			);
 
-		for (auto& groupIter : m_groups)
+		for (auto groupIter : m_groups)
 		{
-			for (auto& keyIter : groupIter.second->Keys)
+			for (auto keyIter : groupIter.second->Keys)
 			{
-				for (auto& valueIter : keyIter.second->Values)
+				for (auto valueIter : keyIter.second->Values)
 				{
 					if (!valueIter->HasResolvedValue)
 					{
@@ -963,7 +1010,56 @@ std::vector<std::string> ConfigFile::GetValues(
 	return result;
 }
 
-Platform::Path ConfigFile::GetPath()
+std::string ConfigFile::GetValue(
+	const std::string& group,
+	const std::string& key)
+{
+	std::vector<std::string> values = GetValues(group, key);
+	if (values.size() == 0)
+	{
+		return "";
+	}
+	return values[0];
+}
+
+std::string ConfigFile::GetValue(
+	const std::string& group,
+	const std::string& key,
+	const std::string& defValue)
+{
+	std::vector<std::string> values = GetValues(group, key);
+	if (values.size() == 0)
+	{
+		return defValue;
+	}
+	return values[0];
+}
+
+void ConfigFile::Merge(const ConfigFile& file)
+{
+	for (auto& groupIter : file.m_groups)
+	{
+		for (auto& keyIter : groupIter.second->Keys)
+		{
+			for (auto& valueIter : keyIter.second->Values)
+			{
+				std::vector<std::string> values;
+				values.push_back(valueIter->Value);
+
+				std::vector<ConfigFileValue*> result = SetOrAddValue_Internal(groupIter.second->Name,
+					keyIter.second->Name,
+					values);
+				
+				for (ConfigFileValue* value : result)
+				{
+					*value = ConfigFileValue(*valueIter);
+				}
+			}
+		}
+	}
+}
+
+Platform::Path ConfigFile::GetPath() const
 {
 	return m_path;
 }

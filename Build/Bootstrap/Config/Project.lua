@@ -30,6 +30,8 @@ project "MicroBuild"
 	files 
 	{ 
 		(MBRoot .. "/Source/**.h"), 
-		(MBRoot .. "/Source/**.cpp")
+		(MBRoot .. "/Source/**.cpp"), 
+		(MBRoot .. "/Source/**.template"), 
+		(MBRoot .. "/Source/**.inc")
 	}
 		

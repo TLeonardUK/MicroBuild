@@ -56,14 +56,6 @@ bool CommandLineParser::Parse(int argc, char* argv[])
 		{
 			const char* commandName = argv[i];
 
-			// Hard-coded options, bleh.
-			if (commandName == "-v" || 
-				commandName == "--verbose")
-			{
-				LogSetVerbose(true);
-				continue;
-			}
-
 			// Skip the - and -- at the start of the command name.
 			if (commandName == "-")
 			{
@@ -91,7 +83,16 @@ bool CommandLineParser::Parse(int argc, char* argv[])
 			{
 				std::string argumentName = argv[i];
 				std::string argumentValue;
-				
+
+				// Hard-coded options, bleh.
+				if (argumentName == "-v" ||
+					argumentName == "--verbose")
+				{
+					LogSetVerbose(true);
+					i++;
+					continue;
+				}
+
 				// Command seperator.
 				if (argumentName == ";")
 				{

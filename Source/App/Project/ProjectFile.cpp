@@ -31,10 +31,16 @@ ProjectFile::~ProjectFile()
 
 void ProjectFile::Resolve()
 {
-	SetOrAddValue("Project", "Directory", GetPath().GetDirectory().ToString());
-	SetOrAddValue("Project", "File", GetPath().ToString());
+	Set_Project_Directory(GetPath().GetDirectory());
+	Set_Project_File(GetPath());
 
-	ConfigFile::Resolve();
+	BaseConfigFile::Resolve();
 }
+
+#define SCHEMA_FILE "App/Project/ProjectSchema.inc"
+#define SCHEMA_CLASS ProjectFile
+#include "App/Config/SchemaImpl.h"
+#undef SCHEMA_FILE
+#undef SCHEMA_CLASS
 
 }; // namespace MicroBuild

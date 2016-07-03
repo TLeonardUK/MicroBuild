@@ -19,9 +19,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "App/Project/ProjectFile.h"
+#include "Core/Helpers/Strings.h"
 #include "App/Config/BaseConfigFile.h"
 
 namespace MicroBuild {
+
+#define SCHEMA_FILE "App/Project/ProjectSchema.inc"
+#define SCHEMA_CLASS ProjectFile
+#include "App/Config/SchemaGlobalDecl.h"
+#undef SCHEMA_FILE
+#undef SCHEMA_CLASS
 
 // Stores and manages a configuration file for a project config file.
 class ProjectFile : public BaseConfigFile
@@ -34,9 +41,13 @@ public:
 
 protected:
 
-
 private:
 
+#define SCHEMA_FILE "App/Project/ProjectSchema.inc"
+#define SCHEMA_CLASS ProjectFile
+#include "App/Config/SchemaDecl.h"
+#undef SCHEMA_FILE
+#undef SCHEMA_CLASS
 
 };
 

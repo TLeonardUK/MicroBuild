@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#define MB_VERSION		"0.1"
+#define MB_VERSION		0.1f
 #define MB_NAME			"microbuild"
 #define MB_COPYRIGHT	"Copyright (C) 2016 TwinDrills"
 #define MB_DESCRIPTION	\
