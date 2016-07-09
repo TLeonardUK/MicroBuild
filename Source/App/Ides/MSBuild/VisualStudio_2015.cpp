@@ -27,19 +27,4 @@ Ide_VisualStudio_2015::Ide_VisualStudio_2015()
 	SetMSBuildVersion(MSBuildVersion::Version12);
 }
 
-bool Ide_VisualStudio_2015::Generate(
-	WorkspaceFile& workspaceFile,
-	std::vector<ProjectFile>& projectFiles)
-{	
-	if (!GenerateMSBuildSolutionFile(
-		workspaceFile, 
-		projectFiles
-	))
-	{
-		return false;
-	}
-
-	return true;
-}
-
 }; // namespace MicroBuild

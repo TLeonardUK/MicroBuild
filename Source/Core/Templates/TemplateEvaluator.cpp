@@ -133,7 +133,7 @@ void TemplateEvaluator::SkipToEndOfScope(
 {
 	int depth = 1;
 
-	while (cursor < fragments.size() && depth > 0)
+	while (cursor < (int)fragments.size() && depth > 0)
 	{
 		TemplateFragment& frag = fragments[cursor];
 		if (frag.bIsTag)
@@ -239,7 +239,7 @@ bool TemplateEvaluator::Evaluate(
 
 	// Parse through the fragments while taking control structures into account.
 	int cursor = 0;
-	while (cursor < fragments.size())
+	while (cursor < (int)fragments.size())
 	{
 		TemplateFragment& frag = fragments[cursor];
 		if (frag.bIsTag)
@@ -255,17 +255,76 @@ bool TemplateEvaluator::Evaluate(
 
 				TemplateScope& scope = scopeStack[scopeStack.size() - 1];
 
-				// If there are more variables left, jump back to start.
-				if (scope.Offset + 1 < scope.RootArgument->ChildrenIndices.size())
+				switch (scope.Type)
 				{
-					scope.Offset++;
-					cursor = scope.StartIndex;
+				case TemplateScopeType::For:
+					{
+						// If there are more variables left, jump back to start.
+						if (scope.Offset + 1 < (int)scope.RootArgument->ChildrenIndices.size())
+						{
+							scope.Offset++;
+							cursor = scope.StartIndex;
 
-					continue;
+							continue;
+						}
+						else
+						{
+							scopeStack.pop_back();
+						}
+						break;
+					}
+				case TemplateScopeType::If:
+					{
+						scopeStack.pop_back();
+						break;
+					}
+				}
+			}
+
+			// ----------------------------------------------------------------
+			else if (frag.Tokens[0] == "if")
+			{
+				// todo: add proper operator support for this.
+
+				if (frag.Tokens.size() != 2)
+				{
+					Error(id, "Encountered malformed for tag.");
+					return false;
+				}
+
+				TemplateArgument* arg = GetArgument(frag.Tokens[1], &scopeStack);
+				if (arg == nullptr)
+				{
+					Error(id, "Encountered unknown template argument '%s'.",
+						frag.Tokens[1].c_str());
+					return false;
 				}
 				else
 				{
-					scopeStack.pop_back();
+					bool bResult = true;
+
+					if (arg->Value == "0" || 
+						Strings::CaseInsensitiveEquals(arg->Value, "false"))
+					{
+						bResult = false;
+					}
+
+					if (!bResult)
+					{
+						cursor++;
+						SkipToEndOfScope(cursor, fragments);
+						continue;
+					}
+					else
+					{
+						TemplateScope scope;
+						scope.Type = TemplateScopeType::If;
+						scope.RootArgument = arg;
+						scope.Offset = 0;
+						scope.ArgumentName = frag.Tokens[1];
+						scope.StartIndex = cursor + 1;
+						scopeStack.push_back(scope);
+					}
 				}
 			}
 
@@ -289,6 +348,7 @@ bool TemplateEvaluator::Evaluate(
 				else
 				{
 					TemplateScope scope;
+					scope.Type = TemplateScopeType::For;
 					scope.RootArgument = arg;
 					scope.Offset = 0;
 					scope.ArgumentName = frag.Tokens[1];

@@ -1,9 +1,12 @@
-R"(
-
-Microsoft Visual Studio Solution File, Format Version 12.00
+R"|(Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2015
 {% for project in projects %}
-Project("{% project.guid %}") = "{% project.name %}", "{% project.location %}", "{% project.parentGuid %}"
+Project("{% project.typeGuid %}") = "{% project.name %}", "{% project.location %}", "{% project.guid %}"
+	ProjectSection(ProjectDependencies) = postProject
+{% for dependencyGuid in project.dependencyGuids %}
+		{% dependencyGuid %} = {% dependencyGuid %}
+{% end %}
+	EndProjectSection
 EndProject
 {% end %}
 Global
@@ -15,12 +18,10 @@ Global
 {% end %}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-{% for project in projects %}
-{% for config in configurations %}
-{% for platform in platforms %}
-		{% project.guid %}.{% config.id %}|{% platform.id %}.ActiveCfg = {% config.id %}|{% platform.id %}
-		{% project.guid %}.{% config.id %}|{% platform.id %}.Build.0 = {% config.id %}|{% platform.id %}
-{% end %}
+{% for matrix in buildMatrix %}
+		{% matrix.projectGuid %}.{% matrix.configId %}|{% matrix.platformId %}.ActiveCfg = {% matrix.configId %}|{% matrix.platformId %}
+{% if matrix.shouldBuild %}
+		{% matrix.projectGuid %}.{% matrix.configId %}|{% matrix.platformId %}.Build.0 = {% matrix.configId %}|{% matrix.platformId %}
 {% end %}
 {% end %}
 	EndGlobalSection
@@ -29,9 +30,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 {% for project in nestedProjects %}
-		{% project.parentGuid %} = {% project.guid %}
+		{% project.guid %} = {% project.parentGuid %}
 {% end %}
 	EndGlobalSection
-EndGlobal
-
-)"
+EndGlobal)|"

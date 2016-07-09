@@ -30,7 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OPTION_RULE_REQUIRED()
 #define OPTION_RULE_DEFAULT(Value)
 #define OPTION_RULE_VALIDATOR(ValidatorFunction)
-#define OPTION_RULE_EXPAND_PATH_WILDCARDS()
+#define OPTION_RULE_EXPAND_PATH_WILDCARDS(bCanCache)
+#define OPTION_RULE_ABSOLUTE_PATH()
 #define OPTION_RULE_OPTION(Option)
 #define END_OPTION()
 #define END_ARRAY_OPTION()
@@ -50,6 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR
 #undef OPTION_RULE_EXPAND_PATH_WILDCARDS
+#undef OPTION_RULE_ABSOLUTE_PATH
 #undef OPTION_RULE_OPTION
 #undef END_OPTION
 #undef END_ARRAY_OPTION

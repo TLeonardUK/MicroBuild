@@ -54,7 +54,7 @@ Platform::Path BaseConfigFile::ResolvePath(Platform::Path& value) const
 	}
 	else
 	{
-		return GetPath() + std::string(1, Platform::Path::Seperator) + value;
+		return GetPath() + value;
 	}
 }
 
@@ -96,25 +96,77 @@ bool BaseConfigFile::ValidateVersion(std::vector<std::string>& values) const
 	return true;
 }
 
-bool BaseConfigFile::ExpandPaths(std::vector<std::string>& values) const
+bool BaseConfigFile::ExpandPaths(
+	std::vector<std::string>& values, bool bCanCache) 
 {
-	std::vector<std::string> expanded; 
-	for (std::string& val : values) 
-	{ 
-		Platform::Path path = val; 
-		
-		std::vector<Platform::Path> matches = 
-			Platform::Path::MatchFilter(ResolvePath(path)); 
-		
-		for (Platform::Path& path : matches) 
-		{ 
-			expanded.push_back(path.ToString()); 
-		} 
-	} 
-	
-	values = expanded;
+	std::vector<std::string> original = values;
+	values.clear();
+
+	for (std::string& val : original)
+	{
+		if (!ExpandPath(val, values, bCanCache))
+		{
+			return false;
+		}
+	}
 
 	return true;
+}
+
+bool BaseConfigFile::ExpandPath(Platform::Path path, 
+	std::vector<std::string>& results, 
+	bool bCanCache) 
+{
+	if (bCanCache)
+	{
+		for (CachedExpandedPaths& cache : m_cachedExpandedPaths)
+		{
+			if (cache.path == path)
+			{
+				results.insert(
+					results.end(), 
+					cache.expanded.begin(), 
+					cache.expanded.end()
+				);
+				return true;
+			}
+		}
+	}
+
+	Platform::Path resolved = ResolvePath(path);
+	if (resolved.IsRelative())
+	{
+		ValidateError(
+			"Path '%s' does not resolve to an absolute path. All paths must "
+			"be absolute. Use tokens to expand relative paths to absolute.",
+			path.ToString().c_str());
+
+		return false;
+	}
+
+	std::vector<Platform::Path> matches =
+		Platform::Path::MatchFilter(resolved);
+
+	for (Platform::Path& path : matches)
+	{
+		results.push_back(path.ToString());
+	}
+
+	if (bCanCache)
+	{
+		m_cachedExpandedPaths.resize(m_cachedExpandedPaths.size() + 1);
+		
+		CachedExpandedPaths& cache = *m_cachedExpandedPaths.rbegin();
+		cache.expanded.insert(
+			cache.expanded.begin(),
+			results.end() - matches.size(),
+			results.end()
+		);
+		cache.path = path;
+	}
+
+	return true;
+
 }
 
 bool BaseConfigFile::ValidateOptions(

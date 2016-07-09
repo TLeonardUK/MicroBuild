@@ -45,6 +45,12 @@ public:
 
 protected:
 
+	struct CachedExpandedPaths
+	{
+		std::vector<std::string> expanded;
+		Platform::Path path;
+	};
+
 	// If path is relative it is made absolute based on the workspace file 
 	// path, otherwise it is returned as-is.
 	Platform::Path ResolvePath(Platform::Path& value) const;
@@ -52,8 +58,17 @@ protected:
 	// Validates this configuration file works with this version of microbuild.
 	bool ValidateVersion(std::vector<std::string>& values) const;
 
-	// Expands any wildcard filters in the given path list.
-	bool ExpandPaths(std::vector<std::string>& options) const;
+	// Expands any wildcard filters in the given path list. If cached is
+	// set then expanded versions of paths will be retrieved and stored in
+	// a cache. You should only ever use caching as an optimization for
+	// paths you know will never change after their first expansion.
+	bool ExpandPaths(
+		std::vector<std::string>& options, bool bCanCache);
+
+	// Same as ExpandPaths but acts on a single path.
+	bool ExpandPath(Platform::Path path,
+		std::vector<std::string>& results,
+		bool bCanCache);
 
 	// Validates that all the values in the given array are also in 
 	// the optins arrays.
@@ -64,6 +79,8 @@ protected:
 		std::string& key) const;
 
 private:
+
+	std::vector<CachedExpandedPaths> m_cachedExpandedPaths;
 
 #define SCHEMA_FILE "App/Config/BaseSchema.inc"
 #define SCHEMA_CLASS BaseConfigFile

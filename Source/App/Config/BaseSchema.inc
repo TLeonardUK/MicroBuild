@@ -30,6 +30,18 @@ START_ENUM(EHostPlatform)
 	ENUM_KEY(MacOS)
 END_ENUM()
 
+START_ENUM(EPlatform)
+	ENUM_KEY(Windows_x86)
+	ENUM_KEY(Windows_x64)
+	ENUM_KEY(Windows_AnyCPU)
+
+	ENUM_KEY(Linux_x86)
+	ENUM_KEY(Linux_x64)
+
+	ENUM_KEY(MacOS_x86)
+	ENUM_KEY(MacOS_x64)
+END_ENUM()
+
 // ---------------------------------------------------------------------------
 // MicroBuild
 // ---------------------------------------------------------------------------
@@ -78,7 +90,7 @@ END_OPTION()
 // ---------------------------------------------------------------------------
 
 START_OPTION(
-	std::string,
+	EPlatform,
 	Target,
 	Platform,
 	"Automatically defined to the platform of project file currently being generated."

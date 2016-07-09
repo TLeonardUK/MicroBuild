@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "App/Ides/IdeType.h"
+#include "Core/Templates/TemplateEvaluator.h"
 
 namespace MicroBuild {
 
@@ -35,6 +36,18 @@ class Ide_MSBuild
 	: public IdeType
 {
 public:
+
+	// Used to define the platform/configuration matrix that defines what
+	// projects we build in what configurations.
+	struct MSBuildProjectPair
+	{
+		std::string config;
+		EPlatform platform;
+		bool shouldBuild;
+	};
+	typedef std::vector<MSBuildProjectPair> MSBuildProjectMatrix;
+	typedef std::vector<MSBuildProjectMatrix> MSBuildWorkspaceMatrix;
+
 	Ide_MSBuild();
 	~Ide_MSBuild();
 
@@ -44,20 +57,54 @@ public:
 
 	// Generates a basic msbuild solution file that links to the given
 	// project files.
-	bool GenerateMSBuildSolutionFile(
+	bool GenerateSolutionFile(
 		WorkspaceFile& workspaceFile,
-		std::vector<ProjectFile>& projectFiles
+		std::vector<ProjectFile>& projectFiles,
+		MSBuildWorkspaceMatrix& buildMatrix
 	);
-	
+
+	// Generates a basic msbuild project file.
+	bool GenerateProjectFile(
+		WorkspaceFile& workspaceFile,
+		ProjectFile& projectFiles,
+		MSBuildProjectMatrix& buildMatrix
+	);
+
+	virtual bool Generate(
+		WorkspaceFile& workspaceFile,
+		std::vector<ProjectFile>& projectFiles) override;
+
 protected:
+
+	// Generates an output file using the given template and evaluator.
+	bool GenerateTemplateFile(
+		WorkspaceFile& workspaceFile,
+		Platform::Path& directory,
+		Platform::Path& location,
+		const char* templateData,
+		TemplateEvaluator& evaluator);
 
 	// Converts a platform enum into an msbuild platform id.
 	std::string GetPlatformID(EPlatform platform);
 
 	// Converts a project name into a GUID.
-	std::string GetProjectGUID(
+	std::string GetProjectGuid(
 		const std::string& workspaceName, 
 		const std::string& projectName);
+
+	// Converts a filter name into a GUID.
+	std::string GetFilterGuid(
+		const std::string& workspaceName,
+		const std::string& projectName,
+		const std::string& filter);
+
+	// Finds the correct project type guid based on language.
+	std::string GetProjectTypeGuid(ELanguage language);
+
+	// Finds a project in an array based on its name.
+	ProjectFile* GetProjectByName(
+		std::vector<ProjectFile>& projectFiles,
+		const std::string& name);
 
 private:
 	MSBuildVersion m_msBuildVersion;

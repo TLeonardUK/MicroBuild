@@ -93,6 +93,9 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 			return false;
 		}
 
+		// Base configuration.
+		m_workspaceFile.Set_Target_IDE(m_targetIde);
+
 		// Load all projects.
 		std::vector<Platform::Path> projectPaths =
 			m_workspaceFile.Get_Projects_Project();
@@ -105,6 +108,14 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 			{
 				m_projectFiles[i].Merge(m_workspaceFile);
 				m_projectFiles[i].Resolve();
+
+				if (!m_projectFiles[i].Validate())
+				{
+					return false;
+				}
+
+				// Base configuration.
+				m_projectFiles[i].Set_Target_IDE(m_targetIde);
 			}
 			else
 			{
@@ -117,13 +128,9 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 		return false;
 	}
 
-	// If we are regenerating, delete any existing files.
-	if (m_regenerate)
+	// If we are not regenerating, see if there have been any changes.
+	if (!m_regenerate)
 	{
-		Log(LogSeverity::Info, 
-			"Performing full rebuilding, deleting old files.\n",
-			m_targetIde.c_str());
-		
 		// todo
 	}
 

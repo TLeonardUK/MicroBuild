@@ -28,6 +28,7 @@ END_ENUM()
 
 START_ENUM(ELanguage)
 	ENUM_KEY(Cpp)
+	ENUM_KEY(CSharp)
 END_ENUM()
 
 // ---------------------------------------------------------------------------
@@ -47,10 +48,34 @@ END_OPTION()
 START_OPTION(
 	Platform::Path,
 	Project,
+	Group,
+	"Location in the workspace file of this project, allows nesting of projects "
+	"within workspaces that support it. Can be multiple layers deep, delimate "
+	"as per a normal path, eg: ThirdParty/Libraries"
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Project,
+	ShouldBuild,
+	"Determines if the project should be built, use in conjunction with if "
+	"statements to disable building projects in different configurations."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	Platform::Path,
+	Project,
 	Location,
 	"Output folder that project files are generated in."
 )
 OPTION_RULE_REQUIRED()
+OPTION_RULE_ABSOLUTE_PATH()
 END_OPTION()
 
 // ---------------------------------------------------------------------------
@@ -73,6 +98,7 @@ START_OPTION(
 	"Directory that build artifacts are output to."
 )
 OPTION_RULE_REQUIRED()
+OPTION_RULE_ABSOLUTE_PATH()
 END_OPTION()
 
 // ---------------------------------------------------------------------------
@@ -107,6 +133,18 @@ START_OPTION(
 END_OPTION()
 
 // ---------------------------------------------------------------------------
+// Dependencies
+// ---------------------------------------------------------------------------
+START_ARRAY_OPTION(
+	std::string,
+	Dependencies,
+	Dependency,
+	"Name of projects this project is dependent on, they will be built before "
+	"this project is built."
+)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
 // Files
 // ---------------------------------------------------------------------------
 START_ARRAY_OPTION(
@@ -117,7 +155,7 @@ START_ARRAY_OPTION(
 	"and recursive wildcards (**)."
 )
 OPTION_RULE_REQUIRED()
-OPTION_RULE_EXPAND_PATH_WILDCARDS()
+OPTION_RULE_EXPAND_PATH_WILDCARDS(true)
 END_ARRAY_OPTION()
 
 // ---------------------------------------------------------------------------

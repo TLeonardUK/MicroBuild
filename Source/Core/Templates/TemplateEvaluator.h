@@ -36,11 +36,13 @@ struct TemplateFragment
 enum class TemplateScopeType
 {
 	For,
+	If
 };
 
 // Template scope types.
 struct TemplateScope
 {
+	TemplateScopeType Type;
 	std::string ArgumentName;
 	TemplateArgument* RootArgument;
 	int Offset;

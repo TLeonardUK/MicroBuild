@@ -1,4 +1,102 @@
-R"(
+R"|(<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
 
+{% for config in configurations %}
+    <ProjectConfiguration Include="{% config.configurationId %}|{% config.platformId %}">
+      <Configuration>{% config.configurationId %}</Configuration>
+      <Platform>{% config.platformId %}</Platform>
+    </ProjectConfiguration>
+{% end %}
 
-)"
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{% project.guid %}</ProjectGuid>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>{% project.name %}</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+{% for config in configurations %}
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='{% config.configurationId %}|{% config.platformId %}'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+{% end %}
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+
+{% for config in configurations %}
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='{% config.configurationId %}|{% config.platformId %}'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+{% end %}
+
+  <PropertyGroup Label="UserMacros" />
+
+{% for config in configurations %}
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='{% config.configurationId %}|{% config.platformId %}'">
+  {% if getConfig(config.configurationId, config.platformId, Link.Incremental) %}
+    <LinkIncremental>true</LinkIncremental>
+  {% else %}
+    <LinkIncremental>false</LinkIncremental>
+  {% end %}
+    <OutDir>..\..\..\Binaries\</OutDir>
+    <IntDir>Obj\windows.debug.x86_64\</IntDir>
+    <TargetName>microbuild_windows_debug_x86_64</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
+{% end %}
+
+{% for config in configurations %}
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='{% config.configurationId %}|{% config.platformId %}'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>MB_DEBUG_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\..\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+{% end %}
+
+  <ItemGroup>
+{% for file in includeFiles %}
+    <ClInclude Include="$(ProjectDir){% file.path %}" />
+{% end %}
+  </ItemGroup>
+
+  <ItemGroup>
+{% for file in sourceFiles %}
+    <ClCompile Include="$(ProjectDir){% file.path %}" />
+{% end %}
+  </ItemGroup>
+
+  <ItemGroup>
+{% for file in miscFiles %}
+    <None Include="$(ProjectDir){% file.path %}" />
+{% end %}
+  </ItemGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>)|"

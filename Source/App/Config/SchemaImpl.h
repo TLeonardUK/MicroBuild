@@ -70,6 +70,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		std::vector<std::string> options;\
 		std::vector<std::string> values = GetValues(groupName, keyName); \
 		std::vector<ValueType>& output = m_##Group##_##Key##_value; \
+		output.clear(); \
 		ValueType converterTemp; \
 		bool bResult = true;
 
@@ -94,8 +95,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 			bResult = false; \
 		} 
 
-#define OPTION_RULE_EXPAND_PATH_WILDCARDS() \
-		bResult = bResult && ExpandPaths(values);
+#define OPTION_RULE_EXPAND_PATH_WILDCARDS(bCanCache) \
+		bResult = bResult && ExpandPaths(values, bCanCache);
+
+#define OPTION_RULE_ABSOLUTE_PATH() \
+		if (values.size() > 0) \
+		{ \
+			Platform::Path subvalue(values[0]); \
+			if (subvalue.IsRelative()) \
+			{ \
+				ValidateError("Path '%s.%s' does not resolve to an absolute path. All paths must be absolute. Use tokens to expand relative paths to absolute.", groupName.c_str(), keyName.c_str()); \
+				bResult = false; \
+			} \
+			values[0] = subvalue.ToString(); \
+		}
 
 #define OPTION_RULE_OPTION(Option) \
 		options.push_back(#Option);
@@ -177,6 +190,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR
 #undef OPTION_RULE_EXPAND_PATH_WILDCARDS
+#undef OPTION_RULE_ABSOLUTE_PATH
 #undef OPTION_RULE_OPTION
 #undef END_OPTION
 #undef END_ARRAY_OPTION
@@ -203,8 +217,9 @@ bool SCHEMA_CLASS::Validate()
 #define OPTION_RULE_REQUIRED()
 #define OPTION_RULE_DEFAULT(Value)
 #define OPTION_RULE_VALIDATOR(ValidatorFunction)
-#define OPTION_RULE_EXPAND_PATH_WILDCARDS()
+#define OPTION_RULE_EXPAND_PATH_WILDCARDS(bCanCache)
 #define OPTION_RULE_OPTION(Option) 
+#define OPTION_RULE_ABSOLUTE_PATH()
 #define END_ARRAY_OPTION()
 #define END_OPTION()
 #define START_ENUM(Name) 
@@ -219,6 +234,7 @@ bool SCHEMA_CLASS::Validate()
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR
 #undef OPTION_RULE_EXPAND_PATH_WILDCARDS
+#undef OPTION_RULE_ABSOLUTE_PATH
 #undef OPTION_RULE_OPTION
 #undef END_OPTION
 #undef END_ARRAY_OPTION

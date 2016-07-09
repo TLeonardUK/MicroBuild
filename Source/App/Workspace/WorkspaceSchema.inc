@@ -15,20 +15,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 // ---------------------------------------------------------------------------
 // General use enums.
 // ---------------------------------------------------------------------------
-START_ENUM(EPlatform)
-	ENUM_KEY(Windows_x86)
-	ENUM_KEY(Windows_x64)
-	ENUM_KEY(Windows_AnyCPU)
 
-	ENUM_KEY(Linux_x86)
-	ENUM_KEY(Linux_x64)
-
-	ENUM_KEY(MacOS_x86)
-	ENUM_KEY(MacOS_x64)
-END_ENUM()
 
 // ---------------------------------------------------------------------------
 // Workspace
@@ -51,6 +42,7 @@ START_OPTION(
 	"Output folder that workspace files are generated in."
 )
 OPTION_RULE_REQUIRED()
+OPTION_RULE_ABSOLUTE_PATH()
 END_OPTION()
 
 // ---------------------------------------------------------------------------
@@ -117,5 +109,5 @@ START_ARRAY_OPTION(
 	"Location of projects to include in workspace. Can contain wildcards (*) and recursive wildcards (**)."
 )
 OPTION_RULE_REQUIRED()
-OPTION_RULE_EXPAND_PATH_WILDCARDS()
+OPTION_RULE_EXPAND_PATH_WILDCARDS(true)
 END_ARRAY_OPTION()

@@ -165,6 +165,11 @@ public:
 		const std::string& group,
 		const std::string& key);
 
+	// Returns true if this config file has the given group/key combo defined.
+	bool HasValue(
+		const std::string& group,
+		const std::string& key);
+
 	// Same as GetValue except returns default if not defined.
 	std::string GetValue(
 		const std::string& group,

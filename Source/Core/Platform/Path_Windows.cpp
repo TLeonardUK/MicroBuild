@@ -28,28 +28,26 @@ namespace Platform {
 
 char Path::Seperator = '\\';
 
-std::vector<Path> Path::GetFiles() const
+std::vector<std::string> Path::GetFiles() const
 {
-	std::vector<Path> Result;
+	std::vector<std::string> Result;
 
 	WIN32_FIND_DATAA Data;
 	HANDLE Handle;
 
-	std::string Pattern = m_cachedString + Seperator + "*";
+	std::string Pattern = m_raw + Seperator + "*";
 
 	Handle = FindFirstFileA(Pattern.c_str(), &Data);
 	if (Handle != INVALID_HANDLE_VALUE)
 	{
 		do
 		{
-			std::string Filename = Data.cFileName;
-			if (Filename != "." && Filename != "..")
+			if ((Data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 			{
-				Path FullPath = AppendFragment(Filename);
-
-				if (FullPath.IsFile())
+				if (strcmp(Data.cFileName, ".") != 0 &&
+					strcmp(Data.cFileName, "..") != 0)
 				{
-					Result.push_back(Filename);
+					Result.push_back(Data.cFileName);
 				}
 			}
 		} while (FindNextFileA(Handle, &Data) != 0);
@@ -60,28 +58,26 @@ std::vector<Path> Path::GetFiles() const
 	return Result;
 }
 
-std::vector<Path> Path::GetDirectories() const
+std::vector<std::string> Path::GetDirectories() const
 {
-	std::vector<Path> Result;
+	std::vector<std::string> Result;
 
 	WIN32_FIND_DATAA Data;
 	HANDLE Handle;
 
-	std::string Pattern = m_cachedString + Seperator + "*";
+	std::string Pattern = m_raw + Seperator + "*";
 
 	Handle = FindFirstFileA(Pattern.c_str(), &Data);
 	if (Handle != INVALID_HANDLE_VALUE)
 	{
 		do
 		{
-			std::string Filename = Data.cFileName;
-			if (Filename != "." && Filename != "..")
+			if ((Data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
 			{
-				Path FullPath = AppendFragment(Filename);
-
-				if (FullPath.IsDirectory())
+				if (strcmp(Data.cFileName, ".") != 0 &&
+					strcmp(Data.cFileName, "..") != 0)
 				{
-					Result.push_back(Filename);
+					Result.push_back(Data.cFileName);
 				}
 			}
 		} while (FindNextFileA(Handle, &Data) != 0);
@@ -94,7 +90,7 @@ std::vector<Path> Path::GetDirectories() const
 
 bool Path::IsFile() const
 {
-	DWORD flags = GetFileAttributesA(m_cachedString.c_str());
+	DWORD flags = GetFileAttributesA(m_raw.c_str());
 
 	if (flags == INVALID_FILE_ATTRIBUTES)
 	{
@@ -111,7 +107,7 @@ bool Path::IsFile() const
 
 bool Path::IsDirectory() const
 {
-	DWORD flags = GetFileAttributesA(m_cachedString.c_str());
+	DWORD flags = GetFileAttributesA(m_raw.c_str());
 
 	if (flags == INVALID_FILE_ATTRIBUTES)
 	{
@@ -135,7 +131,7 @@ bool Path::CreateAsDirectory() const
 		ParentDir.CreateAsDirectory();
 	}
 
-	BOOL Ret = CreateDirectoryA(m_cachedString.c_str(), NULL);
+	BOOL Ret = CreateDirectoryA(m_raw.c_str(), NULL);
 	return (Ret != 0);
 }
 
@@ -149,7 +145,7 @@ bool Path::CreateAsFile() const
 	}
 
 	HANDLE Ret = CreateFileA(
-		m_cachedString.c_str(),
+		m_raw.c_str(),
 		GENERIC_WRITE,
 		0,
 		NULL,
@@ -170,7 +166,7 @@ bool Path::CreateAsFile() const
 
 bool Path::Exists() const
 {
-	DWORD flags = GetFileAttributesA(m_cachedString.c_str());
+	DWORD flags = GetFileAttributesA(m_raw.c_str());
 	return !(flags == INVALID_FILE_ATTRIBUTES);
 }
 
@@ -178,8 +174,8 @@ bool Path::Copy(const Path& Destination) const
 {
 	if (IsFile())
 	{
-		BOOL Ret = CopyFileA(m_cachedString.c_str(), 
-			Destination.m_cachedString.c_str(), false);
+		BOOL Ret = CopyFileA(m_raw.c_str(),
+			Destination.m_raw.c_str(), false);
 		if (Ret == 0)
 		{
 			return false;
@@ -187,8 +183,8 @@ bool Path::Copy(const Path& Destination) const
 	}
 	else
 	{
-		std::vector<Path> SubDirs = GetDirectories();
-		std::vector<Path> SubFiles = GetFiles();
+		std::vector<std::string> SubDirs = GetDirectories();
+		std::vector<std::string> SubFiles = GetFiles();
 
 		// If directory dosen't exist, get creating.
 		if (!Destination.Exists())
@@ -200,8 +196,9 @@ bool Path::Copy(const Path& Destination) const
 		}
 
 		// Copy all sub-directories.
-		for (Path& path : SubDirs)
+		for (std::string& filename : SubDirs)
 		{
+			Path path = *this + filename;
 			if (!path.Copy(path.ChangeDirectory(Destination)))
 			{
 				return false;
@@ -209,8 +206,9 @@ bool Path::Copy(const Path& Destination) const
 		}
 
 		// Copy all sub files.
-		for (Path& path : SubFiles)
+		for (std::string& filename : SubFiles)
 		{
+			Path path = *this + filename;
 			if (!path.Copy(path.ChangeDirectory(Destination)))
 			{
 				return false;
@@ -225,30 +223,30 @@ bool Path::Delete() const
 {
 	if (IsFile())
 	{
-		BOOL Ret = DeleteFileA(m_cachedString.c_str());
+		BOOL Ret = DeleteFileA(m_raw.c_str());
 		return (Ret != 0);
 	}
 	else if (IsDirectory())
 	{
-		std::vector<Path> SubDirs = GetDirectories();
-		std::vector<Path> SubFiles = GetFiles();
+		std::vector<std::string> SubDirs = GetDirectories();
+		std::vector<std::string> SubFiles = GetFiles();
 
 		// Delete all sub directories.
-		for (Path& path : SubDirs)
+		for (std::string& path : SubDirs)
 		{
 			Path FullPath = *this + path;
 			FullPath.Delete();
 		}
 
 		// Delete all sub files.
-		for (Path& path : SubFiles)
+		for (std::string& path : SubFiles)
 		{
 			Path FullPath = *this + path;
 			FullPath.Delete();
 		}
 
 		// Delete the actual folder.
-		BOOL Ret = RemoveDirectoryA(m_cachedString.c_str());
+		BOOL Ret = RemoveDirectoryA(m_raw.c_str());
 		return (Ret != 0);
 	}
 
@@ -258,7 +256,7 @@ bool Path::Delete() const
 std::time_t Path::GetModifiedTime() const
 {
 	WIN32_FILE_ATTRIBUTE_DATA Attributes;
-	BOOL Result = GetFileAttributesExA(m_cachedString.c_str(), 
+	BOOL Result = GetFileAttributesExA(m_raw.c_str(),
 		GetFileExInfoStandard, &Attributes);
 	if (!Result)
 	{

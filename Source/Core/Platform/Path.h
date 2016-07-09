@@ -27,15 +27,10 @@ namespace Platform {
 class Path
 {
 private:
-	std::string m_mount;
-	std::vector<std::string> m_directories;
-	std::string m_filename;
-	std::string m_extension;
-
-	std::string m_cachedString;
+	std::string m_raw;
 
 protected:
-	void UpdateCachedString();
+	void Normalize();
 
 public:
 	// Seperator of individual path segments.
@@ -51,6 +46,7 @@ public:
 
 	// Concatinates the relative path to this one.
 	Path operator +(const Path& Other) const;
+	Path operator +(const std::string& Other) const;
 
 	// Equality test operators.
 	bool operator ==(const Path& Other) const;
@@ -89,13 +85,18 @@ public:
 
 	// Appends a fragment to the path and returns it. This is a faster
 	// way of doing concatanation. 
-	Path AppendFragment(const std::string& Value) const;
+	Path AppendFragment(const std::string& Value, bool bAddDeliminator = false) const;
 
-	// Returns a list of files in the directory this path points to.
-	std::vector<Path> GetFiles() const;
+	// Returns a list of filenames of the files in the directory 
+	// this path points to.
+	std::vector<std::string> GetFiles() const;
 
-	// Returns a list of directories in the directory this path points to.
-	std::vector<Path> GetDirectories() const;
+	// Returns a list of filenames of the directories in the 
+	// directory this path points to.
+	std::vector<std::string> GetDirectories() const;
+
+	// Returns a list of fragments that make up this path.
+	std::vector<std::string> GetFragments() const;
 
 	// Returns true if this path is empty.
 	bool IsEmpty() const;
@@ -114,6 +115,12 @@ public:
 
 	// Returns true if this path points to a root mount.
 	bool IsRoot() const;
+
+	// Returns true if the extension of this path looks like a source file.
+	bool IsSourceFile() const;
+
+	// Returns true if the extension of this path looks like an include file.
+	bool IsIncludeFile() const;
 
 	// Creates this path as a directory.
 	bool CreateAsDirectory() const;
@@ -146,6 +153,14 @@ public:
 	//	./**.ini
 	// Input path should be absolute.
 	static std::vector<Path> MatchFilter(const Path& path);
+
+	// Gets the common path that a list of paths share, returns false if
+	// all the paths do not share a common path.
+	static bool GetCommonPath(std::vector<Path>& paths, Path& result);
+
+	// Returns the part of the path following the common path that is
+	// has been obtained from GetCommonPath.
+	Path GetUncommonPath(Path& commonPath);
 
 };
 

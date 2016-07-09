@@ -19,14 +19,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PCH.h"
 #include "Core/Platform/Path.h"
 #include "Core/Helpers/Strings.h"
+#include "Core/Helpers/Time.h"
+
+#include <sstream>
 
 namespace MicroBuild {
 namespace Platform {
 
 Path::Path()
-	: m_mount("")
-	, m_filename("")
-	, m_extension("")
+	: m_raw("")
 {
 }
 Path::Path(const char* InValue)
@@ -35,145 +36,29 @@ Path::Path(const char* InValue)
 }
 
 Path::Path(const std::string& InValue)
-	: m_mount("")
-	, m_filename("")
-	, m_extension("")
+	: m_raw(InValue)
 {
-	std::vector<std::string> Seperators;
-	Seperators.push_back("/");
-	Seperators.push_back("\\");
-
-	std::string Value = InValue;
-
-	// Parse out the mount.
-	size_t ColonIndex = Value.find(":");
-	if (ColonIndex != std::string::npos)
-	{
-		Strings::SplitOnIndex(Value, ColonIndex, m_mount, Value);
-	}
-
-	// Parse out the extension.
-	size_t PeriodIndex = Value.find_last_of(".");
-	bool bExtensionIsFilename = false;
-
-	if (PeriodIndex != std::string::npos)
-	{
-		size_t LastSeperatorIndex = Value.find_last_of("/\\");
-		if (LastSeperatorIndex == PeriodIndex - 1)
-		{
-			bExtensionIsFilename = true;
-		}
-		if (LastSeperatorIndex == std::string::npos || 
-			LastSeperatorIndex < PeriodIndex)
-		{
-			Strings::SplitOnIndex(Value, PeriodIndex, Value, m_extension);
-		}
-	}
-
-	// Split up directories/filename.	
-	while (!Value.empty())
-	{
-		size_t SliceIndex = Value.find_first_of("/\\");
-		if (SliceIndex != std::string::npos)
-		{
-			std::string Segment;
-			Strings::SplitOnIndex(Value, SliceIndex, Segment, Value);
-			if (!Segment.empty())
-			{
-				m_directories.push_back(Segment);
-			}
-		}
-		else
-		{
-			if (!Value.empty())
-			{
-				m_directories.push_back(Value);
-			}
-			break;
-		}
-	}
-
-	if (m_directories.size() >= 1 && !bExtensionIsFilename)
-	{
-		m_filename = *m_directories.rbegin();
-		m_directories.pop_back();
-	}
-
-	UpdateCachedString();
-}
-
-void Path::UpdateCachedString()
-{
-	std::string Result = "";
-
-	if (!m_mount.empty())
-	{
-		Result = m_mount + ":";
-		Result += Seperator;
-	}
-
-	if (!m_directories.empty())
-	{
-		for (std::string Directory : m_directories)
-		{
-			Result += Directory + Seperator;
-		}
-	}
-
-	Result += m_filename;
-
-	if (!m_extension.empty())
-	{
-		Result += "." + m_extension;
-	}
-
-	m_cachedString = Result;
+	Normalize();
 }
 
 std::string Path::ToString() const
 {
-	return m_cachedString;
+	return m_raw;
 }
 
 Path Path::operator +(const Path& Other) const
 {
-	assert(Other.IsRelative());
+	return Strings::Format("%s%c%s", m_raw.c_str(), Seperator, Other.m_raw.c_str());
+}
 
-	Path Result;
-	Result.m_mount = m_mount;
-	Result.m_directories = m_directories;
-
-	if (!m_filename.empty())
-	{
-		if (!m_extension.empty())
-		{
-			Result.m_directories.push_back(m_filename + "." + m_extension);
-		}
-		else
-		{
-			Result.m_directories.push_back(m_filename);
-		}
-	}
-	else if (!m_extension.empty())
-	{
-		Result.m_directories.push_back("." + m_extension);
-	}
-
-	Result.m_directories.insert(Result.m_directories.end(),
-		Other.m_directories.begin(),
-		Other.m_directories.end());
-
-	Result.m_filename = Other.m_filename;
-	Result.m_extension = Other.m_extension;
-
-	Result.UpdateCachedString();
-
-	return Result;
+Path Path::operator +(const std::string& Other) const
+{
+	return Strings::Format("%s%c%s", m_raw.c_str(), Seperator, Other.c_str());
 }
 
 bool Path::operator ==(const Path& Other) const
 {
-	return (m_cachedString == Other.m_cachedString);
+	return (m_raw == Other.m_raw);
 }
 
 bool Path::operator !=(const Path& Other) const
@@ -183,170 +68,202 @@ bool Path::operator !=(const Path& Other) const
 
 std::string Path::GetBaseName() const
 {
-	return m_filename;
+	std::string result = m_raw;
+	
+	size_t lastDirOffset = result.find_last_of(Seperator);
+	if (lastDirOffset != std::string::npos)
+	{
+		result.erase(result.begin(), result.begin() + lastDirOffset + 1);
+	}
+
+	size_t lastDotOffset = result.find_last_of('.');
+	if (lastDotOffset != std::string::npos)
+	{
+		result.erase(result.begin() + lastDotOffset, result.end());
+	}
+
+	return result;
 }
 
 std::string Path::GetExtension() const
 {
-	return m_extension;
+	size_t lastDotOffset = m_raw.find_last_of('.');
+	if (lastDotOffset != std::string::npos)
+	{
+		return m_raw.substr(lastDotOffset + 1);
+	}
+
+	return "";
 }
 
 std::string Path::GetMount() const
 {
-	return m_mount;
+	if (m_raw.size() > 0)
+	{
+		if (m_raw[0] == Seperator)
+		{
+			return { Seperator };
+		}
+		else if (m_raw.size() > 1 && m_raw[1] == ':')
+		{
+			return m_raw.substr(0, 2);
+		}
+	}
+	
+	return "";
 }
 
 std::string Path::GetFilename() const
 {
-	if (!m_extension.empty())
+	size_t lastDirOffset = m_raw.find_last_of(Seperator);
+	if (lastDirOffset != std::string::npos)
 	{
-		return m_filename + "." + m_extension;
+		return m_raw.substr(lastDirOffset + 1);
 	}
-	else
-	{
-		return m_filename;
-	}
+	
+	return "";
 }
 
 Path Path::GetDirectory() const
 {
-	Path Result;
-	Result.m_mount = m_mount;
-	Result.m_directories = m_directories;
-
-	if (Result.m_directories.size() > 0)
+	size_t lastDirOffset = m_raw.find_last_of(Seperator);
+	if (lastDirOffset != std::string::npos)
 	{
-		Result.m_filename = *Result.m_directories.rbegin();
-		Result.m_directories.pop_back();
-		Result.m_extension = "";
-
-		// Parse out the extension.
-		size_t PeriodIndex = Result.m_filename.find_last_of(".");
-		if (PeriodIndex != std::string::npos)
-		{
-			Strings::SplitOnIndex(Result.m_filename, PeriodIndex, 
-				Result.m_filename, Result.m_extension);
-		}
-	}
-	else
-	{
-		Result.m_filename = "";
-		Result.m_extension = "";
+		return m_raw.substr(0, lastDirOffset);
 	}
 
-	Result.UpdateCachedString();
-	return Result;
+	return "";
 }
 
 Path Path::ChangeExtension(const std::string& Value) const
 {
-	Path Result = *this;
-	Result.m_extension = Value;
-	Result.UpdateCachedString();
-	return Result;
+	size_t lastDotOffset = m_raw.find_last_of('.');
+	if (lastDotOffset != std::string::npos)
+	{
+		return Strings::Format(
+			"%s.%s",
+			m_raw.substr(0, lastDotOffset).c_str(),
+			Value.c_str()
+		);
+	}
+	else
+	{
+		return Strings::Format(
+			"%s.%s",
+			m_raw,
+			Value.c_str()
+		);
+	}
 }
 
 Path Path::ChangeBaseName(const std::string& Value) const
 {
-	Path Result = *this;
-	Result.m_filename = Value;
-	Result.UpdateCachedString();
-	return Result;
+	std::string result = m_raw;
+
+	size_t leftOffset = 0;
+	size_t rightOffset = 0;
+
+	size_t lastDirOffset = result.find_last_of(Seperator);
+	if (lastDirOffset != std::string::npos)
+	{
+		leftOffset = lastDirOffset + 1;
+	}
+	else
+	{
+		leftOffset = 0;
+	}
+
+	size_t lastDotOffset = result.find_last_of('.');
+	if (lastDotOffset != std::string::npos)
+	{
+		rightOffset = lastDotOffset;
+	}
+	else
+	{
+		rightOffset = result.size();
+	}
+
+	return result.replace(
+		leftOffset, 
+		rightOffset - leftOffset, 
+		Value
+	);
 }
 
 Path Path::ChangeMount(const std::string& Value) const
 {
-	Path Result = *this;
-	Result.m_mount = Value;
-	Result.UpdateCachedString();
-	return Result;
+	if (m_raw.size() > 0)
+	{
+		if (m_raw[0] == Seperator)
+		{
+			return Strings::Format("%s%s",
+				m_raw.substr(1),
+				Value.c_str());
+		}
+		else if (m_raw.size() > 1 && m_raw[1] == ':')
+		{
+			return Strings::Format("%s%s",
+				m_raw.substr(2),
+				Value.c_str());
+		}
+	}
+
+	return *this;
 }
 
 Path Path::ChangeFilename(const std::string& Value) const
 {
-	Path Result = *this;
-
-	size_t PeriodIndex = Result.m_filename.find_last_of(".");
-	if (PeriodIndex != std::string::npos)
+	size_t lastDirOffset = m_raw.find_last_of(Seperator);
+	if (lastDirOffset != std::string::npos)
 	{
-		Strings::SplitOnIndex(Value, PeriodIndex, 
-			Result.m_filename, Result.m_extension);
+		return m_raw.substr(0, lastDirOffset + 1) + Value;
 	}
 	else
 	{
-		Result.m_filename = Value;
-		Result.m_extension = "";
+		return Value;
 	}
-
-	Result.UpdateCachedString();
-	return Result;
 }
 
 Path Path::ChangeDirectory(const Path& Value) const
 {
-	Path Result = *this;
-
-	Result.m_mount = Value.m_mount;
-	Result.m_directories = Value.m_directories;
-
-	if (!Value.m_filename.empty())
+	size_t lastDirOffset = m_raw.find_last_of(Seperator);
+	if (lastDirOffset != std::string::npos)
 	{
-		if (!Value.m_extension.empty())
-		{
-			Result.m_directories.push_back(
-				Value.m_filename + "." + Value.m_extension);
-		}
-		else
-		{
-			Result.m_directories.push_back(Value.m_filename);
-		}
-	}
-
-	Result.UpdateCachedString();
-	return Result;
-}
-
-Path Path::AppendFragment(const std::string& Value) const
-{
-	Path Result = *this;
-
-	// Filename gets pushed into directory stack.
-	if (!Result.m_filename.empty() && !Result.m_extension.empty())
-	{
-		Result.m_directories.push_back(
-			Result.m_filename + "." + Result.m_extension
-		);
-	}
-
-	// Filename now becomes appended value.
-	size_t PeriodIndex = Value.find_last_of(".");
-	if (PeriodIndex != std::string::npos)
-	{
-		Strings::SplitOnIndex(Value, PeriodIndex,
-			Result.m_filename, Result.m_extension);
+		return Strings::Format("%s%c%s", 
+			Value.m_raw.c_str(),
+			Seperator,
+			m_raw.substr(lastDirOffset).c_str());
 	}
 	else
 	{
-		Result.m_filename = Value;
-		Result.m_extension = "";
+		return Strings::Format("%s%c%s",
+			Value.m_raw.c_str(),
+			Seperator,
+			m_raw.c_str());
 	}
-
-	Result.m_cachedString += Seperator;
-	Result.m_cachedString += Value;
-
-	return Result;
 }
 
+Path Path::AppendFragment(const std::string& Value, bool bAddDeliminator) const
+{
+	if (bAddDeliminator)
+	{
+		return Strings::Format("%s%c%s", m_raw.c_str(), Seperator, Value.c_str());
+
+	}
+	else
+	{
+		return Strings::Format("%s%s", m_raw.c_str(), Value.c_str());
+	}
+}
 
 bool Path::IsEmpty() const
 {
-	return m_mount.empty() && m_filename.empty() 
-		&& m_extension.empty() && m_directories.empty();
+	return m_raw.empty();
 }
 
 bool Path::IsRelative() const
 {
-	return m_mount.empty();
+	return GetMount() == "";
 }
 
 bool Path::IsAbsolute() const
@@ -356,41 +273,114 @@ bool Path::IsAbsolute() const
 
 bool Path::IsRoot() const
 {
-	return !m_mount.empty() && m_filename.empty() 
-		&& m_extension.empty() && m_directories.empty();
+	if (m_raw.size() == 1 && m_raw[0] == Seperator)
+	{
+		return true;
+	}
+	else if (m_raw.size() == 2 && m_raw[1] == ':')
+	{
+		return true;
+	}
+	return false;
 }
 
-Path Path::RelativeTo(const Path& Destination) const
+bool Path::IsSourceFile() const
 {
-	// If its a different mount, we have to be absolute.
-	if (m_mount != Destination.m_mount)
+	static const char* extensions[] = {
+		"cpp",
+		"c",
+		"cc",
+		"c++",
+		"mm",
+		"m",
+		"cxx",
+		"cs",
+		"asm",
+		"js",
+		"fs",
+		"vb",
+		"py",
+		"lua",
+		"vbs",
+		"r",
+		"d",
+		"php",
+		"cob",
+		"pb",
+		"cbl",
+		"pas",
+		"perl",
+		"tcl",
+		"objc",
+		"cp",
+		"j",
+		"java",
+		"qs",
+		"cls",
+		"frm",
+		"rb",
+		nullptr
+	};
+	
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
 	{
-		return Destination;
-	}
-
-	// If either us or the destination are absolute, its not 
-	// possible, just return destination.
-	if (IsRelative() || Destination.IsRelative())
-	{
-		return Destination;
-	}
-
-	Path Result;
-	Result.m_mount = "";
-	Result.m_extension = Destination.m_extension;
-	Result.m_filename = Destination.m_filename;
-
-	// Work out which directories are matching.
-	int MatchingDirs = 0;
-	size_t MinDirCount = min(
-		Destination.m_directories.size(), 
-		m_directories.size());
-
-	for (int i = 0; i < MinDirCount; i++)
-	{
-		if (Destination.m_directories[i] == m_directories[i])
+		if (extensions[i] == extension)
 		{
-			MatchingDirs++;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Path::IsIncludeFile()  const
+{
+	static const char* extensions[] = {
+		"h",
+		"hpp",
+		"inc",
+		"hrc",
+		"hxx",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+std::vector<std::string> Path::GetFragments() const
+{
+	return Strings::Split(Seperator, m_raw);
+}
+
+void Path::Normalize()
+{
+	char correctSeperator = Seperator;
+	char incorrectSeperator = '/';
+
+	if (correctSeperator == incorrectSeperator)
+	{
+		incorrectSeperator = '\\';	
+	}
+
+	// Replace incorrect directory seperators.
+	while (true)
+	{
+		size_t incorrectOffset = m_raw.find(incorrectSeperator);
+		if (incorrectOffset != std::string::npos)
+		{
+			m_raw[incorrectOffset] = correctSeperator;
 		}
 		else
 		{
@@ -398,43 +388,234 @@ Path Path::RelativeTo(const Path& Destination) const
 		}
 	}
 
-	size_t DirsToGoUp = m_directories.size() - MatchingDirs;
-	for (int i = 0; i < DirsToGoUp; i++)
+	// Replace trailing slash.
+	if (m_raw[m_raw.size() - 1] == correctSeperator)
 	{
-		Result.m_directories.push_back("..");
+		m_raw.resize(m_raw.size() - 1);
 	}
 
-	size_t DirsToAdd = Destination.m_directories.size() - MatchingDirs;
-	for (int i = 0; i < DirsToAdd; i++)
+	// Replace repeated directory seperators.
+	std::string repeatedSeperator = { correctSeperator, correctSeperator };
+	while (true)
 	{
-		Result.m_directories.push_back(
-			Destination.m_directories[MatchingDirs + i]);
+		size_t offset = m_raw.find(repeatedSeperator);
+		if (offset != std::string::npos)
+		{
+			m_raw.erase(offset, 1);
+		}
+		else
+		{
+			break;
+		}
 	}
 
-	Result.UpdateCachedString();
+	// Replace all parent seperators.
+	if (IsAbsolute() && m_raw.find("/.") != std::string::npos)
+	{
+		std::string result = "";
+		std::string fragment = "";
+		int skipCount = 0;
 
-	return Result;
+		for (int i = (int)m_raw.size() - 1; i >= 0; i--)
+		{
+			char chr = m_raw[i];
+			if (chr == correctSeperator)
+			{
+				if (fragment == "..")
+				{
+					skipCount++;
+				}
+				else if (fragment == ".")
+				{
+					// Don't skip anything, but don't append fragment.
+				}
+				else
+				{
+					if (skipCount > 0)
+					{
+						skipCount--;
+					}
+					else
+					{
+						if (result.empty())
+						{
+							result = fragment;
+						}
+						else
+						{
+							result = fragment + correctSeperator + result;
+						}
+					}
+				}
+				fragment = "";
+			}
+			else
+			{
+				fragment = chr + fragment;
+			}
+		}
+
+		if (!fragment.empty())
+		{
+			if (skipCount > 0)
+			{
+				Log(LogSeverity::Info,
+					"Path '%s' attempted to reference directory above root!", 
+					m_raw.c_str());
+			}
+			result = fragment + correctSeperator + result;
+		}
+
+		m_raw = result;
+	}
+}
+
+Path Path::RelativeTo(const Path& Destination) const
+{
+	// If its a different mount, we have to be absolute.
+	if (GetMount() != Destination.GetMount())
+	{
+		return Destination;
+	}
+
+	// If either of us is relative we have no root to determine relative
+	// paths from, so its going to have to be absolute.
+	if (IsRelative() || Destination.IsRelative())
+	{
+		return Destination;
+	}
+
+	std::vector<std::string> fragments = GetFragments();
+	std::vector<std::string> destFragments = Destination.GetFragments();
+
+	int fragmentsDirCount = (int)fragments.size();
+	int destFragmentsDirCount = (int)destFragments.size();
+
+	// Work out which directories are matching.
+	int matchingDirs = 0;
+	size_t minDirCount = min(fragmentsDirCount, destFragmentsDirCount);
+
+	for (unsigned int i = 0; i < minDirCount; i++)
+	{
+		if (fragments[i] == destFragments[i])
+		{
+			matchingDirs++;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	std::string result = "";
+
+	size_t DirsToGoUp = fragmentsDirCount - matchingDirs;
+	for (unsigned int i = 0; i < DirsToGoUp; i++)
+	{
+		if (!result.empty())
+		{
+			result += Seperator;
+		}
+		result += "..";
+	}
+
+	size_t dirsToAdd = destFragmentsDirCount - matchingDirs;
+	for (unsigned int i = 0; i < dirsToAdd; i++)
+	{
+		if (!result.empty())
+		{
+			result += Seperator;
+		}
+		result += destFragments[matchingDirs + i];
+	}
+
+	return result;
+}
+
+bool Path::GetCommonPath(std::vector<Path>& paths, Path& result)
+{
+	size_t maxOffset = INT_MAX;
+	for (Path& path : paths)
+	{
+		maxOffset = min(maxOffset, path.ToString().size());
+	}
+
+	std::string matchPath = "";
+	size_t matchOffset = 0; 
+
+	while (true)
+	{
+		size_t offset = paths[0].ToString().find(Seperator, matchOffset);
+		if (offset == std::string::npos)
+		{
+			offset = paths[0].ToString().size();
+		}
+
+		std::string main = paths[0].ToString().substr(0, offset);
+
+		bool bMatching = true;
+
+		for (int i = 1; i < (int)paths.size(); i++)
+		{
+			std::string sub = paths[i].ToString().substr(0, offset);
+			size_t subOffset = paths[i].ToString().find(Seperator, matchOffset);
+
+			if (offset != subOffset && sub != main)
+			{
+				bMatching = false;
+				break;
+			}
+		}
+
+		if (bMatching)
+		{
+			matchPath = main;
+			matchOffset = offset + 1;
+
+			if (offset == maxOffset)
+			{
+				break;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	result = matchPath;
+	return true;
+}
+
+Path Path::GetUncommonPath(Path& commonPath)
+{
+	Path uncommon = m_raw.substr(commonPath.m_raw.size() + 1);
+	return uncommon;
 }
 
 struct PathMatchFragment
 {
-	Path full;
+	std::string full;
 	std::string remaining;
+	bool valid;
+	bool isDirectory;
 };
 
 void MatchFilter_GetDirectories_r(const Path& base, std::vector<Path>& results)
 {
-	std::string seperatorString(1, Path::Seperator);
-	std::vector<Path> dirs = base.GetDirectories();
-	for (Path& path : dirs)
+	static std::string seperatorString(1, Path::Seperator);
+
+	std::vector<std::string> dirs = base.GetDirectories();
+
+	results.reserve(results.size() + dirs.size());
+
+	for (std::string& path : dirs)
 	{
-		Path fullPath = base + seperatorString + path;
+		Path fullPath = base.AppendFragment(path, true);
 		results.push_back(fullPath);
 		MatchFilter_GetDirectories_r(fullPath, results);
 	}
 }
-
-// todo: support .. and .
 
 std::vector<Path> MatchFilter_r(
 	const Path& base, 
@@ -445,7 +626,7 @@ std::vector<Path> MatchFilter_r(
 	std::string seperatorString(1, Path::Seperator);
 
 	std::string matchType = matches[0];
-	
+
 	// Nothing to match again? Game over.
 	if (matches.size() == 0)
 	{
@@ -458,22 +639,28 @@ std::vector<Path> MatchFilter_r(
 	{
 		std::vector<PathMatchFragment> potentialMatches;
 
-		std::vector<Path> dirs = base.GetDirectories();
-		std::vector<Path> files = base.GetFiles();
+		std::vector<std::string> dirs = base.GetDirectories();
+		std::vector<std::string> files = base.GetFiles();
 		
-		for (Path& path : dirs)
+		potentialMatches.reserve(dirs.size() + files.size());
+
+		for (std::string& path : dirs)
 		{
 			PathMatchFragment frag;
-			frag.full = base + seperatorString + path;
-			frag.remaining = path.ToString();
+			frag.full = path;
+			frag.remaining = path;
+			frag.valid = true;
+			frag.isDirectory = true;
 			potentialMatches.push_back(frag);
 		}
 
-		for (Path& path : files)
+		for (std::string& path : files)
 		{
 			PathMatchFragment frag;
-			frag.full = base + seperatorString + path;
-			frag.remaining = path.ToString();
+			frag.full = path;
+			frag.remaining = path;
+			frag.valid = true;
+			frag.isDirectory = false;
 			potentialMatches.push_back(frag);
 		}
 		
@@ -507,21 +694,22 @@ std::vector<Path> MatchFilter_r(
 					for (unsigned int i = 0; i < potentialMatches.size(); i++)
 					{
 						PathMatchFragment& frag = potentialMatches[i];
-						
-						size_t offset = frag.remaining.find(
-							nextFragment.c_str()
-						);
+						if (frag.valid)
+						{
+							size_t offset = frag.remaining.find(
+								nextFragment.c_str()
+							);
 
-						if (offset != std::string::npos)
-						{
-							frag.remaining.erase(
-								frag.remaining.begin(),
-								frag.remaining.begin() + offset);
-						}
-						else
-						{
-							potentialMatches.erase(potentialMatches.begin() + i);
-							i--;
+							if (offset != std::string::npos)
+							{
+								frag.remaining.erase(
+									frag.remaining.begin(),
+									frag.remaining.begin() + offset);
+							}
+							else
+							{
+								potentialMatches[i].valid = false;
+							}
 						}
 					}
 				}
@@ -550,10 +738,15 @@ std::vector<Path> MatchFilter_r(
 					dirs.push_back(base);
 				}
 
+				// Add a non-recursive match to check against for each directory.
+				matchStack.insert(matchStack.begin(), "*");
+
 				for (unsigned int i = 0; i < dirs.size(); i++)
 				{
 					std::vector<Path> subResult =
 						MatchFilter_r(dirs[i], matchStack);
+
+					result.reserve(subResult.size() + result.size());
 
 					for (Path& path : subResult)
 					{
@@ -572,12 +765,12 @@ std::vector<Path> MatchFilter_r(
 				for (unsigned int i = 0; i < potentialMatches.size(); i++)
 				{
 					PathMatchFragment& frag = potentialMatches[i];
-					if (frag.remaining.empty())
+					if (frag.remaining.empty() && frag.valid)
 					{						
-						if (frag.full.IsDirectory())
+						if (frag.isDirectory)
 						{
 							std::vector<Path> subResult = 
-								MatchFilter_r(frag.full, matchStack);
+								MatchFilter_r(base + seperatorString + frag.full, matchStack);
 
 							for (Path& subPath : subResult)
 							{
@@ -607,8 +800,7 @@ std::vector<Path> MatchFilter_r(
 					}
 					else
 					{
-						potentialMatches.erase(potentialMatches.begin() + i);
-						i--;
+						potentialMatches[i].valid = false;
 					}
 				}
 			}
@@ -618,12 +810,14 @@ std::vector<Path> MatchFilter_r(
 		// potential matches are now empty.
 		if (!bFinished)
 		{
+			result.reserve(potentialMatches.size());
+
 			for (unsigned int i = 0; i < potentialMatches.size(); i++)
 			{
 				PathMatchFragment& frag = potentialMatches[i];
-				if (frag.remaining.empty())
+				if (frag.remaining.empty() && frag.valid)
 				{
-					result.push_back(frag.full);
+					result.push_back(base.AppendFragment(frag.full, true));
 				}
 			}
 		}
@@ -634,6 +828,8 @@ std::vector<Path> MatchFilter_r(
 
 std::vector<Path> Path::MatchFilter(const Path& path)
 {
+	Time::TimedScope scope("Match Filter");
+
 	std::vector<std::string> matchStack;
 	std::string pathString = path.ToString();
 	size_t offset = 0;
@@ -679,8 +875,8 @@ std::vector<Path> Path::MatchFilter(const Path& path)
 
 			if (split == "*")
 			{
-				if (*matchStack.rbegin() == "*" ||
-					*matchStack.rbegin() == "**")
+				if (matchStack.size() > 0 && 
+					(*matchStack.rbegin() == "*" || *matchStack.rbegin() == "**"))
 				{
 					Log(LogSeverity::Fatal, 
 						"Wildcard followed by another wildcard in value '%s', "

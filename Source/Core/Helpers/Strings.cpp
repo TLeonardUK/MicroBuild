@@ -28,7 +28,18 @@ namespace Strings {
 
 bool CaseInsensitiveEquals(const std::string& a, const std::string& b)
 {
-	return ToLowercase(a) == ToLowercase(b);
+	if (a.size() != b.size())
+	{
+		return false;
+	}
+	for (unsigned int i = 0; i < a.size(); i++)
+	{
+		if (::tolower(a[i]) != ::tolower(b[i]))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 std::string ToLowercase(const std::string& input)

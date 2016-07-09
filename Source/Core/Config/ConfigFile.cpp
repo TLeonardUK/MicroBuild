@@ -1035,12 +1035,26 @@ std::string ConfigFile::GetValue(
 	return values[0];
 }
 
+bool ConfigFile::HasValue(
+	const std::string& group,
+	const std::string& key)
+{
+	std::vector<std::string> values = GetValues(group, key);
+	return (values.size() != 0);
+}
+
 void ConfigFile::Merge(const ConfigFile& file)
 {
 	for (auto& groupIter : file.m_groups)
 	{
 		for (auto& keyIter : groupIter.second->Keys)
 		{
+			// Do not insert values if they already exist.
+			if (HasValue(groupIter.second->Name, keyIter.second->Name))
+			{
+				continue;
+			}
+
 			for (auto& valueIter : keyIter.second->Values)
 			{
 				std::vector<std::string> values;
