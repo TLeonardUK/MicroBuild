@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Core/Helpers/Strings.h"
 #include "Core/Platform/Path.h"
+#include "Core/Log.h"
 
 namespace MicroBuild {
 
@@ -44,6 +45,17 @@ struct StringConverter<std::string, std::string>
 		return true;
 	}
 };
+
+template <>
+struct StringConverter<const char*, std::string>
+{
+	bool Cast(const char* value, std::string& type)
+	{
+		type = value;
+		return true;
+	}
+};
+
 
 // String->Float
 
@@ -147,6 +159,16 @@ bool StringCast(const FromType& value, ToType& output)
 {
 	StringConverter<FromType, ToType> Converter;
 	return Converter.Cast(value, output);
+}
+
+// Same as above but dosen't report errors, just returns the value if successful
+// or an empty string otherwise.
+template <typename FromType>
+std::string CastToString(const FromType& value)
+{
+	std::string result;
+	StringCast<FromType, std::string>(value, result);
+	return result;
 }
 
 }; // namespace MicroBuild

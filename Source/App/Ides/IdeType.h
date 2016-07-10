@@ -20,8 +20,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "App/Workspace/WorkspaceFile.h"
 #include "App/Project/ProjectFile.h"
+#include "Core/Helpers/TextStream.h"
 
 namespace MicroBuild {
+
+// Used to build a hierarchy of group folders in a workspace.
+struct ProjectGroupFolder
+{
+	std::string baseName;
+	std::string name;
+	std::string parentName;
+};
+
+
+// Used to define the platform/configuration matrix that defines what
+// projects we build in what configurations.
+struct BuildProjectPair
+{
+	std::string config;
+	EPlatform platform;
+	bool shouldBuild;
+	ProjectFile projectFile;
+};
+typedef std::vector<BuildProjectPair> BuildProjectMatrix;
+typedef std::vector<BuildProjectMatrix> BuildWorkspaceMatrix;
 
 // Base class for all IDE targets.
 class IdeType
@@ -41,6 +63,42 @@ public:
 		std::vector<ProjectFile>& projectFiles) = 0;
 
 protected:
+	
+	bool WriteFile(
+		WorkspaceFile& workspaceFile,
+		Platform::Path& directory,
+		Platform::Path& location,
+		const char* data
+	);
+
+	ProjectFile* GetProjectByName(
+		std::vector<ProjectFile>& projectFiles,
+		const std::string& name
+	);
+
+	bool GetProjectDependency(
+		WorkspaceFile& workspaceFile,
+		std::vector<ProjectFile>& projectFiles,
+		ProjectFile* activeFile,
+		ProjectFile*& output,
+		std::string name
+	);
+
+	std::vector<ProjectGroupFolder> GetGroupFolders(
+		WorkspaceFile& workspaceFile,
+		std::vector<ProjectFile>& projectFiles
+	);
+
+	bool CreateBuildMatrix(
+		WorkspaceFile& workspaceFile,
+		std::vector<ProjectFile>& projectFiles,
+		BuildWorkspaceMatrix& output);
+
+	// Checks if the platforms provided are in the valid list, if not
+	// an error is given and it returns false.
+	bool ArePlatformsValid(ProjectFile& file,
+		std::vector<EPlatform> toCheck,
+		std::vector<EPlatform> validOptions);
 
 	void SetShortName(const std::string& value);
 

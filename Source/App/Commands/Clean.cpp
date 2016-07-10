@@ -50,6 +50,8 @@ CleanCommand::CleanCommand(App* app)
 
 bool CleanCommand::Invoke(CommandLineParser* parser)
 {
+	UNUSED_PARAMETER(parser);
+
 	// todo
 
 	return true;

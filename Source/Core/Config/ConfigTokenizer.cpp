@@ -211,7 +211,7 @@ bool ConfigTokenizer::ReadToken()
 	{
 		Token tok(m_column, m_path, m_line, TokenType::Group, "");
 
-		while (true)
+		for (;;)
 		{
 			if (EndOfCharacters())
 			{
@@ -238,7 +238,7 @@ bool ConfigTokenizer::ReadToken()
 	{
 		Token tok(m_column, m_path, m_line, TokenType::String, "");
 
-		while (true)
+		for (;;)
 		{
 			if (EndOfCharacters())
 			{

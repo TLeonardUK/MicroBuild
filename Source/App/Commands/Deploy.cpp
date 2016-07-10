@@ -83,6 +83,8 @@ DeployCommand::DeployCommand(App* app)
 
 bool DeployCommand::Invoke(CommandLineParser* parser)
 {
+	UNUSED_PARAMETER(parser);
+
 	// todo
 
 	return true;

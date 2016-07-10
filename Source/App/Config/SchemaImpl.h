@@ -84,9 +84,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OPTION_RULE_DEFAULT(Value) \
 		if (values.size() == 0) \
 		{ \
-			std::string output; \
-			StringCast<decltype(Value), std::string>(Value, output);\
-			values.push_back(output); \
+			std::string outVal; \
+			StringCast<decltype(Value), std::string>(Value, outVal);\
+			values.push_back(outVal); \
 		} 
 
 #define OPTION_RULE_VALIDATOR(ValidatorFunction) \

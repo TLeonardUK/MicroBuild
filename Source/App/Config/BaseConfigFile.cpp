@@ -147,9 +147,9 @@ bool BaseConfigFile::ExpandPath(Platform::Path path,
 	std::vector<Platform::Path> matches =
 		Platform::Path::MatchFilter(resolved);
 
-	for (Platform::Path& path : matches)
+	for (Platform::Path& match : matches)
 	{
-		results.push_back(path.ToString());
+		results.push_back(match.ToString());
 	}
 
 	if (bCanCache)

@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	!defined(MB_DEBUG_BUILD)
 
 #error "No compile configuration defined. One of the following should always" \
-		"be defined: LD_SHIPPING_BUILD, LD_RELEASE_BUILD, LD_DEBUG_BUILD"
+		"be defined: MB_SHIPPING_BUILD, MB_RELEASE_BUILD, MB_DEBUG_BUILD"
 
 #endif
 
@@ -81,3 +81,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef max
 #define max(x, y) ((x) > (y) ? (x) : (y))
 #endif
+
+// Used to explicitly mark parameters as unused so they don't cause warnings.
+#define UNUSED_PARAMETER(x) (void)x;

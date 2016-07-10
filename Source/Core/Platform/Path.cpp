@@ -366,6 +366,11 @@ std::vector<std::string> Path::GetFragments() const
 
 void Path::Normalize()
 {
+	if (m_raw.size() == 0)
+	{
+		return;
+	}
+
 	char correctSeperator = Seperator;
 	char incorrectSeperator = '/';
 
@@ -375,7 +380,7 @@ void Path::Normalize()
 	}
 
 	// Replace incorrect directory seperators.
-	while (true)
+	for(;;)
 	{
 		size_t incorrectOffset = m_raw.find(incorrectSeperator);
 		if (incorrectOffset != std::string::npos)
@@ -396,7 +401,7 @@ void Path::Normalize()
 
 	// Replace repeated directory seperators.
 	std::string repeatedSeperator = { correctSeperator, correctSeperator };
-	while (true)
+	for (;;)
 	{
 		size_t offset = m_raw.find(repeatedSeperator);
 		if (offset != std::string::npos)
@@ -410,7 +415,9 @@ void Path::Normalize()
 	}
 
 	// Replace all parent seperators.
-	if (IsAbsolute() && m_raw.find("/.") != std::string::npos)
+	char seperatorSequence[3] = { Seperator, '.', '\0' };
+
+	if (IsAbsolute() && m_raw.find(seperatorSequence) != std::string::npos)
 	{
 		std::string result = "";
 		std::string fragment = "";
@@ -534,6 +541,12 @@ Path Path::RelativeTo(const Path& Destination) const
 
 bool Path::GetCommonPath(std::vector<Path>& paths, Path& result)
 {
+	if (paths.size() == 0)
+	{
+		result = "";
+		return false;
+	}
+
 	size_t maxOffset = INT_MAX;
 	for (Path& path : paths)
 	{
@@ -543,7 +556,7 @@ bool Path::GetCommonPath(std::vector<Path>& paths, Path& result)
 	std::string matchPath = "";
 	size_t matchOffset = 0; 
 
-	while (true)
+	for (;;)
 	{
 		size_t offset = paths[0].ToString().find(Seperator, matchOffset);
 		if (offset == std::string::npos)
@@ -721,9 +734,9 @@ std::vector<Path> MatchFilter_r(
 				// Get a list of all directories below this sub-directory, 
 				// try and perform a match for the reset of the stack on each
 				// of these directories.
-				std::vector<Path> dirs;
+				std::vector<Path> subDirs;
 
-				MatchFilter_GetDirectories_r(base, dirs);
+				MatchFilter_GetDirectories_r(base, subDirs);
 
 				// If we have a seperator next, we don't want
 				// to pass in the base path as matches have to be at least
@@ -735,16 +748,16 @@ std::vector<Path> MatchFilter_r(
 				}
 				else
 				{
-					dirs.push_back(base);
+					subDirs.push_back(base);
 				}
 
 				// Add a non-recursive match to check against for each directory.
 				matchStack.insert(matchStack.begin(), "*");
 
-				for (unsigned int i = 0; i < dirs.size(); i++)
+				for (unsigned int i = 0; i < subDirs.size(); i++)
 				{
 					std::vector<Path> subResult =
-						MatchFilter_r(dirs[i], matchStack);
+						MatchFilter_r(subDirs[i], matchStack);
 
 					result.reserve(subResult.size() + result.size());
 

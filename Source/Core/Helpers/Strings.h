@@ -32,6 +32,7 @@ std::string ToLowercase(const std::string& input);
 // Joins the given string list with the given glue value inbetween each
 // part.
 std::string Join(int argc, char* argv[], std::string glue);
+std::string Join(std::vector<std::string>& needles, std::string glue);
 
 // Cracks the given string into multiple values. This works like the command 
 // line syntax - eg, you can quote values to prevent them being cracked.
@@ -64,13 +65,17 @@ std::string FormatVa(std::string format, va_list list);
 
 // Hashes a string. Not particularly collision tolerant, but should be fine
 // for our purposes.
-unsigned int Hash(const std::string& value);
+unsigned int Hash(const std::string& value, unsigned int start = 0);
+uint64_t Hash64(const std::string& value, uint64_t start = 0);
 
 // Trims whitespace from the start and end of a value.
 std::string Trim(const std::string& input);
 
 // Splits the string into fragments deliminated by the given seperator.
 std::vector<std::string> Split(char seperator, const std::string& value);
+
+// Generates a guid given the key data.
+std::string Guid(const std::vector<std::string>& values);
 
 }; // namespace StringHelper
 }; // namespace MicroBuild

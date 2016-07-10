@@ -29,7 +29,20 @@ ConfigFile::ConfigFile()
 {
 }
 
+ConfigFile::ConfigFile(const ConfigFile& other)
+	: m_path(other.m_path)
+	, m_tokenIndex(0)
+	, m_currentGroup("")
+{
+	CopyFrom(other);
+}
+
 ConfigFile::~ConfigFile()
+{
+	Clear();
+}
+
+void ConfigFile::Clear()
 {
 	for (auto groupIter : m_groups)
 	{
@@ -47,6 +60,50 @@ ConfigFile::~ConfigFile()
 	}
 
 	m_groups.clear();
+}
+
+void ConfigFile::operator=(const ConfigFile& other)
+{
+	m_path = other.m_path;
+	CopyFrom(other);
+}
+
+void ConfigFile::CopyFrom(const ConfigFile& other)
+{
+	Clear();
+
+	for (auto groupIter : other.m_groups)
+	{
+		ConfigFileGroup* group = new ConfigFileGroup();
+		group->Name = groupIter.second->Name;
+
+		for (auto keyIter : groupIter.second->Keys)
+		{
+			ConfigFileKey* key = new ConfigFileKey();
+			key->Name = keyIter.second->Name;
+
+			for (auto valueIter : keyIter.second->Values)
+			{
+				ConfigFileValue* keyValue = new ConfigFileValue();
+				keyValue->Value = valueIter->Value;
+				keyValue->Conditions = valueIter->Conditions;
+				keyValue->ConditionResult = valueIter->ConditionResult;
+				keyValue->HasResolvedCondition = valueIter->HasResolvedCondition;
+				keyValue->HasResolvedValue = valueIter->HasResolvedValue;
+				keyValue->ResolvedValue = valueIter->ResolvedValue;
+
+				key->Values.push_back(keyValue);
+			}
+
+			group->Keys.insert(
+				std::pair<std::string, ConfigFileKey*>(key->Name, key)
+				);
+		}
+
+		m_groups.insert(
+			std::pair<std::string, ConfigFileGroup*>(group->Name, group)
+			);
+	}
 }
 
 bool ConfigFile::EndOfTokens()
@@ -291,8 +348,6 @@ bool ConfigFile::ParseExpressionComparison(ConfigFileExpression& expression)
 
 bool ConfigFile::ParseExpressionUnary(ConfigFileExpression& expression)
 {
-	bool bHasUnary = false;
-
 	if (PeekToken().Type == TokenType::Not)
 	{
 		NextToken();
@@ -440,7 +495,7 @@ bool ConfigFile::ParseIf()
 
 bool ConfigFile::ParseBlock()
 {
-	while (true)
+	for(;;)
 	{
 		if (EndOfTokens())
 		{
@@ -603,9 +658,9 @@ std::vector<ConfigFileValue*> ConfigFile::SetOrAddValue_Internal(
 	{
 		if (bOverwrite)
 		{
-			for (auto iter : keyIter->second->Values)
+			for (auto subIter : keyIter->second->Values)
 			{
-				delete iter;
+				delete subIter;
 			}
 			keyIter->second->Values.clear();
 		}
@@ -693,7 +748,7 @@ std::string ConfigFile::ReplaceTokens(
 {
 	std::string result = value;
 
-	while (true)
+	for(;;)
 	{
 		size_t start_offset = result.find("$(");
 		if (start_offset != std::string::npos)

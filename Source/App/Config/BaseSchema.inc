@@ -33,6 +33,7 @@ END_ENUM()
 START_ENUM(EPlatform)
 	ENUM_KEY(Windows_x86)
 	ENUM_KEY(Windows_x64)
+	ENUM_KEY(Windows_ARM)
 	ENUM_KEY(Windows_AnyCPU)
 
 	ENUM_KEY(Linux_x86)

@@ -57,11 +57,11 @@ bool CommandLineParser::Parse(int argc, char* argv[])
 			const char* commandName = argv[i];
 
 			// Skip the - and -- at the start of the command name.
-			if (commandName == "-")
+			if (strcmp(commandName, "-") == 0)
 			{
 				commandName++;
 			}
-			if (commandName == "-")
+			if (strcmp(commandName, "-") == 0)
 			{
 				commandName++;
 			}

@@ -128,7 +128,12 @@ class ConfigFile
 {
 public:
 	ConfigFile();
+	ConfigFile(const ConfigFile& other);
 	~ConfigFile();
+
+	void CopyFrom(const ConfigFile& other);
+
+	void operator=(const ConfigFile& other);
 
 	// Parses the config file located at the given path and converts in into
 	// group and value keys.
@@ -184,6 +189,8 @@ protected:
 		const std::vector<std::string>& values,
 		bool bOverwrite = false);
 
+	void Clear();
+
 	void Error(const Token& token, const char* format, ...);
 
 	void UnexpectedToken(const Token& tok);
@@ -232,7 +239,6 @@ protected:
 
 private:
 	Platform::Path m_path;
-	FILE* m_file;
 
 	ConfigTokenizer m_tokenizer;
 	int m_tokenIndex;

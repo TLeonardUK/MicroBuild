@@ -31,6 +31,65 @@ START_ENUM(ELanguage)
 	ENUM_KEY(CSharp)
 END_ENUM()
 
+START_ENUM(ELanguageVersion)
+	ENUM_KEY(Default)
+
+	// C++
+	ENUM_KEY(Cpp_14)
+	ENUM_KEY(Cpp_11)
+	ENUM_KEY(Cpp_98)
+
+	// C#
+	ENUM_KEY(CSharp_1_0)
+	ENUM_KEY(CSharp_2_0)
+	ENUM_KEY(CSharp_3_0)
+	ENUM_KEY(CSharp_4_0)
+	ENUM_KEY(CSharp_5_0)
+	ENUM_KEY(CSharp_6_0)
+END_ENUM()
+
+START_ENUM(EOptimizationLevel)
+	ENUM_KEY(None)
+	ENUM_KEY(Debug)
+	ENUM_KEY(PreferSpeed)
+	ENUM_KEY(PreferSize)
+	ENUM_KEY(Full)
+END_ENUM()
+
+START_ENUM(ECharacterSet)
+	ENUM_KEY(Default)
+	ENUM_KEY(Unicode)
+	ENUM_KEY(MBCS)
+END_ENUM()
+
+START_ENUM(EPlatformToolset)
+	ENUM_KEY(Default)
+
+	// C++ Platforms
+	ENUM_KEY(v140)
+	ENUM_KEY(v140_xp)
+
+	// DotNet
+	ENUM_KEY(DotNet_2_0)
+	ENUM_KEY(DotNet_3_0)
+	ENUM_KEY(DotNet_3_5)
+	ENUM_KEY(DotNet_4_0)	
+	ENUM_KEY(DotNet_4_5)	
+	ENUM_KEY(DotNet_4_5_1)
+	ENUM_KEY(DotNet_4_5_2)
+	ENUM_KEY(DotNet_4_6)	
+
+END_ENUM()
+
+START_ENUM(EWarningLevel)
+	ENUM_KEY(Default)
+	ENUM_KEY(None)
+	ENUM_KEY(Low)
+	ENUM_KEY(Medium)
+	ENUM_KEY(High)
+	ENUM_KEY(Verbose)
+END_ENUM()
+
 // ---------------------------------------------------------------------------
 // Project
 // ---------------------------------------------------------------------------
@@ -64,6 +123,7 @@ START_OPTION(
 	"Determines if the project should be built, use in conjunction with if "
 	"statements to disable building projects in different configurations."
 )
+OPTION_RULE_DEFAULT(true)
 END_OPTION()
 
 // ---------------------------------------------------------------------------
@@ -92,6 +152,40 @@ END_OPTION()
 // ---------------------------------------------------------------------------
 
 START_OPTION(
+	std::string,
+	Project,
+	OutputName,
+	"Basename of output file."
+)
+OPTION_RULE_REQUIRED()
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	Project,
+	OutputExtension,
+	"Extension of output file."
+)
+OPTION_RULE_REQUIRED()
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	Platform::Path,
+	Project,
+	IntermediateDirectory,
+	"Directory that intermediate object files are stored in during build."
+)
+OPTION_RULE_REQUIRED()
+OPTION_RULE_ABSOLUTE_PATH()
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
 	Platform::Path,
 	Project,
 	OutputDirectory,
@@ -110,6 +204,28 @@ START_OPTION(
 	"Language this project is written in. Determines compiler to use."
 )
 OPTION_RULE_REQUIRED()
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	ELanguageVersion,
+	Project,
+	LanguageVersion,
+	"What language/standard version to compile against."
+)
+OPTION_RULE_DEFAULT(ELanguageVersion::Default)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	Project,
+	RootNamespace,
+	"Root namespace for the project, primarily used in .net projects."
+)
+OPTION_RULE_DEFAULT(std::string("$(Project.Name)"))
 END_OPTION()
 
 // ---------------------------------------------------------------------------
@@ -145,6 +261,28 @@ START_ARRAY_OPTION(
 END_ARRAY_OPTION()
 
 // ---------------------------------------------------------------------------
+// Libraries
+// ---------------------------------------------------------------------------
+START_ARRAY_OPTION(
+	Platform::Path,
+	Libraries,
+	Library,
+	"Filename or path to library that should be linked to the output."
+)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+// References
+// ---------------------------------------------------------------------------
+START_ARRAY_OPTION(
+	Platform::Path,
+	References,
+	Reference,
+	"Assembly referenced by project, used primarily for .NET projects."
+)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
 // Files
 // ---------------------------------------------------------------------------
 START_ARRAY_OPTION(
@@ -159,13 +297,244 @@ OPTION_RULE_EXPAND_PATH_WILDCARDS(true)
 END_ARRAY_OPTION()
 
 // ---------------------------------------------------------------------------
-// Linker
+// Build
 // ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Compiler
-// ---------------------------------------------------------------------------
+START_OPTION(
+	EOptimizationLevel,
+	Build,
+	OptimizationLevel,
+	"Defines how heavily the project should be optimization, and what kind of "
+	"optimizations should be performed."
+)
+OPTION_RULE_DEFAULT(EOptimizationLevel::Full)
+END_OPTION()
 
 // ---------------------------------------------------------------------------
-// Dependencies
+
+START_OPTION(
+	ECharacterSet,
+	Build,
+	CharacterSet,
+	"Defines when character set to use for string literals / standard library."
+)
+OPTION_RULE_DEFAULT(ECharacterSet::Default)
+END_OPTION()
+
 // ---------------------------------------------------------------------------
+
+START_OPTION(
+	EPlatformToolset,
+	Build,
+	PlatformToolset,
+	"Which platform toolset to use for complication, valid values depend on "
+	"the target ide project files are being generated for."
+)
+OPTION_RULE_DEFAULT(EPlatformToolset::Default)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	Platform::Path,
+	Build,
+	PrecompiledHeader,
+	"Path to file to use as a precompiled header for the project."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	Platform::Path,
+	Build,
+	PrecompiledSource,
+	"Source file that accompanies the precompiled header file."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	EWarningLevel,
+	Build,
+	WarningLevel,
+	"Determines what level of verbosity warnings should be emitted during build."
+)
+OPTION_RULE_DEFAULT(EWarningLevel::Default)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	Build,
+	LinkerArguments,
+	"Arguments passed to the linker without transformation."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	Build,
+	CompilerArguments,
+	"Arguments passed to the compiler without transformation."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+// Defines
+// ---------------------------------------------------------------------------
+START_ARRAY_OPTION(
+	std::string,
+	Defines,
+	Define,
+	"Preprocessor defines to pass into the compiler."
+)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+// DisabledWarnings
+// ---------------------------------------------------------------------------
+START_ARRAY_OPTION(
+	std::string,
+	DisabledWarnings,
+	DisabledWarning,
+	"Disables the specific warning code while compiling."
+)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+// Search Paths
+// ---------------------------------------------------------------------------
+START_ARRAY_OPTION(
+	Platform::Path,
+	SearchPaths,
+	IncludeDirectory,
+	"Defines a directory to look into for include files."
+)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_ARRAY_OPTION(
+	Platform::Path,
+	SearchPaths,
+	LibraryDirectory,
+	"Defines a directory to look into for library files."
+)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+// ForcedIncludes
+// ---------------------------------------------------------------------------
+START_ARRAY_OPTION(
+	Platform::Path,
+	ForcedIncludes,
+	ForcedInclude,
+	"Defines a file to force the compiler to include at the start of all files."
+)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+// Flags
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Flags,
+	CompilerWarningsFatal,
+	"If true all compiler warnings will abort the build."
+)
+OPTION_RULE_DEFAULT(false)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Flags,
+	LinkerWarningsFatal,
+	"If true all linker warnings will abort the build."
+)
+OPTION_RULE_DEFAULT(false)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Flags,
+	RuntimeTypeInfo,
+	"Determines if runtime type information should be generated."
+)
+OPTION_RULE_DEFAULT(true)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Flags,
+	GenerateDebugInformation,
+	"Determines if debugging information (symbols) should be generated."
+)
+OPTION_RULE_DEFAULT(true)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Flags,
+	LinkTimeOptimization,
+	"Determines if link time optimization should be applied to the build."
+)
+OPTION_RULE_DEFAULT(false)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Flags,
+	Exceptions,
+	"Determines if exceptions should be available in this build."
+)
+OPTION_RULE_DEFAULT(true)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Flags,
+	StaticRuntime,
+	"Determines if the runtime library should be statically linked."
+)
+OPTION_RULE_DEFAULT(false)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Flags,
+	Prefer32Bit,
+	"Determines if dotnet AnyCpu projects should prefer 32bit compilation."
+)
+OPTION_RULE_DEFAULT(false)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Flags,
+	AllowUnsafeCode,
+	"Determines if dotnet projects permit unsafe code."
+)
+OPTION_RULE_DEFAULT(false)
+END_OPTION()

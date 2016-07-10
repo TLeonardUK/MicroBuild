@@ -29,18 +29,6 @@ namespace MicroBuild {
 #define GUID_CPP_PROJECT	 "{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}"
 #define GUID_CSHARP_PROJECT	 "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"
 
-const char* MSBuildVersion_SolutionTemplates[static_cast<int>(MSBuildVersion::COUNT)] = {
-    #include "App/Ides/MSBuild/Templates/MSBuild_Solution_V12.template"
-};
-
-const char* MSBuildVersion_ProjectTemplates[static_cast<int>(MSBuildVersion::COUNT)] = {
-    #include "App/Ides/MSBuild/Templates/MSBuild_Project_V12.template"
-};
-
-const char* MSBuildVersion_ProjectFiltersTemplates[static_cast<int>(MSBuildVersion::COUNT)] = {
-	#include "App/Ides/MSBuild/Templates/MSBuild_Project_Filters_V12.template"
-};
-
 Ide_MSBuild::Ide_MSBuild()
     : m_msBuildVersion(MSBuildVersion::Version12)
 {
@@ -53,6 +41,21 @@ Ide_MSBuild::~Ide_MSBuild()
 void Ide_MSBuild::SetMSBuildVersion(MSBuildVersion version)
 {
     m_msBuildVersion = version;
+}
+
+void Ide_MSBuild::SetHeaderShortName(const std::string& value)
+{
+	m_headerShortName = value;
+}
+
+void Ide_MSBuild::SetHeaderVersion(const std::string& value)
+{
+	m_headerVersion = value;
+}
+
+void Ide_MSBuild::SetDefaultToolset(EPlatformToolset toolset)
+{
+	m_defaultToolset = toolset;
 }
 
 std::string Ide_MSBuild::GetPlatformID(EPlatform platform)
@@ -71,42 +74,36 @@ std::string Ide_MSBuild::GetPlatformID(EPlatform platform)
         {
             return "Any CPU";
         }
+	case EPlatform::Windows_ARM:
+		{
+			return "ARM";
+		}
     }
     return "";
 }
 
-std::string Ide_MSBuild::GetProjectGuid(
-    const std::string& workspaceName, 
-    const std::string& projectName)
+std::string Ide_MSBuild::GetPlatformDotNetTarget(EPlatform platform)
 {
-    // To match VS we would want to generate a unique GUID each time the 
-    // project files are re-created, but that seems bleh. So I'm just going to
-    // make a fairly simple deterministic-guid that shouldn't change between rusn.
-    unsigned int workspaceHash = Strings::Hash(workspaceName);
-    unsigned int projectHash = Strings::Hash(projectName);
-
-    return Strings::Format("{%08X-0000-0000-0000-0000%08X}",
-        workspaceHash,
-        projectHash);
-}
-
-std::string Ide_MSBuild::GetFilterGuid(
-	const std::string& workspaceName,
-	const std::string& projectName, 
-	const std::string& filter)
-{
-	unsigned int workspaceHash = Strings::Hash(workspaceName);
-	unsigned int projectHash = Strings::Hash(projectName);
-	unsigned int filterHash = Strings::Hash(filter);
-
-	unsigned int filterHi = ((filterHash >> 16) & 0x0000FFFF);
-	unsigned int filterLo = ((filterHash) & 0x0000FFFF);
-
-	return Strings::Format("{%08X-0000-%04X-%04X-0000%08X}",
-		workspaceHash,
-		filterLo,
-		filterHi,
-		projectHash);
+    switch (platform)
+    {
+    case EPlatform::Windows_x86:
+        {
+            return "x86";
+        }
+    case EPlatform::Windows_x64:
+        {
+            return "x64";
+        }
+    case EPlatform::Windows_AnyCPU:
+        {
+            return "AnyCPU";
+        }
+	case EPlatform::Windows_ARM:
+		{
+			return "ARM";
+		}
+    }
+    return "";
 }
 
 std::string Ide_MSBuild::GetProjectTypeGuid(ELanguage language)
@@ -122,27 +119,15 @@ std::string Ide_MSBuild::GetProjectTypeGuid(ELanguage language)
     }
 }
 
-ProjectFile* Ide_MSBuild::GetProjectByName(
-    std::vector<ProjectFile>& projectFiles,
-    const std::string& name)
-{
-    for (ProjectFile& file : projectFiles)
-    {
-        if (Strings::CaseInsensitiveEquals(file.Get_Project_Name(), name))
-        {
-            return &file;
-        }
-    }
-    return nullptr;
-}
-
 bool Ide_MSBuild::GenerateSolutionFile(
     WorkspaceFile& workspaceFile,
     std::vector<ProjectFile>& projectFiles,
-    MSBuildWorkspaceMatrix& buildMatrix
+    BuildWorkspaceMatrix& buildMatrix
     )
 {
-    Platform::Path solutionDirectory = workspaceFile.Get_Workspace_Location();
+    Platform::Path solutionDirectory = 
+		workspaceFile.Get_Workspace_Location();
+
     Platform::Path solutionLocation = 
         solutionDirectory.AppendFragment(
             workspaceFile.Get_Workspace_Name() + ".sln", true);
@@ -153,368 +138,978 @@ bool Ide_MSBuild::GenerateSolutionFile(
     std::vector<EPlatform> platforms =
         workspaceFile.Get_Platforms_Platform();
 
-    // Fill evaluator will all variables required to build solution.
-    TemplateEvaluator evaluator;
+	std::stringstream output;
 
-    // Work out all the solution folder fragments we need to build
-    // the solution hierarchy.
-    int projectsIndex = evaluator.AddArgument("projects", "");
-    int nestedProjectsIndex = evaluator.AddArgument("nestedProjects", "");
+	// Get a list of folders.
+	std::vector<ProjectGroupFolder> folders =
+		GetGroupFolders(workspaceFile, projectFiles);
 
-    std::vector<std::string> folders;
+	// Header
+	output << "\n";
+	output << "Microsoft Visual Studio Solution File, Format Version " << m_headerVersion << "\n";
+	output << "# " << m_headerShortName << "\n";
 
-    for (ProjectFile& project : projectFiles)
-    {
-        Platform::Path group = project.Get_Project_Group();
-        std::vector<std::string> frags = group.GetFragments();
+	// Project block
+	for (ProjectFile& file : projectFiles)
+	{
+		std::string typeGuid = 
+			GetProjectTypeGuid(file.Get_Project_Language());
+		std::string name = 
+			file.Get_Project_Name();
+		
+		Platform::Path projectLocation;
 
-        std::string folder = "";
-        for (std::string frag : frags)
-        {
-            std::string parentFolder = folder;
+		switch (file.Get_Project_Language())
+		{
+		case ELanguage::Cpp:
+			{
+				projectLocation = file.Get_Project_Location().
+					AppendFragment(file.Get_Project_Name() + ".vcxproj", true);
+				break;
+			}
+		case ELanguage::CSharp:
+			{
+				projectLocation = file.Get_Project_Location().
+					AppendFragment(file.Get_Project_Name() + ".csproj", true);
+				break;
+			}
+		default:
+			{
+				assert(false);
+			}
+		}
 
-            if (folder != "")
-            {
-                folder += "/";
-            }
-            folder += frag;
+		std::string relativeLocation =
+			solutionDirectory.RelativeTo(projectLocation).ToString();
+		
+		std::string guid = 
+			Strings::Guid({ workspaceFile.Get_Workspace_Name(), file.Get_Project_Name() });
 
-            bool bExists = false;
+		output << "Project(\"" << typeGuid << "\") = \"" << name << "\", \"" << relativeLocation << "\", \"" << guid << "\"" << "\n";
+		output << "\t" << "ProjectSelection(ProjectDependencies) = postProject" << "\n";
 
-            for (std::string existingFolder : folders)
-            {
-                if (Strings::CaseInsensitiveEquals(folder, existingFolder))
-                {
-                    bExists = true;
-                    break;
-                }
-            }
+		for (std::string dependency : file.Get_Dependencies_Dependency())
+		{
+			ProjectFile* projectDependency;
+			if (!GetProjectDependency(workspaceFile, projectFiles, &file, projectDependency, dependency))
+			{
+				return false;
+			}
 
-            if (!bExists)
-            {
-                std::string folderGuid = GetProjectGuid(
-                    workspaceFile.Get_Workspace_Name(),
-                    folder + ".folder"
-                );
+			std::string depGuid = Strings::Guid({ workspaceFile.Get_Workspace_Name(), projectDependency->Get_Project_Name() });
+			output << "\t\t" << depGuid << " = " << depGuid << "\n";
+		}
 
-                std::string parentFolderGuid = GetProjectGuid(
-                    workspaceFile.Get_Workspace_Name(),
-                    parentFolder + ".folder"
-                );
+		output << "\t" << "EndProjectSelection" << "\n";
+		output << "EndProject" << "\n";
+	}
 
-                std::string baseName = folder;
-                size_t slashOffset = baseName.find_last_of('/');
-                if (slashOffset != std::string::npos)
-                {
-                    baseName = baseName.substr(slashOffset + 1);
-                }
+	for (ProjectGroupFolder& folder : folders)
+	{
+		std::string guid =
+			Strings::Guid({ workspaceFile.Get_Workspace_Name(), folder.name, "folder" });
 
-                int itemIndex = evaluator.AddArgument("", "", projectsIndex);
-                evaluator.AddArgument(
-                    "guid", folderGuid, itemIndex);
-                evaluator.AddArgument(
-                    "name", baseName, itemIndex);
-                evaluator.AddArgument(
-                    "location", "", itemIndex);
-                evaluator.AddArgument(
-                    "parentGuid", "", itemIndex);
-                evaluator.AddArgument(
-                    "typeGuid", GUID_SOLUTION_FOLDER, itemIndex);
-                evaluator.AddArgument(
-                    "dependencyGuids", "", itemIndex);
+		output << "Project(\"" << GUID_SOLUTION_FOLDER << "\") = \"" << folder.baseName << "\", \"" << folder.baseName << "\", \"" << guid << "\"" << "\n";
+		output << "EndProject" << "\n";
+	}
 
-                // Folder->Parent Folder nesting.
-                if (!parentFolder.empty())
-                {
-                    int nestedItemIndex = 
-                        evaluator.AddArgument("", "", nestedProjectsIndex);
-                    evaluator.AddArgument(
-                        "guid", folderGuid, nestedItemIndex);
-                    evaluator.AddArgument(
-                        "parentGuid", parentFolderGuid, nestedItemIndex);
-                }
+	// Global block
+	output << "Global" << "\n";
+	output << "\t" << "GlobalSection(SolutionConfigurationPlatforms) = preSolution" << "\n";
 
-                folders.push_back(folder);
-            }
-        }
+	for (std::string& config : configurations)
+	{
+		for (EPlatform& platform : platforms)
+		{
+			std::string platformStr = GetPlatformID(platform);
 
-        // Project->Folder nesting.
-        if (!folder.empty())
-        {
-            std::string guid = GetProjectGuid(
-                workspaceFile.Get_Workspace_Name(), 
-                project.Get_Project_Name()
-			);
+			output << "\t\t" << config << "|" << platformStr << " = " << config << "|" << platformStr << "\n";
+		}
+	}
 
-            std::string folderGuid = GetProjectGuid(
-                workspaceFile.Get_Workspace_Name(),
-                folder + ".folder"
-            );
+	output << "\t" << "EndGlobalSection" << "\n";
+	output << "\t" << "GlobalSection(ProjectConfigurationPlatforms) = postSolution" << "\n";
 
-            int nestedItemIndex =
-                evaluator.AddArgument("", "", nestedProjectsIndex);
-            evaluator.AddArgument(
-                "guid", guid, nestedItemIndex);
-            evaluator.AddArgument(
-                "parentGuid", folderGuid, nestedItemIndex);
-        }
-    }
-    
-    // Project variables.
-    for (ProjectFile& project : projectFiles)
-    {
-        std::string guid = GetProjectGuid(
-            workspaceFile.Get_Workspace_Name(), project.Get_Project_Name());
+	for (BuildProjectMatrix& matrix : buildMatrix)
+	{
+		for (BuildProjectPair& pair : matrix)
+		{
+			std::string projectGuid = 
+				Strings::Guid({ workspaceFile.Get_Workspace_Name(), pair.projectFile.Get_Project_Name() });
 
-        std::string typeGuid = GetProjectTypeGuid(
-            project.Get_Project_Language());
+			std::string platformStr = GetPlatformID(pair.platform);
 
-        if (typeGuid == "")
-        {
-            StringCast(project.Get_Project_Language(), typeGuid);
+			output << "\t\t" << projectGuid << "." << pair.config << "|" << platformStr << ".ActiveCfg = " << pair.config << "|" << platformStr << "\n";
 
-            workspaceFile.ValidateError(
-                "Platform '%s' is not a valid platform for an msbuild project.",
-                typeGuid.c_str());
+			if (pair.shouldBuild)
+			{
+				output << "\t\t" << projectGuid << "." << pair.config << "|" << platformStr << ".Build.0 = " << pair.config << "|" << platformStr << "\n";
+			}
+		}
+	}
 
-            return false;
-        }
+	output << "\t" << "EndGlobalSection" << "\n";
+	output << "\t" << "GlobalSection(SolutionProperties) = preSolution" << "\n";
+	output << "\t\tHideSolutionNode = FALSE" << "\n";
+	output << "\t" << "EndGlobalSection" << "\n";
+	output << "\t" << "GlobalSection(NestedProjects) = preSolution" << "\n";
 
-        Platform::Path vcxprojLocation = 
-            project.Get_Project_Location().
-            AppendFragment(project.Get_Project_Name() + ".vcxproj", true);
+	for (ProjectGroupFolder& folder : folders)
+	{
+		if (folder.parentName != "")
+		{
+			std::string guid =
+				Strings::Guid({ workspaceFile.Get_Workspace_Name(), folder.name, "folder" });
 
-        Platform::Path vcxprojLocationRelative = 
-            solutionDirectory.RelativeTo(vcxprojLocation);
+			std::string parentGuid =
+				Strings::Guid({ workspaceFile.Get_Workspace_Name(), folder.parentName, "folder" });
 
-        int itemIndex = evaluator.AddArgument("", "", projectsIndex);
-        evaluator.AddArgument(
-            "guid", guid, itemIndex);
-        evaluator.AddArgument(
-            "name", project.Get_Project_Name(), itemIndex);
-        evaluator.AddArgument(
-            "location", vcxprojLocationRelative.ToString(), itemIndex);
-        evaluator.AddArgument(
-            "parentGuid","", itemIndex);
-        evaluator.AddArgument(
-            "typeGuid", typeGuid, itemIndex);
+			output << "\t\t" << guid << " = " << parentGuid << "\n";
+		}
+	}
 
-        // Figure out the guids of all dependent projects.
-        int dependencyGuidIndex = evaluator.AddArgument("dependencyGuids", "", itemIndex);
-        std::vector<std::string> dependencyProjectNames = 
-            project.Get_Dependencies_Dependency();
+	for (ProjectFile& file : projectFiles)
+	{
+		std::string group = file.Get_Project_Group().ToString();
+		if (!group.empty())
+		{
+			std::string guid =
+				Strings::Guid({ workspaceFile.Get_Workspace_Name(), file.Get_Project_Name() });
 
-        for (std::string dependencyName : dependencyProjectNames)
-        {
-            ProjectFile* dependency = 
-                GetProjectByName(projectFiles, dependencyName);
-            
-            if (dependency == &project)
-            {
-                workspaceFile.ValidateError(
-                    "Project '%s' appears to be dependent on itself.",
-                    dependencyName.c_str());
+			std::string parentGuid =
+				Strings::Guid({ workspaceFile.Get_Workspace_Name(), group, "folder" });
 
-                return false;
-            }
+			output << "\t\t" << guid << " = " << parentGuid << "\n";
+		}
+	}
 
-            if (dependency == nullptr)
-            {
-                workspaceFile.ValidateError(
-                    "Project dependency '%s' could not be found.",
-                    dependencyName.c_str());
+	output << "\t" << "EndGlobalSection" << "\n";
+	output << "EndGlobal" << "\n";
 
-                return false;
-            }
-            else
-            {
-                std::string dependencyGuid = GetProjectGuid(
-                    workspaceFile.Get_Workspace_Name(), 
-                    dependency->Get_Project_Name());
-                
-                evaluator.AddArgument("", dependencyGuid, dependencyGuidIndex);
-            }
-        }
-    }
+	// Generate result.
+	if (!WriteFile(
+		workspaceFile,
+		solutionDirectory,
+		solutionLocation,
+		output.str().c_str()))
+	{
+		return false;
+	}
 
-    // Configuration variables.
-    int configurationsIndex = evaluator.AddArgument("configurations", "");
-    for (unsigned int i = 0; i < configurations.size(); i++)
-    {
-        int itemIndex = evaluator.AddArgument("", "", configurationsIndex);
-        evaluator.AddArgument("id", configurations[i], itemIndex);
-    }
+	return true;
+}
 
-    // Platform variables.
-    int platformsIndex = evaluator.AddArgument("platforms", "");
-    for (unsigned int i = 0; i < platforms.size(); i++)
-    {
-        std::string platformString = GetPlatformID(platforms[i]);
-        if (platformString == "")
-        {
-            StringCast(platforms[i], platformString);
+bool Ide_MSBuild::Generate_Csproj(
+	WorkspaceFile& workspaceFile,
+	ProjectFile& projectFile,
+	BuildProjectMatrix& buildMatrix
+	)
+{
+	Platform::Path solutionDirectory =
+		workspaceFile.Get_Workspace_Location();
 
-            workspaceFile.ValidateError(
-                "Platform '%s' is not a valid platform for an msbuild project.",
-                platformString);
+	Platform::Path projectDirectory =
+		projectFile.Get_Project_Location();
 
-            return false;
-        }
+	Platform::Path projectLocation =
+		projectDirectory.AppendFragment(
+			projectFile.Get_Project_Name() + ".csproj", true);
 
-        int itemIndex = evaluator.AddArgument("", "", platformsIndex);
-        evaluator.AddArgument("id", platformString, itemIndex);
-    }
+	std::vector<std::string> configurations =
+		workspaceFile.Get_Configurations_Configuration();
 
-    // Build matrix settings.
-    int buildMatrixIndex = evaluator.AddArgument("buildMatrix", "");
-    for (unsigned int i = 0; i < buildMatrix.size(); i++)
-    {
-        MSBuildProjectMatrix& projectMatrix = buildMatrix[i];
-        ProjectFile& project = projectFiles[i];
+	std::vector<EPlatform> platforms =
+		workspaceFile.Get_Platforms_Platform();
 
-        std::string projectGuid = GetProjectGuid(
-            workspaceFile.Get_Workspace_Name(),
-            project.Get_Project_Name());
+	std::stringstream output;
 
-        for (unsigned int k = 0; k < projectMatrix.size(); k++)
-        {
-            MSBuildProjectPair& pair = projectMatrix[k];
+	std::string projectGuid = Strings::Guid({
+		workspaceFile.Get_Workspace_Name(),
+		projectFile.Get_Project_Name() });
 
-            int itemIndex = evaluator.AddArgument("", "", buildMatrixIndex);
-            evaluator.AddArgument(
-                "projectGuid", projectGuid, itemIndex);
-            evaluator.AddArgument(
-                "configId", pair.config, itemIndex);
-            evaluator.AddArgument(
-                "platformId", GetPlatformID(pair.platform), itemIndex);
-            evaluator.AddArgument(
-                "shouldBuild", pair.shouldBuild ? "1" : "0", itemIndex);
-        }
-    }
+	// Check platform is supported.
+	if (!ArePlatformsValid(projectFile, platforms, { 
+		EPlatform::Windows_AnyCPU, 
+		EPlatform::Windows_ARM,
+		EPlatform::Windows_x86,
+		EPlatform::Windows_x64
+	}))
+	{
+		return false;
+	}
 
-    // Misc variables.
-    evaluator.AddArgument("hideSolutionNode", "FALSE");
+	// Files.
+	std::vector<std::string> sourceFiles;
+	std::vector<std::string> miscFiles;
 
-    // Generate result.
-    if (!GenerateTemplateFile(
-        workspaceFile,
-        solutionDirectory,
-        solutionLocation,
-        MSBuildVersion_SolutionTemplates[static_cast<int>(m_msBuildVersion)],
-        evaluator))
-    {
-        return false;
-    }
+	for (Platform::Path& path : projectFile.Get_Files_File())
+	{
+		std::string relativePath = "$(SolutionDir)\\" +
+			solutionDirectory.RelativeTo(path).ToString();
+
+		if (path.IsSourceFile())
+		{
+			sourceFiles.push_back(relativePath);
+		}
+		else
+		{
+			miscFiles.push_back(relativePath);
+		}
+	}
+
+	// Header
+	output << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << "\n";
+	output << "<Project DefaultTargets=\"Build\" ToolsVersion=\"14.0\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">" << "\n";
+
+	// Globals
+	output << "\t" << "<PropertyGroup>" << "\n";
+	output << "\t\t" << "<Configuration Condition=\" '$(Configuration)' == '' \">" << CastToString(configurations[0]) << "</Configuration>" << "\n";
+    output << "\t\t" << "<Platform Condition=\" '$(Platform)' == '' \">" << GetPlatformDotNetTarget(platforms[0]) << "</Platform>" << "\n";
+	output << "\t\t" << "<ProjectGuid>" << projectGuid << "</ProjectGuid>" << "\n";
+	switch (projectFile.Get_Project_OutputType())
+	{
+	case EOutputType::Executable:
+		output << "\t\t" << "<OutputType>WinExe</OutputType>" << "\n";
+		break;
+	case EOutputType::ConsoleApp:
+		output << "\t\t" << "<OutputType>Exe</OutputType>" << "\n";
+		break;
+	case EOutputType::DynamicLib:
+		output << "\t\t" << "<OutputType>Library</OutputType>" << "\n";
+		break;
+	default:
+		projectFile.ValidateError(
+			"Output type '%s' is not valid for msbuild .NET projects.",
+			CastToString(projectFile.Get_Project_OutputType()).c_str());
+		return false;
+	}
+
+	output << "\t\t" << "<AppDesignerFolder>Properties</AppDesignerFolder>" << "\n";
+
+	switch (projectFile.Get_Build_PlatformToolset())
+	{
+	case EPlatformToolset::Default:
+		break;
+	case EPlatformToolset::DotNet_2_0:
+		output << "\t\t" << "<TargetFrameworkVersion>v2.0</TargetFrameworkVersion>" << "\n";
+		break;
+	case EPlatformToolset::DotNet_3_0:
+		output << "\t\t" << "<TargetFrameworkVersion>v3.0</TargetFrameworkVersion>" << "\n";
+		break;
+	case EPlatformToolset::DotNet_3_5:
+		output << "\t\t" << "<TargetFrameworkVersion>v3.5</TargetFrameworkVersion>" << "\n";
+		break;
+	case EPlatformToolset::DotNet_4_0:
+		output << "\t\t" << "<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>" << "\n";
+		break;
+	case EPlatformToolset::DotNet_4_5:
+		output << "\t\t" << "<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>" << "\n";
+		break;
+	case EPlatformToolset::DotNet_4_5_1:
+		output << "\t\t" << "<TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>" << "\n";
+		break;
+	case EPlatformToolset::DotNet_4_5_2:
+		output << "\t\t" << "<TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>" << "\n";
+		break;
+	case EPlatformToolset::DotNet_4_6:
+		output << "\t\t" << "<TargetFrameworkVersion>v4.6</TargetFrameworkVersion>" << "\n";
+		break;
+	default:
+		projectFile.ValidateError(
+			"Platform toolset '%s' is not valid for msbuild .NET projects.",
+			CastToString(projectFile.Get_Build_PlatformToolset()).c_str());
+		return false;
+	}
+
+	output << "\t\t" << "<FileAlignment>512</FileAlignment>" << "\n";
+	output << "\t\t" << "<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>" << "\n";
+
+	output << "\t\t" << "<RootNamespace>" << projectFile.Get_Project_RootNamespace() << "</RootNamespace>" << "\n";
+	output << "\t" << "</PropertyGroup>" << "\n";
+
+	// Property Grid
+	for (auto matrix : buildMatrix)
+	{
+		std::string platformId = GetPlatformID(matrix.platform);
+
+				Platform::Path outDir = matrix.projectFile.Get_Project_OutputDirectory();
+		Platform::Path intDir = matrix.projectFile.Get_Project_IntermediateDirectory();
+
+		Platform::Path outDirRelative = solutionDirectory.RelativeTo(outDir);
+		Platform::Path intDirRelative = solutionDirectory.RelativeTo(intDir);
+
+		std::vector<std::string> defines = matrix.projectFile.Get_Defines_Define();
+		
+		output << "\t" << "<PropertyGroup Condition=\"'$(Configuration)|$(Platform)'=='" << matrix.config << "|" << platformId << "'\" Label=\"Configuration\">" << "\n";
+		output << "\t\t" << "<DebugSymbols>" << CastToString(matrix.projectFile.Get_Flags_GenerateDebugInformation()) << "</DebugSymbols>" << "\n";
+		output << "\t\t" << "<BaseOutputPath>$(SolutionDir)\\" << outDirRelative.ToString() << "\\</BaseOutputPath>" << "\n";
+		output << "\t\t" << "<OutputPath>$(BaseOutputPath)\\</OutputPath>" << "\n";
+		output << "\t\t" << "<BaseIntermediateOutputPath>$(SolutionDir)\\" << intDirRelative.ToString() << "\\</BaseIntermediateOutputPath>" << "\n";
+		output << "\t\t" << "<IntermediateOutputPath>$(BaseIntermediateOutputPath)\\</IntermediateOutputPath>" << "\n";
+		output << "\t\t" << "<DefineConstants>" << Strings::Join(defines, ";") << "</DefineConstants>" << "\n";
+		output << "\t\t" << "<DebugType>" << (matrix.projectFile.Get_Flags_GenerateDebugInformation() ? "full" : "pdbonly") << "</DebugType>" << "\n";
+		output << "\t\t" << "<PlatformTarget>" << GetPlatformDotNetTarget(matrix.platform) << "</PlatformTarget>" << "\n";
+		output << "\t\t" << "<ErrorReport>prompt</ErrorReport>" << "\n";		
+		output << "\t\t" << "<WarningsAsErrors>" << (matrix.projectFile.Get_Flags_CompilerWarningsFatal() ? "true" : "false") << "</WarningsAsErrors>" << "\n";
+		output << "\t\t" << "<CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>" << "\n";
+		output << "\t\t" << "<Prefer32Bit>" << CastToString(matrix.projectFile.Get_Flags_Prefer32Bit()) << "</Prefer32Bit>" << "\n";
+		output << "\t\t" << "<AllowUnsafeBlocks>" << CastToString(matrix.projectFile.Get_Flags_AllowUnsafeCode()) << "</AllowUnsafeBlocks>" << "\n";
+
+		if (matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::None ||
+			matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::Debug)
+		{
+			output << "\t\t" << "<Optimize>false</Optimize>" << "\n";
+		}
+		else
+		{
+			output << "\t\t" << "<Optimize>true</Optimize>" << "\n";
+		}
+
+		switch (projectFile.Get_Project_LanguageVersion())
+		{
+		case ELanguageVersion::Default:
+			break;
+		case ELanguageVersion::CSharp_1_0:
+			output << "\t\t" << "<LangVersion>ISO-1</LangVersion>" << "\n";
+			break;
+		case ELanguageVersion::CSharp_2_0:
+			output << "\t\t" << "<LangVersion>ISO-2</LangVersion>" << "\n";
+			break;
+		case ELanguageVersion::CSharp_3_0:
+			output << "\t\t" << "<LangVersion>3</LangVersion>" << "\n";
+			break;
+		case ELanguageVersion::CSharp_4_0:
+			output << "\t\t" << "<LangVersion>4</LangVersion>" << "\n";
+			break;
+		case ELanguageVersion::CSharp_5_0:
+			output << "\t\t" << "<LangVersion>5</LangVersion>" << "\n";
+			break;
+		case ELanguageVersion::CSharp_6_0:
+			output << "\t\t" << "<LangVersion>6</LangVersion>" << "\n";
+			break;
+		default:
+			projectFile.ValidateError(
+				"Project language version '%s' is not valid for this project type.",
+				CastToString(projectFile.Get_Project_LanguageVersion()).c_str());
+			return false;
+		}
+
+		output << "\t" << "</PropertyGroup>" << "\n";
+	}
+
+	// Startup Property Grid
+	output << "\t" << "<PropertyGroup>" << "\n";
+	output << "\t\t" << "<StartupObject />" << "\n";
+	output << "\t" << "</PropertyGroup>" << "\n";
+
+	// References
+	output << "\t" << "<ItemGroup>" << "\n";
+	for (auto file : projectFile.Get_References_Reference())
+	{
+		output << "\t\t" << "<Reference Include=\"" << file.ToString() << "\" />" << "\n";
+	}
+	output << "\t" << "</ItemGroup>" << "\n";
+
+	// Source files
+	output << "\t" << "<ItemGroup>" << "\n";
+	for (auto file : sourceFiles)
+	{
+		output << "\t\t" << "<Compile Include=\"" << file << "\" />" << "\n";
+	}
+	output << "\t" << "</ItemGroup>" << "\n";
+
+	// Misc file.
+	output << "\t" << "<ItemGroup>" << "\n";
+	for (auto file : miscFiles)
+	{
+		output << "\t\t" << "<None Include=\"" << file << "\" />" << "\n";
+	}
+	output << "\t" << "</ItemGroup>" << "\n";
+
+
+	output << "\t" << "<Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" />" << "\n";
+	output << "</Project>" << "\n";
+
+	// Generate result.
+	if (!WriteFile(
+		workspaceFile,
+		projectDirectory,
+		projectLocation,
+		output.str().c_str()))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool Ide_MSBuild::Generate_Vcxproj(
+    WorkspaceFile& workspaceFile,
+    ProjectFile& projectFile,
+    BuildProjectMatrix& buildMatrix
+    )
+{
+	Platform::Path solutionDirectory =
+		workspaceFile.Get_Workspace_Location();
+
+	Platform::Path projectDirectory =
+		projectFile.Get_Project_Location();
+
+	Platform::Path projectLocation =
+		projectDirectory.AppendFragment(
+			projectFile.Get_Project_Name() + ".vcxproj", true);
+
+	std::vector<std::string> configurations =
+		workspaceFile.Get_Configurations_Configuration();
+
+	std::vector<EPlatform> platforms =
+		workspaceFile.Get_Platforms_Platform();
+
+	std::stringstream output;
+
+	std::string projectGuid = Strings::Guid({
+		workspaceFile.Get_Workspace_Name(),
+		projectFile.Get_Project_Name() });
+
+	// Check platform is supported.
+	if (!ArePlatformsValid(projectFile, platforms, {
+		EPlatform::Windows_AnyCPU,
+		EPlatform::Windows_ARM,
+		EPlatform::Windows_x86,
+		EPlatform::Windows_x64
+	}))
+	{
+		return false;
+	}
+
+	// Files.
+	std::vector<std::string> includeFiles;
+	std::vector<std::string> sourceFiles;
+	std::vector<std::string> miscFiles;
+	std::string precompiledSourceFile;
+
+	for (Platform::Path& path : projectFile.Get_Files_File())
+	{
+		std::string relativePath = "$(SolutionDir)\\" +
+			solutionDirectory.RelativeTo(path).ToString();
+
+		if (path == projectFile.Get_Build_PrecompiledSource())
+		{
+			precompiledSourceFile = relativePath;
+		}
+
+		if (path.IsSourceFile())
+		{
+			sourceFiles.push_back(relativePath);
+		}
+		else if (path.IsIncludeFile())
+		{
+			includeFiles.push_back(relativePath);
+		}
+		else
+		{
+			miscFiles.push_back(relativePath);
+		}
+	}
+
+	// Header
+	output << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << "\n";
+	output << "<Project DefaultTargets=\"Build\" ToolsVersion=\"14.0\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">" << "\n";
+
+	// Build Matrix
+	output << "\t" << "<ItemGroup Label=\"ProjectConfigurations\">" << "\n";	
+	for (auto matrix : buildMatrix)
+	{
+		std::string platformId = GetPlatformID(matrix.platform);
+
+		output << "\t\t" << "<ProjectConfiguration Include=\"" << matrix.config << "|" << platformId << "\">" << "\n";
+		output << "\t\t\t" << "<Configuration>" << matrix.config << "</Configuration>" << "\n";
+		output << "\t\t\t" << "<Platform>" << platformId << "</Platform>" << "\n";
+		output << "\t\t" << "</ProjectConfiguration>" << "\n";
+	}
+	output << "\t" << "</ItemGroup>" << "\n";
+	
+	// Globals
+	output << "\t" << "<PropertyGroup Label=\"Globals\">" << "\n";
+	output << "\t\t" << "<ProjectGuid>" << projectGuid << "</ProjectGuid>" << "\n";
+	output << "\t\t" << "<IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>" << "\n";
+	output << "\t\t" << "<Keyword>Win32Proj</Keyword>" << "\n";
+	output << "\t\t" << "<RootNamespace>" << projectFile.Get_Project_RootNamespace() <<  "</RootNamespace>" << "\n";
+	output << "\t" << "</PropertyGroup>" << "\n";
+
+	output << "\t" << "<Import Project=\"$(VCTargetsPath)\\Microsoft.Cpp.Default.props\" />" << "\n";
+
+	// Property Grid
+	for (auto matrix : buildMatrix)
+	{
+		std::string platformId = GetPlatformID(matrix.platform);
+
+		output << "\t" << "<PropertyGroup Condition=\"'$(Configuration)|$(Platform)'=='" << matrix.config << "|" << platformId << "'\" Label=\"Configuration\">" << "\n";
+
+		// Output type.
+		switch (matrix.projectFile.Get_Project_OutputType())
+		{
+		case EOutputType::Executable:
+			// Fallthrough
+		case EOutputType::ConsoleApp:
+			output << "\t\t" << "<ConfigurationType>Application</ConfigurationType>" << "\n";
+			break;
+		case EOutputType::DynamicLib:
+			output << "\t\t" << "<ConfigurationType>DynamicLibrary</ConfigurationType>" << "\n";
+			break;
+		case EOutputType::StaticLib:
+			output << "\t\t" << "<ConfigurationType>StaticLibrary</ConfigurationType>" << "\n";
+			break;
+		default:
+			projectFile.ValidateError(
+				"Output type '%s' is not valid for msbuild C++ projects.",
+				CastToString(matrix.projectFile.Get_Project_OutputType()).c_str());
+			return false;
+		}
+
+		// Debug libraries.
+		if (matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::None ||
+			matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::Debug)
+		{
+			output << "\t\t" << "<UseDebugLibraries>true</UseDebugLibraries>" << "\n";
+		}
+		else
+		{
+			output << "\t\t" << "<UseDebugLibraries>false</UseDebugLibraries>" << "\n";
+		}
+
+		// Character set.
+		switch (matrix.projectFile.Get_Build_CharacterSet())
+		{
+		case ECharacterSet::Default:
+			break;
+		case ECharacterSet::Unicode:
+			output << "\t\t" << "<CharacterSet>Unicode</CharacterSet>" << "\n";
+			break;
+		case ECharacterSet::MBCS:
+			output << "\t\t" << "<CharacterSet>MultiByte</CharacterSet>" << "\n";
+			break;
+		default:
+			projectFile.ValidateError(
+				"Character set '%s' is not valid for msbuild C++ projects.", 
+				CastToString(matrix.projectFile.Get_Build_CharacterSet()).c_str());
+			return false;
+		}
+
+		// Platform tooltype.
+		switch (matrix.projectFile.Get_Build_PlatformToolset())
+		{
+		case EPlatformToolset::Default:
+			output << "\t\t" << "<PlatformToolset>" << CastToString(m_defaultToolset) << "</PlatformToolset>" << "\n";
+			break;
+		case EPlatformToolset::v140:
+			output << "\t\t" << "<PlatformToolset>v140</PlatformToolset>" << "\n";
+			break;
+		case EPlatformToolset::v140_xp:
+			output << "\t\t" << "<PlatformToolset>v140_xp</PlatformToolset>" << "\n";
+			break;
+		default:
+			projectFile.ValidateError(
+				"Platform toolset '%s' is not valid for msbuild C++ projects.",
+				CastToString(matrix.projectFile.Get_Build_PlatformToolset()).c_str());
+			return false;
+		}
+
+		// LTO
+		if (matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::None ||
+			matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::Debug)
+		{
+			output << "\t\t" << "<WholeProgramOptimization>false</WholeProgramOptimization>" << "\n";
+		}
+		else
+		{
+			output << "\t\t" << "<WholeProgramOptimization>true</WholeProgramOptimization>" << "\n";
+		}
+
+		output << "\t" << "</PropertyGroup>" << "\n";
+	}
+
+	output << "\t" << "<Import Project=\"$(VCTargetsPath)\\Microsoft.Cpp.props\" />" << "\n";
+
+	output << "\t" << "<ImportGroup Label=\"ExtensionSettings\">" << "\n";
+	output << "\t" << "</ImportGroup>" << "\n";
+
+	// Item definition group.
+	for (auto matrix : buildMatrix)
+	{
+		std::string platformId = GetPlatformID(matrix.platform);
+
+		output << "\t" << "<ImportGroup Label=\"PropertySheets\" Condition=\"'$(Configuration)|$(Platform)'=='" << matrix.config << "|" << platformId << "'\">" << "\n";
+		output << "\t\t" << "<Import Project=\"$(UserRootDir)\\Microsoft.Cpp.$(Platform).user.props\" Condition=\"exists('$(UserRootDir)\\Microsoft.Cpp.$(Platform).user.props')\" Label=\"LocalAppDataPlatform\" />" << "\n";
+		output << "\t" << "</ImportGroup>" << "\n";
+	}
+
+	output << "\t" << "<PropertyGroup Label=\"UserMacros\" />" << "\n";
+
+	// Output property group.
+	for (auto matrix : buildMatrix)
+	{
+		std::string platformId = GetPlatformID(matrix.platform);
+
+		Platform::Path outDir = matrix.projectFile.Get_Project_OutputDirectory();
+		Platform::Path intDir = matrix.projectFile.Get_Project_IntermediateDirectory();
+
+		Platform::Path outDirRelative = solutionDirectory.RelativeTo(outDir);
+		Platform::Path intDirRelative = solutionDirectory.RelativeTo(intDir);
+
+		std::vector<std::string> includePaths;
+		std::vector<std::string> libraryPaths;
+
+		for (Platform::Path& path : matrix.projectFile.Get_SearchPaths_IncludeDirectory())
+		{
+			includePaths.push_back("$(SolutionDir)\\" + solutionDirectory.RelativeTo(path).ToString() + "\\");
+		}
+
+		for (Platform::Path& path : matrix.projectFile.Get_SearchPaths_LibraryDirectory())
+		{
+			libraryPaths.push_back("$(SolutionDir)\\" + solutionDirectory.RelativeTo(path).ToString() + "\\");
+		}
+
+		output << "\t" << "<PropertyGroup Condition=\"'$(Configuration)|$(Platform)'=='" << matrix.config << "|" << platformId << "'\">" << "\n";
+
+		// Incremental linking
+		if (matrix.projectFile.Get_Flags_LinkTimeOptimization())
+		{
+			output << "\t\t" << "<LinkIncremental>false</LinkIncremental>" << "\n";
+		}
+		else
+		{
+			output << "\t\t" << "<LinkIncremental>" << (matrix.projectFile.Get_Build_OptimizationLevel() != EOptimizationLevel::Full ? "true" : "false") << "</LinkIncremental>" << "\n";
+		}
+
+		// Output information.
+		output << "\t\t" << "<OutDir>$(SolutionDir)\\" << outDirRelative.ToString() << "\\</OutDir>" << "\n";
+		output << "\t\t" << "<IntDir>$(SolutionDir)\\" << intDirRelative.ToString() << "\\</IntDir>" << "\n";
+		output << "\t\t" << "<TargetName>" << matrix.projectFile.Get_Project_OutputName() << "</TargetName>" << "\n";
+		output << "\t\t" << "<TargetExt>" << matrix.projectFile.Get_Project_OutputExtension() << "</TargetExt>" << "\n";
+
+		// Search paths.
+		if (includePaths.size() > 0)
+		{
+			output << "\t\t" << "<IncludePath>" << Strings::Join(includePaths, ";") << ";$(IncludePath)</IncludePath>" << "\n";
+		}
+		if (libraryPaths.size() > 0)
+		{
+			output << "\t\t" << "<LibraryPath>" << Strings::Join(libraryPaths, ";") << ";$(LibraryPath)</LibraryPath>" << "\n";
+		}
+
+		output << "\t" << "</PropertyGroup>" << "\n";
+	}
+
+	// Compile/Link information.
+	for (auto matrix : buildMatrix)
+	{
+		std::string platformId = GetPlatformID(matrix.platform);
+
+		Platform::Path precompiledHeader = matrix.projectFile.Get_Build_PrecompiledHeader();
+		Platform::Path precompiledSource = matrix.projectFile.Get_Build_PrecompiledSource();
+
+		std::vector<std::string> forcedIncludes;
+		std::vector<std::string> additionalLibraries;
+
+		for (Platform::Path& path : matrix.projectFile.Get_ForcedIncludes_ForcedInclude())
+		{
+			forcedIncludes.push_back("$(SolutionDir)\\" + solutionDirectory.RelativeTo(path).ToString());
+		}
+
+		for (Platform::Path& path : matrix.projectFile.Get_Libraries_Library())
+		{
+			if (path.IsRelative())
+			{
+				additionalLibraries.push_back(path.ToString());
+			}
+			else
+			{
+				additionalLibraries.push_back("$(SolutionDir)\\" + solutionDirectory.RelativeTo(path).ToString());
+			}
+		}
+	
+		output << "\t" << "<ItemDefinitionGroup Condition=\"'$(Configuration)|$(Platform)'=='" << matrix.config << "|" << platformId << "'\">" << "\n";
+		output << "\t\t" << "<ClCompile>" << "\n";
+
+			// Precompiled header.
+			if (precompiledHeader.ToString() != "")
+			{
+				output << "\t\t\t" << "<PrecompiledHeader>Use</PrecompiledHeader>" << "\n";
+				output << "\t\t\t" << "<PrecompiledHeaderFile>" << precompiledHeader.GetFilename() << "</PrecompiledHeaderFile>" << "\n";
+			}
+
+			// General settings.
+			if (matrix.projectFile.Get_Defines_Define().size() > 0)
+			{
+				std::vector<std::string> defines = matrix.projectFile.Get_Defines_Define();
+				output << "\t\t\t" << "<PreprocessorDefinitions>" << Strings::Join(defines, ";") << ";$(PreprocessorDefinitions)</PreprocessorDefinitions>" << "\n";
+			}
+			output << "\t\t\t" << "<MinimalRebuild>false</MinimalRebuild>" << "\n";
+			output << "\t\t\t" << "<MultiProcessorCompilation>true</MultiProcessorCompilation>" << "\n";
+			output << "\t\t\t" << "<RuntimeTypeInfo>" << (matrix.projectFile.Get_Flags_RuntimeTypeInfo() ? "true" : "false") << "</RuntimeTypeInfo>" << "\n";
+			output << "\t\t\t" << "<ExceptionHandling>" << (matrix.projectFile.Get_Flags_Exceptions() ? "Async" : "false") << "</ExceptionHandling>" << "\n";
+
+			// Standard library.
+			if (matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::None ||
+				matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::Debug)
+			{
+				if (matrix.projectFile.Get_Flags_StaticRuntime())
+				{
+					output << "\t\t\t" << "<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>" << "\n";
+				}
+				else
+				{
+					output << "\t\t\t" << "<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>" << "\n";
+				}
+			}
+			else
+			{
+				if (matrix.projectFile.Get_Flags_StaticRuntime())
+				{
+					output << "\t\t\t" << "<RuntimeLibrary>MultiThreaded</RuntimeLibrary>" << "\n";
+				}
+				else
+				{
+					output << "\t\t\t" << "<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>" << "\n";
+				}
+			}
+
+			// Debug database.
+			if (matrix.projectFile.Get_Flags_GenerateDebugInformation())
+			{
+				output << "\t\t\t" << "<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>" << "\n";
+			}
+			else
+			{
+				output << "\t\t\t" << "<DebugInformationFormat>None</DebugInformationFormat>" << "\n";
+			}
+
+			// Warning level.
+			switch (matrix.projectFile.Get_Build_WarningLevel())
+			{
+			case EWarningLevel::Default:
+				break;
+			case EWarningLevel::None:
+				output << "\t\t\t" << "<WarningLevel>TurnOffAllWarnings</WarningLevel>" << "\n";
+				break;
+			case EWarningLevel::Low:
+				output << "\t\t\t" << "<WarningLevel>Level1</WarningLevel>" << "\n";
+				break;
+			case EWarningLevel::Medium:
+				output << "\t\t\t" << "<WarningLevel>Level3</WarningLevel>" << "\n";
+				break;
+			case EWarningLevel::High:
+				output << "\t\t\t" << "<WarningLevel>Level4</WarningLevel>" << "\n";
+				break;
+			case EWarningLevel::Verbose:
+				output << "\t\t\t" << "<WarningLevel>EnableAllWarnings</WarningLevel>" << "\n";
+				break;
+			default:
+				projectFile.ValidateError(
+					"Warning level '%s' is not valid for msbuild C++ projects.",
+					CastToString(matrix.projectFile.Get_Build_WarningLevel()).c_str());
+				return false;
+			}
+
+			output << "\t\t\t" << "<TreatWarningAsError>" << (matrix.projectFile.Get_Flags_CompilerWarningsFatal() ? "true" : "false") << "</TreatWarningAsError>" << "\n";
+
+			if (matrix.projectFile.Get_DisabledWarnings_DisabledWarning().size() > 0)
+			{
+				std::vector<std::string> disabledWarnings = matrix.projectFile.Get_DisabledWarnings_DisabledWarning();
+				output << "\t\t\t" << "<DisableSpecificWarnings>" << Strings::Join(disabledWarnings, ";") << ";$(DisableSpecificWarnings)</DisableSpecificWarnings>" << "\n";
+			}
+
+			// Optimization.
+			switch (matrix.projectFile.Get_Build_OptimizationLevel())
+			{
+			case EOptimizationLevel::None:
+				// Fallthrough
+			case EOptimizationLevel::Debug:
+				output << "\t\t\t" << "<Optimization>Disabled</Optimization>" << "\n";
+				break;
+			case EOptimizationLevel::PreferSize:
+				output << "\t\t\t" << "<Optimization>MinSpace</Optimization>" << "\n";
+				break;
+			case EOptimizationLevel::PreferSpeed:
+				output << "\t\t\t" << "<Optimization>MaxSpeed</Optimization>" << "\n";
+				break;
+			case EOptimizationLevel::Full:
+				output << "\t\t\t" << "<Optimization>Full</Optimization>" << "\n";
+				break;
+			default:
+				projectFile.ValidateError(
+					"Optimization level '%s' is not valid for msbuild C++ projects.",
+					CastToString(matrix.projectFile.Get_Build_OptimizationLevel()).c_str());
+				return false;
+			}
+
+			// Additional options.
+			if (!matrix.projectFile.Get_Build_CompilerArguments().empty())
+			{
+				output << "\t\t\t" << "<AdditionalOptions>" << matrix.projectFile.Get_Build_CompilerArguments() << ";$(AdditionalOptions)</AdditionalOptions>" << "\n";
+			}
+
+			if (forcedIncludes.size() > 0)
+			{
+				output << "\t\t\t" << "<ForcedIncludeFiles>" << Strings::Join(forcedIncludes, ";") << ";$(ForcedIncludeFiles)</ForcedIncludeFiles>" << "\n";
+			}
+
+		output << "\t\t" << "</ClCompile>" << "\n";
+		output << "\t\t" << "<Link>" << "\n";
+
+			// Warnings.
+			output << "\t\t\t" << "<TreatLinkerWarningAsErrors>" << (matrix.projectFile.Get_Flags_LinkerWarningsFatal() ? "true" : "false") << "</TreatLinkerWarningAsErrors>" << "\n";
+
+			// Optimization.
+			if (matrix.projectFile.Get_Flags_LinkTimeOptimization())
+			{
+				output << "\t\t\t" << "<LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>" << "\n";
+				output << "\t\t\t" << "<WholeProgramOptimization>true</WholeProgramOptimization>" << "\n";
+
+			}
+			else
+			{
+				output << "\t\t\t" << "<WholeProgramOptimization>false</WholeProgramOptimization>" << "\n";
+			}
+
+			// Sub system
+			switch (matrix.projectFile.Get_Project_OutputType())
+			{
+			case EOutputType::Executable:
+				output << "\t\t\t" << "<SubSystem>Windows</SubSystem>" << "\n";
+				break;
+			case EOutputType::ConsoleApp:
+				// Fallthrough
+			case EOutputType::DynamicLib:
+				// Fallthrough
+			case EOutputType::StaticLib:
+				output << "\t\t\t" << "<SubSystem>Console</SubSystem>" << "\n";
+				break;
+			default:
+				projectFile.ValidateError(
+					"Output type '%s' is not valid for msbuild C++ projects.",
+					CastToString(matrix.projectFile.Get_Project_OutputType()).c_str());
+				return false;
+			}
+
+			// Debug information.
+			output << "\t\t\t" << "<GenerateDebugInformation>" << (matrix.projectFile.Get_Flags_GenerateDebugInformation() ? "true" : "false") << "</GenerateDebugInformation>" << "\n";
+
+			// Libraries.
+			if (additionalLibraries.size() > 0)
+			{
+				output << "\t\t\t" << "<AdditionalDependencies>" << Strings::Join(additionalLibraries, ";") << ";$(AdditionalDependencies)</AdditionalDependencies>" << "\n";
+			}
+
+			// Additional options.
+			output << "\t\t\t" << "<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>" << "\n";
+			
+			if (!matrix.projectFile.Get_Build_LinkerArguments().empty())
+			{
+				output << "\t\t\t" << "<AdditionalOptions>" << matrix.projectFile.Get_Build_LinkerArguments() << ";$(AdditionalOptions)</AdditionalOptions>" << "\n";
+			}
+
+		output << "\t\t" << "</Link>" << "\n";
+		output << "\t" << "</ItemDefinitionGroup>" << "\n";
+	}
+
+	// Include files
+	output << "\t" << "<ItemGroup>" << "\n";
+	for (auto file : includeFiles)
+	{
+		output << "\t\t" << "<ClInclude Include=\"" << file << "\" />" << "\n";
+	}
+	output << "\t" << "</ItemGroup>" << "\n";
+
+	// Source files
+	output << "\t" << "<ItemGroup>" << "\n";
+	for (auto file : sourceFiles)
+	{
+		if (file == precompiledSourceFile)
+		{
+			output << "\t\t" << "<ClCompile Include=\"" << file << "\">" << "\n";
+			output << "\t\t\t" << "<PrecompiledHeader>Create</PrecompiledHeader>" << "\n";
+			output << "\t\t" << "</ClCompile>" << "\n";
+		}
+		else
+		{
+			output << "\t\t" << "<ClCompile Include=\"" << file << "\" />" << "\n";
+		}
+	}
+	output << "\t" << "</ItemGroup>" << "\n";
+
+	// Misc file.
+	output << "\t" << "<ItemGroup>" << "\n";
+	for (auto file : miscFiles)
+	{
+		output << "\t\t" << "<None Include=\"" << file << "\" />" << "\n";
+	}
+	output << "\t" << "</ItemGroup>" << "\n";
+
+
+	output << "\t" << "<Import Project=\"$(VCTargetsPath)\\Microsoft.Cpp.targets\" />" << "\n";
+	output << "\t" << "<ImportGroup Label=\"ExtensionTargets\">" << "\n";
+	output << "\t" << "</ImportGroup>" << "\n";
+	output << "</Project>" << "\n";
+
+	// Generate result.
+	if (!WriteFile(
+		workspaceFile,
+		projectDirectory,
+		projectLocation,
+		output.str().c_str()))
+	{
+		return false;
+	}
 
     return true;
 }
 
-bool Ide_MSBuild::GenerateProjectFile(
-    WorkspaceFile& workspaceFile,
-    ProjectFile& projectFile,
-    MSBuildProjectMatrix& buildMatrix
-    )
+bool Ide_MSBuild::Generate_Vcxproj_Filters(
+	WorkspaceFile& workspaceFile,
+	ProjectFile& projectFile,
+	BuildProjectMatrix& buildMatrix
+	)
 {
-    Platform::Path projectDirectory = 
-        projectFile.Get_Project_Location();
+	UNUSED_PARAMETER(buildMatrix);
 
-    Platform::Path projectLocation =
-        projectDirectory.AppendFragment(
-            projectFile.Get_Project_Name() + ".vcxproj", true);
+	Platform::Path solutionDirectory =
+		workspaceFile.Get_Workspace_Location();
+
+	Platform::Path projectDirectory =
+		projectFile.Get_Project_Location();
 
 	Platform::Path projectFiltersLocation =
 		projectDirectory.AppendFragment(
 			projectFile.Get_Project_Name() + ".vcxproj.filters", true);
 
-    std::vector<std::string> configurations =
-        workspaceFile.Get_Configurations_Configuration();
+	std::vector<std::string> configurations =
+		workspaceFile.Get_Configurations_Configuration();
 
-    std::vector<EPlatform> platforms =
-        workspaceFile.Get_Platforms_Platform();
+	std::vector<EPlatform> platforms =
+		workspaceFile.Get_Platforms_Platform();
 
-	std::string projectGuid = GetProjectGuid(
-		workspaceFile.Get_Workspace_Name(),
-		projectFile.Get_Project_Name());
+	std::stringstream output;
 
-    // Fill evaluator will all variables required to build.
-    TemplateEvaluator evaluator;
-
-    // Resolve each configuration/platform combination and extract the 
-    // information that we require.
-    int configurationsIndex = evaluator.AddArgument("configurations", "");
-    for (std::string& config : configurations)
-    {
-        for (EPlatform& platform : platforms)
-        {
-            projectFile.Set_Target_Configuration(config);
-            projectFile.Set_Target_Platform(platform);
-
-            projectFile.Resolve();
-            if (!projectFile.Validate())
-            {				
-                return false;
-            }
-
-            MSBuildProjectPair pair;
-            pair.config = config;
-            pair.platform = platform;
-            pair.shouldBuild = projectFile.Get_Project_ShouldBuild();
-            buildMatrix.push_back(pair);
-
-			// Build evaluator context.
-			int itemIndex = evaluator.AddArgument("", "", configurationsIndex);
-			evaluator.AddArgument(
-				"configurationId", config, itemIndex);
-			evaluator.AddArgument(
-				"platformId", GetPlatformID(platform), itemIndex);
-        }
-    }
-
-	// Project globals.
-	int projectIndex = evaluator.AddArgument("project", "");
-	evaluator.AddArgument(
-		"guid", projectGuid, projectIndex);
-	evaluator.AddArgument(
-		"name", projectFile.Get_Project_Name(), projectIndex);
-
-	// Figure out what the base root of the files is, we will use this
-	// as the point to generate filters from.
-	std::vector<Platform::Path> filePaths = projectFile.Get_Files_File();
-	
-	Platform::Path commonPath;
-	Platform::Path::GetCommonPath(filePaths, commonPath);
-
-	// File lists.
-	int includeFilesIndex = evaluator.AddArgument("includeFiles", "");
-	int sourceFilesIndex = evaluator.AddArgument("sourceFiles", "");
-	int miscFilesIndex = evaluator.AddArgument("miscFIles", "");
-
+	std::vector<Platform::Path> files = projectFile.Get_Files_File();
 	std::vector<std::string> filters;
+	std::map<std::string, std::string> sourceFilterMap;
+	std::map<std::string, std::string> includeFilterMap;
+	std::map<std::string, std::string> noneFilterMap;
 
-	for (Platform::Path& path : filePaths)
+	// Find common path.
+	Platform::Path commonPath;
+	Platform::Path::GetCommonPath(files, commonPath);
+
+	// Generate filter list.
+	for (Platform::Path& file : files)
 	{
-		std::string extension = path.GetExtension();
-
-		int parentIndex = -1;
-
-		if (path.IsSourceFile())
-		{
-			parentIndex = sourceFilesIndex;
-		}
-		else if (path.IsIncludeFile())
-		{
-			parentIndex = includeFilesIndex;
-		}
-		else
-		{
-			parentIndex = miscFilesIndex;
-		}
-
-		Platform::Path relativePath = 
-			projectDirectory.RelativeTo(path);
+		Platform::Path relativePath =
+			solutionDirectory.RelativeTo(file);
 
 		// Generate a list of unique filters.
-		std::string filter = path.GetUncommonPath(commonPath).ToString();
+		std::string filter = file.GetUncommonPath(commonPath).ToString();
 
 		std::vector<std::string> fragments = Strings::Split(Platform::Path::Seperator, filter);
 
@@ -533,134 +1128,153 @@ bool Ide_MSBuild::GenerateProjectFile(
 			}
 		}
 
-		// Create file data.
-		int itemIndex = evaluator.AddArgument("", "", parentIndex);
-		evaluator.AddArgument(
-			"path", relativePath.ToString(), itemIndex);
-
-		evaluator.AddArgument(
-			"filter", filter, itemIndex);
+		if (relativePath.IsSourceFile())
+		{
+			sourceFilterMap[relativePath.ToString()] = filter;
+		}
+		else if (relativePath.IsIncludeFile())
+		{
+			includeFilterMap[relativePath.ToString()] = filter;
+		}
+		else
+		{
+			noneFilterMap[relativePath.ToString()] = filter;
+		}
 	}
 
-	// File filter list.
-	int fileFitersIndex = evaluator.AddArgument("fileFilters", "");
+	// Header
+	output << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << "\n";
+	output << "<Project ToolsVersion=\"4.0\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">" << "\n";
 
-	for (auto filter : filters)
+	// Filter block.
+	output << "\t" << "<ItemGroup>" << "\n";
+
+	for (std::string& filter : filters)
 	{
-		std::string filterGuid = GetFilterGuid(
-			workspaceFile.Get_Workspace_Name(),
-			projectFile.Get_Project_Name(),
-			filter);
+		std::string guid =
+			Strings::Guid({ workspaceFile.Get_Workspace_Name(), filter, "filter" });
 
-		int itemIndex = evaluator.AddArgument("", "", fileFitersIndex);
-		evaluator.AddArgument(
-			"path", filter, itemIndex);
-
-		evaluator.AddArgument(
-			"uniqueId", filterGuid, itemIndex);		
+		output << "\t\t" << "<Filter Include=\"" << filter << "\">" << "\n";
+		output << "\t\t\t" << "<UniqueIdentifier>" << guid << "</UniqueIdentifier>" << "\n";
+		output << "\t\t" << "</Filter>" << "\n";
 	}
 
-    // Generate project result.
-    if (!GenerateTemplateFile(
-        workspaceFile,
-        projectDirectory, 
-        projectLocation, 
-        MSBuildVersion_ProjectTemplates[static_cast<int>(m_msBuildVersion)],
-        evaluator))
-    {
-        return false;
-    }
+	output << "\t" << "</ItemGroup>" << "\n";
 
-	// Generate filters result.
-	if (!GenerateTemplateFile(
+	// Source files
+	output << "\t" << "<ItemGroup>" << "\n";
+	for (auto pair : sourceFilterMap)
+	{
+		
+		output << "\t\t" << "<ClCompile Include=\"$(SolutionDir)\\" << pair.first << "\">" << "\n";
+		output << "\t\t\t" << "<Filter>" << pair.second << "</Filter>" << "\n";
+		output << "\t\t" << "</ClCompile>" << "\n";
+	}
+	output << "\t" << "</ItemGroup>" << "\n";
+
+	// Header files
+	output << "\t" << "<ItemGroup>" << "\n";
+	for (auto pair : includeFilterMap)
+	{
+
+		output << "\t\t" << "<ClInclude Include=\"$(SolutionDir)\\" << pair.first << "\">" << "\n";
+		output << "\t\t\t" << "<Filter>" << pair.second << "</Filter>" << "\n";
+		output << "\t\t" << "</ClInclude>" << "\n";
+	}
+	output << "\t" << "</ItemGroup>" << "\n";
+
+	// none files
+	output << "\t" << "<ItemGroup>" << "\n";
+	for (auto pair : noneFilterMap)
+	{
+
+		output << "\t\t" << "<None Include=\"$(SolutionDir)\\" << pair.first << "\">" << "\n";
+		output << "\t\t\t" << "<Filter>" << pair.second << "</Filter>" << "\n";
+		output << "\t\t" << "</None>" << "\n";
+	}
+	output << "\t" << "</ItemGroup>" << "\n";
+
+	output << "</Project>" << "\n";
+
+	// Generate result.
+	if (!WriteFile(
 		workspaceFile,
 		projectDirectory,
 		projectFiltersLocation,
-		MSBuildVersion_ProjectFiltersTemplates[static_cast<int>(m_msBuildVersion)],
-		evaluator))
+		output.str().c_str()))
 	{
 		return false;
 	}
 
-    return true;
-}
-
-bool Ide_MSBuild::GenerateTemplateFile(
-    WorkspaceFile& workspaceFile,
-    Platform::Path& directory,
-    Platform::Path& location,
-    const char* templateData,
-    TemplateEvaluator& evaluator
-    )
-{
-    // Generate the solution for this project.
-    if (!evaluator.Evaluate(
-        location.ToString(),
-        templateData))
-    {
-        workspaceFile.ValidateError(
-            "Internal error, msbuild project template appears to be broken. "
-            "Tell a developer if possible!");
-
-        return false;
-    }
-
-    // Dump evaluation result out to file.
-    TextStream stream;
-    stream.Write("%s", evaluator.GetResult().c_str());
-
-    // Ensure location directory is created.
-    if (!directory.Exists())
-    {
-        if (!directory.CreateAsDirectory())
-        {
-            workspaceFile.ValidateError(
-                "Failed to create project directory '%s'.\n",
-                directory.ToString().c_str());
-
-            return false;
-        }
-    }
-
-    // Write the solution file to the location.
-    if (!stream.WriteToFile(location))
-    {
-        workspaceFile.ValidateError(
-            "Failed to write project to file '%s'.\n",
-            location.ToString().c_str());
-
-        return false;
-    }
-
-    return true;
+	return true;
 }
 
 bool Ide_MSBuild::Generate(
     WorkspaceFile& workspaceFile,
     std::vector<ProjectFile>& projectFiles)
 {	
-    MSBuildWorkspaceMatrix workspaceMatrix;
+	BuildWorkspaceMatrix matrix;
+	if (!CreateBuildMatrix(workspaceFile, projectFiles, matrix))
+	{
+		return false;
+	}
 
+	int index = 0;
     for (ProjectFile& file : projectFiles)
     {
-        MSBuildProjectMatrix projectMatrix;
+		switch (file.Get_Project_Language())
+		{
+		case ELanguage::Cpp:
+			{
+				if (!Generate_Vcxproj(
+					workspaceFile,
+					file,
+					matrix[index]
+					))
+				{
+					return false;
+				}
 
-        if (!GenerateProjectFile(
-            workspaceFile,
-            file,
-            projectMatrix
-            ))
-        {
-            return false;
-        }
+				if (!Generate_Vcxproj_Filters(
+					workspaceFile,
+					file,
+					matrix[index]
+					))
+				{
+					return false;
+				}
 
-        workspaceMatrix.push_back(projectMatrix);
+				break;
+			}
+		case ELanguage::CSharp:
+			{
+				if (!Generate_Csproj(
+					workspaceFile,
+					file,
+					matrix[index]
+					))
+				{
+					return false;
+				}
+
+				break;
+			}
+		default:
+			{
+				file.ValidateError(
+					"Language '%s' is not valid for msbuild projects.",
+					CastToString(file.Get_Project_Language()).c_str());
+				return false;
+			}
+		}
+
+		index++;
     }
 
     if (!GenerateSolutionFile(
         workspaceFile,
         projectFiles,
-        workspaceMatrix
+		matrix
         ))
     {
         return false;

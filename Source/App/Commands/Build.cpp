@@ -82,7 +82,9 @@ BuildCommand::BuildCommand(App* app)
 }
 
 bool BuildCommand::Invoke(CommandLineParser* parser)
-{	
+{
+	UNUSED_PARAMETER(parser);
+
 	return true;
 }
 

@@ -16,18 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "PCH.h"
-#include "App/Ides/MSBuild/VisualStudio_2015.h"
+#include "Include/File.h"
 
-namespace MicroBuild {
-
-Ide_VisualStudio_2015::Ide_VisualStudio_2015()
+int main(int argc, char argv[])
 {
-	SetShortName("vs2015");
-	SetHeaderShortName("Visual Studio 2015");
-	SetHeaderVersion("12.0");
-	SetDefaultToolset(EPlatformToolset::v140);
-	SetMSBuildVersion(MSBuildVersion::Version12);
+	printf("Main Called");
+	return 0;
 }
-
-}; // namespace MicroBuild

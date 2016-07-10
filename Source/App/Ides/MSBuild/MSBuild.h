@@ -37,17 +37,6 @@ class Ide_MSBuild
 {
 public:
 
-	// Used to define the platform/configuration matrix that defines what
-	// projects we build in what configurations.
-	struct MSBuildProjectPair
-	{
-		std::string config;
-		EPlatform platform;
-		bool shouldBuild;
-	};
-	typedef std::vector<MSBuildProjectPair> MSBuildProjectMatrix;
-	typedef std::vector<MSBuildProjectMatrix> MSBuildWorkspaceMatrix;
-
 	Ide_MSBuild();
 	~Ide_MSBuild();
 
@@ -55,19 +44,38 @@ public:
 	// generate for solution and project files.
 	void SetMSBuildVersion(MSBuildVersion version);
 
+	// Various default values derived classes should set.
+	void SetHeaderShortName(const std::string& value);
+	void SetHeaderVersion(const std::string& value);
+	void SetDefaultToolset(EPlatformToolset toolset);
+
 	// Generates a basic msbuild solution file that links to the given
 	// project files.
 	bool GenerateSolutionFile(
 		WorkspaceFile& workspaceFile,
 		std::vector<ProjectFile>& projectFiles,
-		MSBuildWorkspaceMatrix& buildMatrix
+		BuildWorkspaceMatrix& buildMatrix
 	);
 
-	// Generates a basic msbuild project file.
-	bool GenerateProjectFile(
+	// Generates a basic csharp project file.
+	bool Generate_Csproj(
 		WorkspaceFile& workspaceFile,
 		ProjectFile& projectFiles,
-		MSBuildProjectMatrix& buildMatrix
+		BuildProjectMatrix& buildMatrix
+		);
+
+	// Generates a basic msbuild project file.
+	bool Generate_Vcxproj(
+		WorkspaceFile& workspaceFile,
+		ProjectFile& projectFiles,
+		BuildProjectMatrix& buildMatrix
+	);
+
+	// Generates a basic msbuild project filters file.
+	bool Generate_Vcxproj_Filters(
+		WorkspaceFile& workspaceFile,
+		ProjectFile& projectFiles,
+		BuildProjectMatrix& buildMatrix
 	);
 
 	virtual bool Generate(
@@ -87,16 +95,8 @@ protected:
 	// Converts a platform enum into an msbuild platform id.
 	std::string GetPlatformID(EPlatform platform);
 
-	// Converts a project name into a GUID.
-	std::string GetProjectGuid(
-		const std::string& workspaceName, 
-		const std::string& projectName);
-
-	// Converts a filter name into a GUID.
-	std::string GetFilterGuid(
-		const std::string& workspaceName,
-		const std::string& projectName,
-		const std::string& filter);
+	// Converts a platform enum into a dotnet target id.
+	std::string GetPlatformDotNetTarget(EPlatform platform);
 
 	// Finds the correct project type guid based on language.
 	std::string GetProjectTypeGuid(ELanguage language);
@@ -108,6 +108,9 @@ protected:
 
 private:
 	MSBuildVersion m_msBuildVersion;
+	std::string m_headerShortName;
+	std::string m_headerVersion;
+	EPlatformToolset m_defaultToolset;
 
 };
 

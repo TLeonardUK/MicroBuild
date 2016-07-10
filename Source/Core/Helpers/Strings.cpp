@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Helpers/Strings.h"
 
 #include <algorithm>
+#include <inttypes.h>
 
 namespace MicroBuild {
 namespace Strings {
@@ -72,6 +73,20 @@ std::string Join(int argc, char* argv[], std::string glue)
 		result += argv[i];
 	}
 
+	return result;
+}
+
+std::string Join(std::vector<std::string>& needles, std::string glue)
+{
+	std::string result = "";
+	for (std::string& res : needles)
+	{
+		if (!result.empty())
+		{
+			result += glue;
+		}
+		result += res;
+	}
 	return result;
 }
 
@@ -213,9 +228,28 @@ std::string FormatVa(std::string format, va_list args)
 	return result;
 }
 
-unsigned int Hash(const std::string& value)
+unsigned int Hash(const std::string& value, unsigned int start)
 {
-	unsigned int hash = 0;
+	unsigned int hash = start;
+	const char* Value = value.c_str();
+
+	for (; *Value; ++Value)
+	{
+		hash += *Value;
+		hash += (hash << 10);
+		hash ^= (hash >> 6);
+	}
+
+	hash += (hash << 3);
+	hash ^= (hash >> 11);
+	hash += (hash << 15);
+
+	return hash;
+}
+
+uint64_t Hash64(const std::string& value, uint64_t start)
+{
+	uint64_t hash = start;
 	const char* Value = value.c_str();
 
 	for (; *Value; ++Value)
@@ -292,6 +326,27 @@ std::vector<std::string> Split(char seperator, const std::string& value)
 	}
 
 	return result;
+}
+
+std::string Guid(const std::vector<std::string>& values)
+{
+	uint64_t hash = 0;
+
+	for (const std::string& res : values)
+	{
+		hash = Hash64(res, hash);
+	}
+
+	char buffer[64];
+	sprintf(buffer, "%012" PRIu64, hash);
+
+	std::string result = buffer;
+	if (result.size() > 12)
+	{
+		result.resize(12);
+	}
+
+	return Strings::Format("{00000000-0000-0000-0000-%s}", result.c_str());
 }
 
 }; // namespace Strings
