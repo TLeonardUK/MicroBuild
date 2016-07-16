@@ -66,7 +66,8 @@ protected:
 		std::vector<std::string>& options, bool bCanCache);
 
 	// Same as ExpandPaths but acts on a single path.
-	bool ExpandPath(Platform::Path path,
+	bool ExpandPath(
+		Platform::Path path,
 		std::vector<std::string>& results,
 		bool bCanCache);
 

@@ -166,7 +166,6 @@ bool BaseConfigFile::ExpandPath(Platform::Path path,
 	}
 
 	return true;
-
 }
 
 bool BaseConfigFile::ValidateOptions(

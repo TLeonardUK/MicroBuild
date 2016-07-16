@@ -26,28 +26,6 @@ START_ENUM(EOutputType)
 	ENUM_KEY(DynamicLib)
 END_ENUM()
 
-START_ENUM(ELanguage)
-	ENUM_KEY(Cpp)
-	ENUM_KEY(CSharp)
-END_ENUM()
-
-START_ENUM(ELanguageVersion)
-	ENUM_KEY(Default)
-
-	// C++
-	ENUM_KEY(Cpp_14)
-	ENUM_KEY(Cpp_11)
-	ENUM_KEY(Cpp_98)
-
-	// C#
-	ENUM_KEY(CSharp_1_0)
-	ENUM_KEY(CSharp_2_0)
-	ENUM_KEY(CSharp_3_0)
-	ENUM_KEY(CSharp_4_0)
-	ENUM_KEY(CSharp_5_0)
-	ENUM_KEY(CSharp_6_0)
-END_ENUM()
-
 START_ENUM(EOptimizationLevel)
 	ENUM_KEY(None)
 	ENUM_KEY(Debug)
@@ -78,7 +56,6 @@ START_ENUM(EPlatformToolset)
 	ENUM_KEY(DotNet_4_5_1)
 	ENUM_KEY(DotNet_4_5_2)
 	ENUM_KEY(DotNet_4_6)	
-
 END_ENUM()
 
 START_ENUM(EWarningLevel)
@@ -295,6 +272,19 @@ START_ARRAY_OPTION(
 OPTION_RULE_REQUIRED()
 OPTION_RULE_EXPAND_PATH_WILDCARDS(true)
 END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+// Virtual Paths
+// ---------------------------------------------------------------------------
+START_KEY_VALUE_ARRAY_OPTION(
+	VirtualPaths,
+	"Defines a key-value pair, with the value being a path pattern to match "
+	"project files against, and the key being a virtual path that the file "
+	"will be placed under in the output project file. In the virtual path * "
+	"will be expanded to the matched project path, explicitly provided path "
+	"segments in the path pattern will be exluded from the expansion."
+)
+END_KEY_VALUE_ARRAY_OPTION()
 
 // ---------------------------------------------------------------------------
 // Build
@@ -535,6 +525,17 @@ START_OPTION(
 	Flags,
 	AllowUnsafeCode,
 	"Determines if dotnet projects permit unsafe code."
+)
+OPTION_RULE_DEFAULT(false)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Flags,
+	CompileAsWinRT,
+	"Defines if a windows project is compiled as a winrt universal app."
 )
 OPTION_RULE_DEFAULT(false)
 END_OPTION()

@@ -60,6 +60,11 @@ bool CommandPathArgument::ValidateAndSet(std::string value)
 {
 	Platform::Path basePath(value);
 
+	if (basePath.IsRelative())
+	{
+		basePath = Platform::Path::GetWorkingDirectory().AppendFragment(value, true);
+	}
+
 	if (m_expectsExisting)
 	{
 		if (!basePath.Exists())

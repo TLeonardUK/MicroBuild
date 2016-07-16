@@ -180,7 +180,10 @@ bool ConfigTokenizer::IsLiteralChar(char chr)
 		(chr >= 'a' && chr <= 'z') ||
 		(chr >= 'A' && chr <= 'Z') ||
 		 chr == '_' ||
-		 chr == '.')
+		 chr == '.' ||
+		 chr == '*' ||
+ 		 chr == '/' ||
+ 		 chr == '\\')
 	{
 		return true;
 	}

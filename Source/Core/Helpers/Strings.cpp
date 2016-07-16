@@ -349,5 +349,20 @@ std::string Guid(const std::vector<std::string>& values)
 	return Strings::Format("{00000000-0000-0000-0000-%s}", result.c_str());
 }
 
+std::string Escaped(const std::string& input)
+{
+	std::string result;
+	result.reserve(input.size());
+	for (char chr : input)
+	{
+		if (chr == '"')
+		{
+			result.push_back('\\');
+		}
+		result.push_back(chr);
+	}
+	return result;
+}
+
 }; // namespace Strings
 }; // namespace MicroBuild

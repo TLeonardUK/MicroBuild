@@ -74,6 +74,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		ValueType converterTemp; \
 		bool bResult = true;
 
+#define START_KEY_VALUE_ARRAY_OPTION(Group, Description) \
+	std::vector<ConfigFile::KeyValuePair> SCHEMA_CLASS::Get_##Group##() \
+	{ \
+		return m_##Group##_value; \
+	} \
+	void SCHEMA_CLASS::Set_##Group##(const std::vector<ConfigFile::KeyValuePair>& value) \
+	{ \
+		UNUSED_PARAMETER(value); \
+		assert(false); \
+	} \
+	bool SCHEMA_CLASS::Validate_##Group##() \
+	{ \
+		m_##Group##_value = GetPairs(#Group); \
+
+
+
+
+
 #define OPTION_RULE_REQUIRED() \
 		if (values.size() == 0) \
 		{ \
@@ -153,6 +171,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		return bResult; \
 	}
 
+#define END_KEY_VALUE_ARRAY_OPTION() \
+		return true; \
+	}
+
+
 #define START_ENUM(Name) \
 	}; /*namespace MicroBuild*/ \
 	extern const char* ##Name##_Strings[(int)MicroBuild::Name::COUNT]; \
@@ -186,6 +209,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #undef START_OPTION
 #undef START_ARRAY_OPTION
+#undef START_KEY_VALUE_ARRAY_OPTION
 #undef OPTION_RULE_REQUIRED
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR
@@ -194,6 +218,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef OPTION_RULE_OPTION
 #undef END_OPTION
 #undef END_ARRAY_OPTION
+#undef END_KEY_VALUE_ARRAY_OPTION
 #undef START_ENUM
 #undef ENUM_KEY
 #undef END_ENUM
@@ -214,6 +239,8 @@ bool SCHEMA_CLASS::Validate()
 	bResult = bResult && Validate_##Group##_##Key##();
 #define START_ARRAY_OPTION(ValueType, Group, Key, Description) \
 	bResult = bResult && Validate_##Group##_##Key##();
+#define START_KEY_VALUE_ARRAY_OPTION(Group, Description) \
+	bResult = bResult && Validate_##Group##();
 #define OPTION_RULE_REQUIRED()
 #define OPTION_RULE_DEFAULT(Value)
 #define OPTION_RULE_VALIDATOR(ValidatorFunction)
@@ -222,6 +249,7 @@ bool SCHEMA_CLASS::Validate()
 #define OPTION_RULE_ABSOLUTE_PATH()
 #define END_ARRAY_OPTION()
 #define END_OPTION()
+#define END_KEY_VALUE_ARRAY_OPTION()
 #define START_ENUM(Name) 
 #define ENUM_KEY(Name) 
 #define END_ENUM() 
@@ -230,6 +258,7 @@ bool SCHEMA_CLASS::Validate()
 
 #undef START_OPTION
 #undef START_ARRAY_OPTION
+#undef START_KEY_VALUE_ARRAY_OPTION
 #undef OPTION_RULE_REQUIRED
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR
@@ -238,6 +267,7 @@ bool SCHEMA_CLASS::Validate()
 #undef OPTION_RULE_OPTION
 #undef END_OPTION
 #undef END_ARRAY_OPTION
+#undef END_KEY_VALUE_ARRAY_OPTION
 #undef START_ENUM
 #undef ENUM_KEY
 #undef END_ENUM

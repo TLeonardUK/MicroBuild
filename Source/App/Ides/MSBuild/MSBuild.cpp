@@ -19,9 +19,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "PCH.h"
+#include "App/Project/ProjectFile.h"
 #include "App/Ides/MSBuild/MSBuild.h"
 #include "App/Ides/MSBuild/VisualStudio_2015.h"
 #include "Core/Helpers/TextStream.h"
+#include "Core/Helpers/XmlNode.h"
+#include "Core/Helpers/VbNode.h"
 
 namespace MicroBuild {
 
@@ -62,21 +65,41 @@ std::string Ide_MSBuild::GetPlatformID(EPlatform platform)
 {
     switch (platform)
     {
-    case EPlatform::Windows_x86:
+    case EPlatform::x86:
         {
             return "Win32";
         }
-    case EPlatform::Windows_x64:
+    case EPlatform::x64:
         {
             return "x64";
         }
-    case EPlatform::Windows_AnyCPU:
+    case EPlatform::AnyCPU:
         {
             return "Any CPU";
         }
-	case EPlatform::Windows_ARM:
+	case EPlatform::ARM:
 		{
 			return "ARM";
+		}
+	case EPlatform::ARM64:
+		{
+			return "ARM64";
+		}
+	case EPlatform::PS4:
+		{
+			return "PS4";
+		}
+	case EPlatform::XboxOne:
+		{
+			return "Durango";
+		}
+	case EPlatform::WiiU:
+		{
+			return "CAFE";
+		}
+	case EPlatform::Nintendo3DS:
+		{
+			return "CTR";
 		}
     }
     return "";
@@ -86,21 +109,41 @@ std::string Ide_MSBuild::GetPlatformDotNetTarget(EPlatform platform)
 {
     switch (platform)
     {
-    case EPlatform::Windows_x86:
+    case EPlatform::x86:
         {
             return "x86";
         }
-    case EPlatform::Windows_x64:
+    case EPlatform::x64:
         {
             return "x64";
         }
-    case EPlatform::Windows_AnyCPU:
+    case EPlatform::AnyCPU:
         {
             return "AnyCPU";
         }
-	case EPlatform::Windows_ARM:
+	case EPlatform::ARM:
 		{
 			return "ARM";
+		}
+	case EPlatform::ARM64:
+		{
+			return "ARM";
+		}
+	case EPlatform::PS4:
+		{
+			return "PS4";
+		}
+	case EPlatform::XboxOne:
+		{
+			return "Durango";
+		}
+	case EPlatform::WiiU:
+		{
+			return "CAFE";
+		}
+	case EPlatform::Nintendo3DS:
+		{
+			return "CTR";
 		}
     }
     return "";
@@ -140,14 +183,25 @@ bool Ide_MSBuild::GenerateSolutionFile(
 
 	std::stringstream output;
 
+	std::vector<Platform::Path> files = workspaceFile.Get_WorkspaceFiles_File();
+
+	// Resolve VPath's
+	std::vector<ConfigFile::KeyValuePair> virtualPaths =
+		workspaceFile.Get_WorkspaceVirtualPaths();
+
+	std::vector<VPathPair> vpathFilters =
+		ExpandVPaths(virtualPaths, files);
+
 	// Get a list of folders.
 	std::vector<ProjectGroupFolder> folders =
-		GetGroupFolders(workspaceFile, projectFiles);
+		GetGroupFolders(workspaceFile, projectFiles, vpathFilters);
+
+	VbNode root;
 
 	// Header
-	output << "\n";
-	output << "Microsoft Visual Studio Solution File, Format Version " << m_headerVersion << "\n";
-	output << "# " << m_headerShortName << "\n";
+	root.Single("");
+	root.Single("Microsoft Visual Studio Solution File, Format Version %s", m_headerVersion.c_str());
+	root.Single("# %s", m_headerShortName.c_str());
 
 	// Project block
 	for (ProjectFile& file : projectFiles)
@@ -185,23 +239,31 @@ bool Ide_MSBuild::GenerateSolutionFile(
 		std::string guid = 
 			Strings::Guid({ workspaceFile.Get_Workspace_Name(), file.Get_Project_Name() });
 
-		output << "Project(\"" << typeGuid << "\") = \"" << name << "\", \"" << relativeLocation << "\", \"" << guid << "\"" << "\n";
-		output << "\t" << "ProjectSelection(ProjectDependencies) = postProject" << "\n";
+		VbNode& projectNode = 
+			root.Node("Project")
+			.Attribute(true, "%s", typeGuid.c_str())
+			.Value(true, "%s", name.c_str())
+			.Value(true, "%s", relativeLocation.c_str())
+			.Value(true, "%s", guid.c_str());
+
+		VbNode& depsNode = 
+			projectNode.Node("ProjectSelection")
+			.Attribute(false, "ProjectDependencies")
+			.Value(false, "postProject");
 
 		for (std::string dependency : file.Get_Dependencies_Dependency())
 		{
-			ProjectFile* projectDependency;
+			ProjectFile* projectDependency = nullptr;
 			if (!GetProjectDependency(workspaceFile, projectFiles, &file, projectDependency, dependency))
 			{
 				return false;
 			}
 
 			std::string depGuid = Strings::Guid({ workspaceFile.Get_Workspace_Name(), projectDependency->Get_Project_Name() });
-			output << "\t\t" << depGuid << " = " << depGuid << "\n";
-		}
 
-		output << "\t" << "EndProjectSelection" << "\n";
-		output << "EndProject" << "\n";
+			depsNode.Node(depGuid.c_str())
+				.Value(false, "%s", depGuid.c_str());
+		}
 	}
 
 	for (ProjectGroupFolder& folder : folders)
@@ -209,13 +271,39 @@ bool Ide_MSBuild::GenerateSolutionFile(
 		std::string guid =
 			Strings::Guid({ workspaceFile.Get_Workspace_Name(), folder.name, "folder" });
 
-		output << "Project(\"" << GUID_SOLUTION_FOLDER << "\") = \"" << folder.baseName << "\", \"" << folder.baseName << "\", \"" << guid << "\"" << "\n";
-		output << "EndProject" << "\n";
+		VbNode& projectNode = root.Node("Project")
+			.Attribute(true, "%s", GUID_SOLUTION_FOLDER)
+			.Value(true, "%s", folder.baseName.c_str())
+			.Value(true, "%s", folder.baseName.c_str())
+			.Value(true, "%s", guid.c_str());
+
+		VbNode& itemsNode =
+			projectNode.Node("ProjectSection")
+			.Attribute(false, "SolutionItems")
+			.Value(false, "preProject");
+
+		for (auto pair : vpathFilters)
+		{
+			if (pair.second == folder.name)
+			{
+				std::string relativePath =  
+					solutionDirectory.RelativeTo(pair.first).ToString();
+
+				itemsNode
+					.Single("%s", relativePath.c_str())
+					.Value(false, "%s", relativePath.c_str());
+			}
+		}
 	}
 
-	// Global block
-	output << "Global" << "\n";
-	output << "\t" << "GlobalSection(SolutionConfigurationPlatforms) = preSolution" << "\n";
+	// pre solution block
+	VbNode& globalNode =
+		root.Node("Global");
+	
+	VbNode& globalConfigPreSolutionNode =
+		globalNode.Node("GlobalSection")
+		.Attribute(false, "SolutionConfigurationPlatforms")
+		.Value(false, "preSolution");
 
 	for (std::string& config : configurations)
 	{
@@ -223,12 +311,17 @@ bool Ide_MSBuild::GenerateSolutionFile(
 		{
 			std::string platformStr = GetPlatformID(platform);
 
-			output << "\t\t" << config << "|" << platformStr << " = " << config << "|" << platformStr << "\n";
+			globalConfigPreSolutionNode
+				.Single("%s|%s", config.c_str(), platformStr.c_str())
+				.Value(false, "%s|%s", config.c_str(), platformStr.c_str());
 		}
 	}
 
-	output << "\t" << "EndGlobalSection" << "\n";
-	output << "\t" << "GlobalSection(ProjectConfigurationPlatforms) = postSolution" << "\n";
+	// Post solution block.
+	VbNode& globalConfigPostSolutionNode =
+		globalNode.Node("GlobalSection")
+		.Attribute(false, "SolutionConfigurationPlatforms")
+		.Value(false, "postSolution");
 
 	for (BuildProjectMatrix& matrix : buildMatrix)
 	{
@@ -239,20 +332,34 @@ bool Ide_MSBuild::GenerateSolutionFile(
 
 			std::string platformStr = GetPlatformID(pair.platform);
 
-			output << "\t\t" << projectGuid << "." << pair.config << "|" << platformStr << ".ActiveCfg = " << pair.config << "|" << platformStr << "\n";
+			globalConfigPostSolutionNode
+				.Single("%s.%s|%s.ActiveCfg", projectGuid.c_str(), pair.config.c_str(), platformStr.c_str())
+				.Value(false, "%s|%s", pair.config.c_str(), platformStr.c_str());
 
 			if (pair.shouldBuild)
 			{
-				output << "\t\t" << projectGuid << "." << pair.config << "|" << platformStr << ".Build.0 = " << pair.config << "|" << platformStr << "\n";
+				globalConfigPostSolutionNode
+					.Single("%s.%s|%s.Build.0", projectGuid.c_str(), pair.config.c_str(), platformStr.c_str())
+					.Value(false, "%s|%s", pair.config.c_str(), platformStr.c_str());
 			}
 		}
 	}
 
-	output << "\t" << "EndGlobalSection" << "\n";
-	output << "\t" << "GlobalSection(SolutionProperties) = preSolution" << "\n";
-	output << "\t\tHideSolutionNode = FALSE" << "\n";
-	output << "\t" << "EndGlobalSection" << "\n";
-	output << "\t" << "GlobalSection(NestedProjects) = preSolution" << "\n";
+	// Solution properties
+	VbNode& solutionsPropertiesNode =
+		globalNode.Node("GlobalSection")
+		.Attribute(false, "SolutionProperties")
+		.Value(false, "preSolution");
+
+	solutionsPropertiesNode
+		.Single("HideSolutionNode")
+		.Value(false, "FALSE");
+
+	// Nest projects
+	VbNode& nestedProjectsNode =
+		globalNode.Node("GlobalSection")
+		.Attribute(false, "NestedProjects")
+		.Value(false, "preSolution");
 
 	for (ProjectGroupFolder& folder : folders)
 	{
@@ -264,7 +371,9 @@ bool Ide_MSBuild::GenerateSolutionFile(
 			std::string parentGuid =
 				Strings::Guid({ workspaceFile.Get_Workspace_Name(), folder.parentName, "folder" });
 
-			output << "\t\t" << guid << " = " << parentGuid << "\n";
+			nestedProjectsNode
+				.Single("%s", guid.c_str())
+				.Value(false, "%s", parentGuid.c_str());
 		}
 	}
 
@@ -279,19 +388,18 @@ bool Ide_MSBuild::GenerateSolutionFile(
 			std::string parentGuid =
 				Strings::Guid({ workspaceFile.Get_Workspace_Name(), group, "folder" });
 
-			output << "\t\t" << guid << " = " << parentGuid << "\n";
+			nestedProjectsNode
+				.Single("%s", guid.c_str())
+				.Value(false, "%s", parentGuid.c_str());
 		}
 	}
-
-	output << "\t" << "EndGlobalSection" << "\n";
-	output << "EndGlobal" << "\n";
 
 	// Generate result.
 	if (!WriteFile(
 		workspaceFile,
 		solutionDirectory,
 		solutionLocation,
-		output.str().c_str()))
+		root.ToString().c_str()))
 	{
 		return false;
 	}
@@ -321,22 +429,9 @@ bool Ide_MSBuild::Generate_Csproj(
 	std::vector<EPlatform> platforms =
 		workspaceFile.Get_Platforms_Platform();
 
-	std::stringstream output;
-
 	std::string projectGuid = Strings::Guid({
 		workspaceFile.Get_Workspace_Name(),
 		projectFile.Get_Project_Name() });
-
-	// Check platform is supported.
-	if (!ArePlatformsValid(projectFile, platforms, { 
-		EPlatform::Windows_AnyCPU, 
-		EPlatform::Windows_ARM,
-		EPlatform::Windows_x86,
-		EPlatform::Windows_x64
-	}))
-	{
-		return false;
-	}
 
 	// Files.
 	std::vector<std::string> sourceFiles;
@@ -357,25 +452,44 @@ bool Ide_MSBuild::Generate_Csproj(
 		}
 	}
 
+	XmlNode root;
+
 	// Header
-	output << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << "\n";
-	output << "<Project DefaultTargets=\"Build\" ToolsVersion=\"14.0\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">" << "\n";
+	root.Node("?xml")
+		.Attribute("version", "1.0")
+		.Attribute("encoding", "utf-8");
+
+	XmlNode& project =
+		root.Node("Project")
+		.Attribute("DefaultTargets", "Build")
+		.Attribute("ToolsVersion", "14.0")
+		.Attribute("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003");
 
 	// Globals
-	output << "\t" << "<PropertyGroup>" << "\n";
-	output << "\t\t" << "<Configuration Condition=\" '$(Configuration)' == '' \">" << CastToString(configurations[0]) << "</Configuration>" << "\n";
-    output << "\t\t" << "<Platform Condition=\" '$(Platform)' == '' \">" << GetPlatformDotNetTarget(platforms[0]) << "</Platform>" << "\n";
-	output << "\t\t" << "<ProjectGuid>" << projectGuid << "</ProjectGuid>" << "\n";
+	XmlNode& configPropertyGroup =
+		project.Node("PropertyGroup");
+
+	configPropertyGroup.Node("Configuration")
+		.Attribute("Condition", "'$(Configuration)'==''")
+		.Value("%s", CastToString(configurations[0]).c_str());
+
+	configPropertyGroup.Node("Platform")
+		.Attribute("Condition", "'$(Platform)'==''")
+		.Value("%s", GetPlatformDotNetTarget(platforms[0]).c_str());
+
+	configPropertyGroup.Node("ProjectGuid")
+		.Value("%s", projectGuid.c_str());
+
 	switch (projectFile.Get_Project_OutputType())
 	{
 	case EOutputType::Executable:
-		output << "\t\t" << "<OutputType>WinExe</OutputType>" << "\n";
+		configPropertyGroup.Node("OutputType").Value("WinExe");
 		break;
 	case EOutputType::ConsoleApp:
-		output << "\t\t" << "<OutputType>Exe</OutputType>" << "\n";
+		configPropertyGroup.Node("OutputType").Value("Exe");
 		break;
 	case EOutputType::DynamicLib:
-		output << "\t\t" << "<OutputType>Library</OutputType>" << "\n";
+		configPropertyGroup.Node("OutputType").Value("Library");
 		break;
 	default:
 		projectFile.ValidateError(
@@ -384,35 +498,35 @@ bool Ide_MSBuild::Generate_Csproj(
 		return false;
 	}
 
-	output << "\t\t" << "<AppDesignerFolder>Properties</AppDesignerFolder>" << "\n";
+	configPropertyGroup.Node("AppDesignerFolder").Value("Properties");
 
 	switch (projectFile.Get_Build_PlatformToolset())
 	{
 	case EPlatformToolset::Default:
 		break;
 	case EPlatformToolset::DotNet_2_0:
-		output << "\t\t" << "<TargetFrameworkVersion>v2.0</TargetFrameworkVersion>" << "\n";
+		configPropertyGroup.Node("TargetFrameworkVersion").Value("v2.0");
 		break;
 	case EPlatformToolset::DotNet_3_0:
-		output << "\t\t" << "<TargetFrameworkVersion>v3.0</TargetFrameworkVersion>" << "\n";
+		configPropertyGroup.Node("TargetFrameworkVersion").Value("v3.0");
 		break;
 	case EPlatformToolset::DotNet_3_5:
-		output << "\t\t" << "<TargetFrameworkVersion>v3.5</TargetFrameworkVersion>" << "\n";
+		configPropertyGroup.Node("TargetFrameworkVersion").Value("v3.5");
 		break;
 	case EPlatformToolset::DotNet_4_0:
-		output << "\t\t" << "<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>" << "\n";
+		configPropertyGroup.Node("TargetFrameworkVersion").Value("v4.0");
 		break;
 	case EPlatformToolset::DotNet_4_5:
-		output << "\t\t" << "<TargetFrameworkVersion>v4.5</TargetFrameworkVersion>" << "\n";
+		configPropertyGroup.Node("TargetFrameworkVersion").Value("v4.5");
 		break;
 	case EPlatformToolset::DotNet_4_5_1:
-		output << "\t\t" << "<TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>" << "\n";
+		configPropertyGroup.Node("TargetFrameworkVersion").Value("v4.5.1");
 		break;
 	case EPlatformToolset::DotNet_4_5_2:
-		output << "\t\t" << "<TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>" << "\n";
+		configPropertyGroup.Node("TargetFrameworkVersion").Value("v4.5.2");
 		break;
 	case EPlatformToolset::DotNet_4_6:
-		output << "\t\t" << "<TargetFrameworkVersion>v4.6</TargetFrameworkVersion>" << "\n";
+		configPropertyGroup.Node("TargetFrameworkVersion").Value("v4.6");
 		break;
 	default:
 		projectFile.ValidateError(
@@ -421,11 +535,9 @@ bool Ide_MSBuild::Generate_Csproj(
 		return false;
 	}
 
-	output << "\t\t" << "<FileAlignment>512</FileAlignment>" << "\n";
-	output << "\t\t" << "<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>" << "\n";
-
-	output << "\t\t" << "<RootNamespace>" << projectFile.Get_Project_RootNamespace() << "</RootNamespace>" << "\n";
-	output << "\t" << "</PropertyGroup>" << "\n";
+	configPropertyGroup.Node("FileAlignment").Value("512");
+	configPropertyGroup.Node("AutoGenerateBindingRedirects").Value("true");
+	configPropertyGroup.Node("RootNamespace").Value("%s", projectFile.Get_Project_RootNamespace().c_str());
 
 	// Property Grid
 	for (auto matrix : buildMatrix)
@@ -439,30 +551,34 @@ bool Ide_MSBuild::Generate_Csproj(
 		Platform::Path intDirRelative = solutionDirectory.RelativeTo(intDir);
 
 		std::vector<std::string> defines = matrix.projectFile.Get_Defines_Define();
-		
-		output << "\t" << "<PropertyGroup Condition=\"'$(Configuration)|$(Platform)'=='" << matrix.config << "|" << platformId << "'\" Label=\"Configuration\">" << "\n";
-		output << "\t\t" << "<DebugSymbols>" << CastToString(matrix.projectFile.Get_Flags_GenerateDebugInformation()) << "</DebugSymbols>" << "\n";
-		output << "\t\t" << "<BaseOutputPath>$(SolutionDir)\\" << outDirRelative.ToString() << "\\</BaseOutputPath>" << "\n";
-		output << "\t\t" << "<OutputPath>$(BaseOutputPath)\\</OutputPath>" << "\n";
-		output << "\t\t" << "<BaseIntermediateOutputPath>$(SolutionDir)\\" << intDirRelative.ToString() << "\\</BaseIntermediateOutputPath>" << "\n";
-		output << "\t\t" << "<IntermediateOutputPath>$(BaseIntermediateOutputPath)\\</IntermediateOutputPath>" << "\n";
-		output << "\t\t" << "<DefineConstants>" << Strings::Join(defines, ";") << "</DefineConstants>" << "\n";
-		output << "\t\t" << "<DebugType>" << (matrix.projectFile.Get_Flags_GenerateDebugInformation() ? "full" : "pdbonly") << "</DebugType>" << "\n";
-		output << "\t\t" << "<PlatformTarget>" << GetPlatformDotNetTarget(matrix.platform) << "</PlatformTarget>" << "\n";
-		output << "\t\t" << "<ErrorReport>prompt</ErrorReport>" << "\n";		
-		output << "\t\t" << "<WarningsAsErrors>" << (matrix.projectFile.Get_Flags_CompilerWarningsFatal() ? "true" : "false") << "</WarningsAsErrors>" << "\n";
-		output << "\t\t" << "<CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>" << "\n";
-		output << "\t\t" << "<Prefer32Bit>" << CastToString(matrix.projectFile.Get_Flags_Prefer32Bit()) << "</Prefer32Bit>" << "\n";
-		output << "\t\t" << "<AllowUnsafeBlocks>" << CastToString(matrix.projectFile.Get_Flags_AllowUnsafeCode()) << "</AllowUnsafeBlocks>" << "\n";
+
+		XmlNode& platformConfig =
+			project.Node("PropertyGroup")
+			.Attribute("Condition", "'$(Configuration)|$(Platform)'=='%s|%s'", matrix.config.c_str(), platformId.c_str())
+			.Attribute("Label", "Configuration");
+
+		platformConfig.Node("DebugSymbols").Value(matrix.projectFile.Get_Flags_GenerateDebugInformation());
+		platformConfig.Node("BaseOutputPath").Value("$(SolutionDir)\\%s", outDirRelative.ToString().c_str());
+		platformConfig.Node("OutputPath").Value("$(BaseOutputPath)\\");
+		platformConfig.Node("BaseIntermediateOutputPath").Value("$(SolutionDir)\\%s\\", intDirRelative.ToString().c_str());
+		platformConfig.Node("IntermediateOutputPath").Value("$(BaseIntermediateOutputPath)\\");
+		platformConfig.Node("DefineConstants").Value("%s", Strings::Join(defines, ";").c_str());
+		platformConfig.Node("DebugType").Value(matrix.projectFile.Get_Flags_GenerateDebugInformation() ? "full" : "pdbonly");
+		platformConfig.Node("PlatformTarget").Value("%s", GetPlatformDotNetTarget(matrix.platform).c_str());
+		platformConfig.Node("ErrorReport").Value("prompt");
+		platformConfig.Node("WarningsAsErrors").Value(matrix.projectFile.Get_Flags_CompilerWarningsFatal());
+		platformConfig.Node("CodeAnalysisRuleSet").Value("MinimumRecommendedRules.ruleset");
+		platformConfig.Node("Prefer32Bit").Value(matrix.projectFile.Get_Flags_Prefer32Bit());
+		platformConfig.Node("AllowUnsafeBlocks").Value(matrix.projectFile.Get_Flags_AllowUnsafeCode());
 
 		if (matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::None ||
 			matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::Debug)
 		{
-			output << "\t\t" << "<Optimize>false</Optimize>" << "\n";
+			platformConfig.Node("Optimize").Value("false");
 		}
 		else
 		{
-			output << "\t\t" << "<Optimize>true</Optimize>" << "\n";
+			platformConfig.Node("Optimize").Value("true");
 		}
 
 		switch (projectFile.Get_Project_LanguageVersion())
@@ -470,22 +586,22 @@ bool Ide_MSBuild::Generate_Csproj(
 		case ELanguageVersion::Default:
 			break;
 		case ELanguageVersion::CSharp_1_0:
-			output << "\t\t" << "<LangVersion>ISO-1</LangVersion>" << "\n";
+			platformConfig.Node("LangVersion").Value("ISO-1");
 			break;
 		case ELanguageVersion::CSharp_2_0:
-			output << "\t\t" << "<LangVersion>ISO-2</LangVersion>" << "\n";
+			platformConfig.Node("LangVersion").Value("ISO-2");
 			break;
 		case ELanguageVersion::CSharp_3_0:
-			output << "\t\t" << "<LangVersion>3</LangVersion>" << "\n";
+			platformConfig.Node("LangVersion").Value("3");
 			break;
 		case ELanguageVersion::CSharp_4_0:
-			output << "\t\t" << "<LangVersion>4</LangVersion>" << "\n";
+			platformConfig.Node("LangVersion").Value("4");
 			break;
 		case ELanguageVersion::CSharp_5_0:
-			output << "\t\t" << "<LangVersion>5</LangVersion>" << "\n";
+			platformConfig.Node("LangVersion").Value("5");
 			break;
 		case ELanguageVersion::CSharp_6_0:
-			output << "\t\t" << "<LangVersion>6</LangVersion>" << "\n";
+			platformConfig.Node("LangVersion").Value("6");
 			break;
 		default:
 			projectFile.ValidateError(
@@ -493,49 +609,45 @@ bool Ide_MSBuild::Generate_Csproj(
 				CastToString(projectFile.Get_Project_LanguageVersion()).c_str());
 			return false;
 		}
-
-		output << "\t" << "</PropertyGroup>" << "\n";
 	}
 
 	// Startup Property Grid
-	output << "\t" << "<PropertyGroup>" << "\n";
-	output << "\t\t" << "<StartupObject />" << "\n";
-	output << "\t" << "</PropertyGroup>" << "\n";
+	project.Node("PropertyGroup").Node("StartupObject");
 
 	// References
-	output << "\t" << "<ItemGroup>" << "\n";
+	XmlNode& referenceFileGroup = project.Node("ItemGroup");
 	for (auto file : projectFile.Get_References_Reference())
 	{
-		output << "\t\t" << "<Reference Include=\"" << file.ToString() << "\" />" << "\n";
+		referenceFileGroup.Node("Reference")
+			.Attribute("Include", "%s", file.ToString().c_str());
 	}
-	output << "\t" << "</ItemGroup>" << "\n";
 
 	// Source files
-	output << "\t" << "<ItemGroup>" << "\n";
+	XmlNode& sourceFileGroup = project.Node("ItemGroup");
 	for (auto file : sourceFiles)
 	{
-		output << "\t\t" << "<Compile Include=\"" << file << "\" />" << "\n";
+		sourceFileGroup.Node("Compile")
+			.Attribute("Include", "%s", file.c_str());
 	}
-	output << "\t" << "</ItemGroup>" << "\n";
 
 	// Misc file.
-	output << "\t" << "<ItemGroup>" << "\n";
+	XmlNode& miscFileGroup = project.Node("ItemGroup");
 	for (auto file : miscFiles)
 	{
-		output << "\t\t" << "<None Include=\"" << file << "\" />" << "\n";
+		miscFileGroup.Node("None")
+			.Attribute("Include", "%s", file.c_str());
 	}
-	output << "\t" << "</ItemGroup>" << "\n";
 
-
-	output << "\t" << "<Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\" />" << "\n";
-	output << "</Project>" << "\n";
+	// Import
+	project.Node("Import")
+		.Attribute("Project", "$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
 
 	// Generate result.
 	if (!WriteFile(
 		workspaceFile,
 		projectDirectory,
 		projectLocation,
-		output.str().c_str()))
+		root.ToString().c_str()))
 	{
 		return false;
 	}
@@ -565,22 +677,9 @@ bool Ide_MSBuild::Generate_Vcxproj(
 	std::vector<EPlatform> platforms =
 		workspaceFile.Get_Platforms_Platform();
 
-	std::stringstream output;
-
 	std::string projectGuid = Strings::Guid({
 		workspaceFile.Get_Workspace_Name(),
 		projectFile.Get_Project_Name() });
-
-	// Check platform is supported.
-	if (!ArePlatformsValid(projectFile, platforms, {
-		EPlatform::Windows_AnyCPU,
-		EPlatform::Windows_ARM,
-		EPlatform::Windows_x86,
-		EPlatform::Windows_x64
-	}))
-	{
-		return false;
-	}
 
 	// Files.
 	std::vector<std::string> includeFiles;
@@ -612,39 +711,59 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		}
 	}
 
+	XmlNode root;
+
 	// Header
-	output << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << "\n";
-	output << "<Project DefaultTargets=\"Build\" ToolsVersion=\"14.0\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">" << "\n";
+	root.Node("?xml")
+		.Attribute("version", "1.0")
+		.Attribute("encoding", "utf-8");
+	
+	XmlNode& project = 
+		root.Node("Project")
+		.Attribute("DefaultTargets", "Build")
+		.Attribute("ToolsVersion", "14.0")
+		.Attribute("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003");
 
 	// Build Matrix
-	output << "\t" << "<ItemGroup Label=\"ProjectConfigurations\">" << "\n";	
+	XmlNode& projectConfig = 
+		project.Node("ItemGroup")
+		.Attribute("Label", "ProjectConfiguration");
+
 	for (auto matrix : buildMatrix)
 	{
 		std::string platformId = GetPlatformID(matrix.platform);
 
-		output << "\t\t" << "<ProjectConfiguration Include=\"" << matrix.config << "|" << platformId << "\">" << "\n";
-		output << "\t\t\t" << "<Configuration>" << matrix.config << "</Configuration>" << "\n";
-		output << "\t\t\t" << "<Platform>" << platformId << "</Platform>" << "\n";
-		output << "\t\t" << "</ProjectConfiguration>" << "\n";
-	}
-	output << "\t" << "</ItemGroup>" << "\n";
-	
-	// Globals
-	output << "\t" << "<PropertyGroup Label=\"Globals\">" << "\n";
-	output << "\t\t" << "<ProjectGuid>" << projectGuid << "</ProjectGuid>" << "\n";
-	output << "\t\t" << "<IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>" << "\n";
-	output << "\t\t" << "<Keyword>Win32Proj</Keyword>" << "\n";
-	output << "\t\t" << "<RootNamespace>" << projectFile.Get_Project_RootNamespace() <<  "</RootNamespace>" << "\n";
-	output << "\t" << "</PropertyGroup>" << "\n";
+		XmlNode& buildConfig =
+			projectConfig.Node("ProjectConfiguration")
+			.Attribute("Include", "%s|%s", matrix.config.c_str(), platformId.c_str());
 
-	output << "\t" << "<Import Project=\"$(VCTargetsPath)\\Microsoft.Cpp.Default.props\" />" << "\n";
+		buildConfig.Node("Configuration").Value("%s", matrix.config.c_str());
+		buildConfig.Node("Platform").Value("%s", platformId.c_str());
+	}
+
+	// Globals.
+	XmlNode& globals =
+		project.Node("PropertyGroup")
+		.Attribute("Label", "Globals");
+
+	globals.Node("ProjectGuid").Value("%s", projectGuid.c_str());
+	globals.Node("IgnoreWarnCompileDuplicatedFilename").Value("true");
+	globals.Node("Keyword").Value("Win32Proj");
+	globals.Node("RootNamespace").Value("%s", projectFile.Get_Project_RootNamespace().c_str());
+
+	// Imports
+	project.Node("Import")
+		.Attribute("Project", "$(VCTargetsPath)\\Microsoft.Cpp.Default.props");
 
 	// Property Grid
 	for (auto matrix : buildMatrix)
 	{
 		std::string platformId = GetPlatformID(matrix.platform);
 
-		output << "\t" << "<PropertyGroup Condition=\"'$(Configuration)|$(Platform)'=='" << matrix.config << "|" << platformId << "'\" Label=\"Configuration\">" << "\n";
+		XmlNode& propertyGroup =
+			project.Node("PropertyGroup")
+			.Attribute("Condition", "'$(Configuration)|$(Platform)'=='%s|%s'", matrix.config.c_str(), platformId.c_str())
+			.Attribute("Label", "Configuration");
 
 		// Output type.
 		switch (matrix.projectFile.Get_Project_OutputType())
@@ -652,13 +771,13 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		case EOutputType::Executable:
 			// Fallthrough
 		case EOutputType::ConsoleApp:
-			output << "\t\t" << "<ConfigurationType>Application</ConfigurationType>" << "\n";
+			propertyGroup.Node("ConfigurationType").Value("Application");
 			break;
 		case EOutputType::DynamicLib:
-			output << "\t\t" << "<ConfigurationType>DynamicLibrary</ConfigurationType>" << "\n";
+			propertyGroup.Node("ConfigurationType").Value("DynamicLibrary");
 			break;
 		case EOutputType::StaticLib:
-			output << "\t\t" << "<ConfigurationType>StaticLibrary</ConfigurationType>" << "\n";
+			propertyGroup.Node("ConfigurationType").Value("StaticLibrary");
 			break;
 		default:
 			projectFile.ValidateError(
@@ -671,11 +790,11 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		if (matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::None ||
 			matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::Debug)
 		{
-			output << "\t\t" << "<UseDebugLibraries>true</UseDebugLibraries>" << "\n";
+			propertyGroup.Node("UseDebugLibraries").Value("true");
 		}
 		else
 		{
-			output << "\t\t" << "<UseDebugLibraries>false</UseDebugLibraries>" << "\n";
+			propertyGroup.Node("UseDebugLibraries").Value("false");
 		}
 
 		// Character set.
@@ -684,10 +803,10 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		case ECharacterSet::Default:
 			break;
 		case ECharacterSet::Unicode:
-			output << "\t\t" << "<CharacterSet>Unicode</CharacterSet>" << "\n";
+			propertyGroup.Node("CharacterSet").Value("Unicode");
 			break;
 		case ECharacterSet::MBCS:
-			output << "\t\t" << "<CharacterSet>MultiByte</CharacterSet>" << "\n";
+			propertyGroup.Node("CharacterSet").Value("MultiByte");
 			break;
 		default:
 			projectFile.ValidateError(
@@ -700,13 +819,13 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		switch (matrix.projectFile.Get_Build_PlatformToolset())
 		{
 		case EPlatformToolset::Default:
-			output << "\t\t" << "<PlatformToolset>" << CastToString(m_defaultToolset) << "</PlatformToolset>" << "\n";
+			propertyGroup.Node("PlatformToolset").Value("%s", CastToString(m_defaultToolset).c_str());
 			break;
 		case EPlatformToolset::v140:
-			output << "\t\t" << "<PlatformToolset>v140</PlatformToolset>" << "\n";
+			propertyGroup.Node("PlatformToolset").Value("v140");
 			break;
 		case EPlatformToolset::v140_xp:
-			output << "\t\t" << "<PlatformToolset>v140_xp</PlatformToolset>" << "\n";
+			propertyGroup.Node("PlatformToolset").Value("v140_xp");
 			break;
 		default:
 			projectFile.ValidateError(
@@ -719,32 +838,41 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		if (matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::None ||
 			matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::Debug)
 		{
-			output << "\t\t" << "<WholeProgramOptimization>false</WholeProgramOptimization>" << "\n";
+			propertyGroup.Node("WholeProgramOptimization").Value("false");
 		}
 		else
 		{
-			output << "\t\t" << "<WholeProgramOptimization>true</WholeProgramOptimization>" << "\n";
+			propertyGroup.Node("WholeProgramOptimization").Value("true");
 		}
-
-		output << "\t" << "</PropertyGroup>" << "\n";
 	}
 
-	output << "\t" << "<Import Project=\"$(VCTargetsPath)\\Microsoft.Cpp.props\" />" << "\n";
+	// Imports
+	project.Node("Import")
+		.Attribute("Project", "$(VCTargetsPath)\\Microsoft.Cpp.props");
 
-	output << "\t" << "<ImportGroup Label=\"ExtensionSettings\">" << "\n";
-	output << "\t" << "</ImportGroup>" << "\n";
+	// Extension settings
+	project.Node("ImportGroup")
+		.Attribute("Label", "ExtensionSettings");
 
 	// Item definition group.
 	for (auto matrix : buildMatrix)
 	{
 		std::string platformId = GetPlatformID(matrix.platform);
 
-		output << "\t" << "<ImportGroup Label=\"PropertySheets\" Condition=\"'$(Configuration)|$(Platform)'=='" << matrix.config << "|" << platformId << "'\">" << "\n";
-		output << "\t\t" << "<Import Project=\"$(UserRootDir)\\Microsoft.Cpp.$(Platform).user.props\" Condition=\"exists('$(UserRootDir)\\Microsoft.Cpp.$(Platform).user.props')\" Label=\"LocalAppDataPlatform\" />" << "\n";
-		output << "\t" << "</ImportGroup>" << "\n";
+		XmlNode& itemDefGroup = 
+			project.Node("ImportGroup")
+			.Attribute("Label", "PropertySheets")
+			.Attribute("Condition", "'$(Configuration)|$(Platform)'=='%s|%s'", matrix.config.c_str(), platformId.c_str());
+
+		itemDefGroup.Node("Import")
+			.Attribute("Project", "$(UserRootDir)\\Microsoft.Cpp.$(Platform).user.props")
+			.Attribute("Condition", "exists('$(UserRootDir)\\Microsoft.Cpp.$(Platform).user.props')")
+			.Attribute("Label", "LocalAppDataPlatform");
 	}
 
-	output << "\t" << "<PropertyGroup Label=\"UserMacros\" />" << "\n";
+	// Macros settings
+	project.Node("PropertyGroup")
+		.Attribute("Label", "UserMacros");
 
 	// Output property group.
 	for (auto matrix : buildMatrix)
@@ -770,35 +898,36 @@ bool Ide_MSBuild::Generate_Vcxproj(
 			libraryPaths.push_back("$(SolutionDir)\\" + solutionDirectory.RelativeTo(path).ToString() + "\\");
 		}
 
-		output << "\t" << "<PropertyGroup Condition=\"'$(Configuration)|$(Platform)'=='" << matrix.config << "|" << platformId << "'\">" << "\n";
+
+		XmlNode& propertyGroup =
+			project.Node("PropertyGroup")
+			.Attribute("Condition", "'$(Configuration)|$(Platform)'=='%s|%s'", matrix.config.c_str(), platformId.c_str());
 
 		// Incremental linking
 		if (matrix.projectFile.Get_Flags_LinkTimeOptimization())
 		{
-			output << "\t\t" << "<LinkIncremental>false</LinkIncremental>" << "\n";
+			propertyGroup.Node("LinkIncremental").Value("false");
 		}
 		else
 		{
-			output << "\t\t" << "<LinkIncremental>" << (matrix.projectFile.Get_Build_OptimizationLevel() != EOptimizationLevel::Full ? "true" : "false") << "</LinkIncremental>" << "\n";
+			propertyGroup.Node("LinkIncremental").Value(matrix.projectFile.Get_Build_OptimizationLevel() != EOptimizationLevel::Full);
 		}
 
 		// Output information.
-		output << "\t\t" << "<OutDir>$(SolutionDir)\\" << outDirRelative.ToString() << "\\</OutDir>" << "\n";
-		output << "\t\t" << "<IntDir>$(SolutionDir)\\" << intDirRelative.ToString() << "\\</IntDir>" << "\n";
-		output << "\t\t" << "<TargetName>" << matrix.projectFile.Get_Project_OutputName() << "</TargetName>" << "\n";
-		output << "\t\t" << "<TargetExt>" << matrix.projectFile.Get_Project_OutputExtension() << "</TargetExt>" << "\n";
+		propertyGroup.Node("OutDir").Value("$(SolutionDir)%s\\", outDirRelative.ToString().c_str());
+		propertyGroup.Node("IntDir").Value("$(SolutionDir)%s\\", intDirRelative.ToString().c_str());
+		propertyGroup.Node("TargetName").Value("%s", matrix.projectFile.Get_Project_OutputName().c_str());
+		propertyGroup.Node("TargetExt").Value("%s", matrix.projectFile.Get_Project_OutputExtension().c_str());
 
 		// Search paths.
 		if (includePaths.size() > 0)
 		{
-			output << "\t\t" << "<IncludePath>" << Strings::Join(includePaths, ";") << ";$(IncludePath)</IncludePath>" << "\n";
+			propertyGroup.Node("IncludePath").Value("%s;$(IncludePath)", Strings::Join(includePaths, ";").c_str());
 		}
 		if (libraryPaths.size() > 0)
 		{
-			output << "\t\t" << "<LibraryPath>" << Strings::Join(libraryPaths, ";") << ";$(LibraryPath)</LibraryPath>" << "\n";
+			propertyGroup.Node("LibraryPath").Value("%s;$(LibraryPath)", Strings::Join(includePaths, ";").c_str());
 		}
-
-		output << "\t" << "</PropertyGroup>" << "\n";
 	}
 
 	// Compile/Link information.
@@ -829,26 +958,31 @@ bool Ide_MSBuild::Generate_Vcxproj(
 			}
 		}
 	
-		output << "\t" << "<ItemDefinitionGroup Condition=\"'$(Configuration)|$(Platform)'=='" << matrix.config << "|" << platformId << "'\">" << "\n";
-		output << "\t\t" << "<ClCompile>" << "\n";
+		XmlNode& itemDefGroup = 
+			project.Node("ItemDefinitionGroup")
+			.Attribute("Condition", "'$(Configuration)|$(Platform)'=='%s|%s'", matrix.config.c_str(), platformId.c_str());
+
+		{
+			XmlNode& compileGroup =
+				itemDefGroup.Node("ClCompile");
 
 			// Precompiled header.
 			if (precompiledHeader.ToString() != "")
 			{
-				output << "\t\t\t" << "<PrecompiledHeader>Use</PrecompiledHeader>" << "\n";
-				output << "\t\t\t" << "<PrecompiledHeaderFile>" << precompiledHeader.GetFilename() << "</PrecompiledHeaderFile>" << "\n";
+				compileGroup.Node("PrecompiledHeader").Value("Use");
+				compileGroup.Node("PrecompiledHeaderFile").Value("%s", precompiledHeader.GetFilename().c_str());
 			}
 
 			// General settings.
 			if (matrix.projectFile.Get_Defines_Define().size() > 0)
 			{
 				std::vector<std::string> defines = matrix.projectFile.Get_Defines_Define();
-				output << "\t\t\t" << "<PreprocessorDefinitions>" << Strings::Join(defines, ";") << ";$(PreprocessorDefinitions)</PreprocessorDefinitions>" << "\n";
+				compileGroup.Node("PreprocessorDefinitions").Value("%s;$(PreprocessorDefinitions)", Strings::Join(defines, ";").c_str());
 			}
-			output << "\t\t\t" << "<MinimalRebuild>false</MinimalRebuild>" << "\n";
-			output << "\t\t\t" << "<MultiProcessorCompilation>true</MultiProcessorCompilation>" << "\n";
-			output << "\t\t\t" << "<RuntimeTypeInfo>" << (matrix.projectFile.Get_Flags_RuntimeTypeInfo() ? "true" : "false") << "</RuntimeTypeInfo>" << "\n";
-			output << "\t\t\t" << "<ExceptionHandling>" << (matrix.projectFile.Get_Flags_Exceptions() ? "Async" : "false") << "</ExceptionHandling>" << "\n";
+			compileGroup.Node("MinimalRebuild").Value("false");
+			compileGroup.Node("MultiProcessorCompilation").Value("true");
+			compileGroup.Node("RuntimeTypeInfo").Value(matrix.projectFile.Get_Flags_RuntimeTypeInfo());
+			compileGroup.Node("ExceptionHandling").Value((matrix.projectFile.Get_Flags_Exceptions() ? "Async" : "false"));
 
 			// Standard library.
 			if (matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::None ||
@@ -856,33 +990,33 @@ bool Ide_MSBuild::Generate_Vcxproj(
 			{
 				if (matrix.projectFile.Get_Flags_StaticRuntime())
 				{
-					output << "\t\t\t" << "<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>" << "\n";
+					compileGroup.Node("RuntimeLibrary").Value("MultiThreadedDebug");
 				}
 				else
 				{
-					output << "\t\t\t" << "<RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>" << "\n";
+					compileGroup.Node("RuntimeLibrary").Value("MultiThreadedDebugDLL");
 				}
 			}
 			else
 			{
 				if (matrix.projectFile.Get_Flags_StaticRuntime())
 				{
-					output << "\t\t\t" << "<RuntimeLibrary>MultiThreaded</RuntimeLibrary>" << "\n";
+					compileGroup.Node("RuntimeLibrary").Value("MultiThreaded");
 				}
 				else
 				{
-					output << "\t\t\t" << "<RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>" << "\n";
+					compileGroup.Node("RuntimeLibrary").Value("MultiThreadedDLL");
 				}
 			}
 
 			// Debug database.
 			if (matrix.projectFile.Get_Flags_GenerateDebugInformation())
 			{
-				output << "\t\t\t" << "<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>" << "\n";
+				compileGroup.Node("DebugInformationFormat").Value("ProgramDatabase");
 			}
 			else
 			{
-				output << "\t\t\t" << "<DebugInformationFormat>None</DebugInformationFormat>" << "\n";
+				compileGroup.Node("DebugInformationFormat").Value("None");
 			}
 
 			// Warning level.
@@ -891,19 +1025,19 @@ bool Ide_MSBuild::Generate_Vcxproj(
 			case EWarningLevel::Default:
 				break;
 			case EWarningLevel::None:
-				output << "\t\t\t" << "<WarningLevel>TurnOffAllWarnings</WarningLevel>" << "\n";
+				compileGroup.Node("WarningLevel").Value("TurnOffAllWarnings");
 				break;
 			case EWarningLevel::Low:
-				output << "\t\t\t" << "<WarningLevel>Level1</WarningLevel>" << "\n";
+				compileGroup.Node("WarningLevel").Value("Level1");
 				break;
 			case EWarningLevel::Medium:
-				output << "\t\t\t" << "<WarningLevel>Level3</WarningLevel>" << "\n";
+				compileGroup.Node("WarningLevel").Value("Level3");
 				break;
 			case EWarningLevel::High:
-				output << "\t\t\t" << "<WarningLevel>Level4</WarningLevel>" << "\n";
+				compileGroup.Node("WarningLevel").Value("Level4");
 				break;
 			case EWarningLevel::Verbose:
-				output << "\t\t\t" << "<WarningLevel>EnableAllWarnings</WarningLevel>" << "\n";
+				compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
 				break;
 			default:
 				projectFile.ValidateError(
@@ -912,12 +1046,12 @@ bool Ide_MSBuild::Generate_Vcxproj(
 				return false;
 			}
 
-			output << "\t\t\t" << "<TreatWarningAsError>" << (matrix.projectFile.Get_Flags_CompilerWarningsFatal() ? "true" : "false") << "</TreatWarningAsError>" << "\n";
+			compileGroup.Node("TreatWarningAsError").Value(matrix.projectFile.Get_Flags_CompilerWarningsFatal());
 
 			if (matrix.projectFile.Get_DisabledWarnings_DisabledWarning().size() > 0)
 			{
 				std::vector<std::string> disabledWarnings = matrix.projectFile.Get_DisabledWarnings_DisabledWarning();
-				output << "\t\t\t" << "<DisableSpecificWarnings>" << Strings::Join(disabledWarnings, ";") << ";$(DisableSpecificWarnings)</DisableSpecificWarnings>" << "\n";
+				compileGroup.Node("DisableSpecificWarnings").Value("%s;$(DisableSpecificWarnings)", Strings::Join(disabledWarnings, ";").c_str());
 			}
 
 			// Optimization.
@@ -926,16 +1060,16 @@ bool Ide_MSBuild::Generate_Vcxproj(
 			case EOptimizationLevel::None:
 				// Fallthrough
 			case EOptimizationLevel::Debug:
-				output << "\t\t\t" << "<Optimization>Disabled</Optimization>" << "\n";
+				compileGroup.Node("Optimization").Value("Disabled");
 				break;
 			case EOptimizationLevel::PreferSize:
-				output << "\t\t\t" << "<Optimization>MinSpace</Optimization>" << "\n";
+				compileGroup.Node("Optimization").Value("MinSpace");
 				break;
 			case EOptimizationLevel::PreferSpeed:
-				output << "\t\t\t" << "<Optimization>MaxSpeed</Optimization>" << "\n";
+				compileGroup.Node("Optimization").Value("MaxSpeed");
 				break;
 			case EOptimizationLevel::Full:
-				output << "\t\t\t" << "<Optimization>Full</Optimization>" << "\n";
+				compileGroup.Node("Optimization").Value("Full");
 				break;
 			default:
 				projectFile.ValidateError(
@@ -947,44 +1081,46 @@ bool Ide_MSBuild::Generate_Vcxproj(
 			// Additional options.
 			if (!matrix.projectFile.Get_Build_CompilerArguments().empty())
 			{
-				output << "\t\t\t" << "<AdditionalOptions>" << matrix.projectFile.Get_Build_CompilerArguments() << ";$(AdditionalOptions)</AdditionalOptions>" << "\n";
+				compileGroup.Node("AdditionalOptions")
+					.Value("%s $(AdditionalOptions)", matrix.projectFile.Get_Build_CompilerArguments().c_str());
 			}
 
 			if (forcedIncludes.size() > 0)
 			{
-				output << "\t\t\t" << "<ForcedIncludeFiles>" << Strings::Join(forcedIncludes, ";") << ";$(ForcedIncludeFiles)</ForcedIncludeFiles>" << "\n";
+				compileGroup.Node("ForcedIncludeFiles").Value("%s;$(ForcedIncludeFiles)", Strings::Join(forcedIncludes, ";").c_str());
 			}
+		}
 
-		output << "\t\t" << "</ClCompile>" << "\n";
-		output << "\t\t" << "<Link>" << "\n";
+		{
+			XmlNode& linkGroup =
+				itemDefGroup.Node("Link");
 
 			// Warnings.
-			output << "\t\t\t" << "<TreatLinkerWarningAsErrors>" << (matrix.projectFile.Get_Flags_LinkerWarningsFatal() ? "true" : "false") << "</TreatLinkerWarningAsErrors>" << "\n";
-
+			linkGroup.Node("TreatLinkerWarningAsErrors").Value(matrix.projectFile.Get_Flags_LinkerWarningsFatal());
+			
 			// Optimization.
 			if (matrix.projectFile.Get_Flags_LinkTimeOptimization())
 			{
-				output << "\t\t\t" << "<LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>" << "\n";
-				output << "\t\t\t" << "<WholeProgramOptimization>true</WholeProgramOptimization>" << "\n";
-
+				linkGroup.Node("LinkTimeCodeGeneration").Value("UseLinkTimeCodeGeneration");
+				linkGroup.Node("WholeProgramOptimization").Value("true");
 			}
 			else
 			{
-				output << "\t\t\t" << "<WholeProgramOptimization>false</WholeProgramOptimization>" << "\n";
+				linkGroup.Node("WholeProgramOptimization").Value("false");
 			}
 
 			// Sub system
 			switch (matrix.projectFile.Get_Project_OutputType())
 			{
 			case EOutputType::Executable:
-				output << "\t\t\t" << "<SubSystem>Windows</SubSystem>" << "\n";
+				linkGroup.Node("SubSystem").Value("Windows");
 				break;
 			case EOutputType::ConsoleApp:
 				// Fallthrough
 			case EOutputType::DynamicLib:
 				// Fallthrough
 			case EOutputType::StaticLib:
-				output << "\t\t\t" << "<SubSystem>Console</SubSystem>" << "\n";
+				linkGroup.Node("SubSystem").Value("Console");
 				break;
 			default:
 				projectFile.ValidateError(
@@ -994,71 +1130,68 @@ bool Ide_MSBuild::Generate_Vcxproj(
 			}
 
 			// Debug information.
-			output << "\t\t\t" << "<GenerateDebugInformation>" << (matrix.projectFile.Get_Flags_GenerateDebugInformation() ? "true" : "false") << "</GenerateDebugInformation>" << "\n";
+			linkGroup.Node("GenerateDebugInformation").Value(matrix.projectFile.Get_Flags_GenerateDebugInformation());
 
 			// Libraries.
 			if (additionalLibraries.size() > 0)
 			{
-				output << "\t\t\t" << "<AdditionalDependencies>" << Strings::Join(additionalLibraries, ";") << ";$(AdditionalDependencies)</AdditionalDependencies>" << "\n";
+				linkGroup.Node("AdditionalDependencies").Value("%s;$(AdditionalDependencies)", Strings::Join(additionalLibraries, ";").c_str());
 			}
 
 			// Additional options.
-			output << "\t\t\t" << "<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>" << "\n";
+			linkGroup.Node("EntryPointSymbol").Value("mainCRTStartup");
 			
 			if (!matrix.projectFile.Get_Build_LinkerArguments().empty())
 			{
-				output << "\t\t\t" << "<AdditionalOptions>" << matrix.projectFile.Get_Build_LinkerArguments() << ";$(AdditionalOptions)</AdditionalOptions>" << "\n";
+				linkGroup.Node("AdditionalOptions").Value("%s $(AdditionalOptions)", matrix.projectFile.Get_Build_LinkerArguments().c_str());
 			}
-
-		output << "\t\t" << "</Link>" << "\n";
-		output << "\t" << "</ItemDefinitionGroup>" << "\n";
+		}
 	}
 
 	// Include files
-	output << "\t" << "<ItemGroup>" << "\n";
+	XmlNode& includeFileGroup = project.Node("ItemGroup");
 	for (auto file : includeFiles)
 	{
-		output << "\t\t" << "<ClInclude Include=\"" << file << "\" />" << "\n";
+		includeFileGroup.Node("ClInclude")
+			.Attribute("Include", "%s", file.c_str());
 	}
-	output << "\t" << "</ItemGroup>" << "\n";
 
 	// Source files
-	output << "\t" << "<ItemGroup>" << "\n";
+	XmlNode& sourceFileGroup = project.Node("ItemGroup");
 	for (auto file : sourceFiles)
 	{
+		XmlNode& fileNode =
+			sourceFileGroup.Node("ClCompile")
+			.Attribute("Include", "%s", file.c_str());
+
 		if (file == precompiledSourceFile)
 		{
-			output << "\t\t" << "<ClCompile Include=\"" << file << "\">" << "\n";
-			output << "\t\t\t" << "<PrecompiledHeader>Create</PrecompiledHeader>" << "\n";
-			output << "\t\t" << "</ClCompile>" << "\n";
-		}
-		else
-		{
-			output << "\t\t" << "<ClCompile Include=\"" << file << "\" />" << "\n";
+			fileNode.Node("PrecompiledHeader").Value("Create");
 		}
 	}
-	output << "\t" << "</ItemGroup>" << "\n";
-
+	
 	// Misc file.
-	output << "\t" << "<ItemGroup>" << "\n";
+	XmlNode& miscFileGroup = project.Node("ItemGroup");
 	for (auto file : miscFiles)
 	{
-		output << "\t\t" << "<None Include=\"" << file << "\" />" << "\n";
+		miscFileGroup.Node("None")
+			.Attribute("Include", "%s", file.c_str());
 	}
-	output << "\t" << "</ItemGroup>" << "\n";
 
+	// Imports
+	project.Node("Import")
+		.Attribute("Project", "$(VCTargetsPath)\\Microsoft.Cpp.targets");
 
-	output << "\t" << "<Import Project=\"$(VCTargetsPath)\\Microsoft.Cpp.targets\" />" << "\n";
-	output << "\t" << "<ImportGroup Label=\"ExtensionTargets\">" << "\n";
-	output << "\t" << "</ImportGroup>" << "\n";
-	output << "</Project>" << "\n";
+	// Extension settings
+	project.Node("ImportGroup")
+		.Attribute("Label", "ExtensionSettings");
 
 	// Generate result.
 	if (!WriteFile(
 		workspaceFile,
 		projectDirectory,
 		projectLocation,
-		output.str().c_str()))
+		root.ToString().c_str()))
 	{
 		return false;
 	}
@@ -1090,118 +1223,92 @@ bool Ide_MSBuild::Generate_Vcxproj_Filters(
 	std::vector<EPlatform> platforms =
 		workspaceFile.Get_Platforms_Platform();
 
-	std::stringstream output;
-
 	std::vector<Platform::Path> files = projectFile.Get_Files_File();
-	std::vector<std::string> filters;
+
+	// Find common path.
+	std::vector<ConfigFile::KeyValuePair> virtualPaths = 
+		projectFile.Get_VirtualPaths();
+
+	std::vector<VPathPair> vpathFilters = 
+		ExpandVPaths(virtualPaths, files);
+
+	// Generate filter list.
 	std::map<std::string, std::string> sourceFilterMap;
 	std::map<std::string, std::string> includeFilterMap;
 	std::map<std::string, std::string> noneFilterMap;
+	std::vector<std::string> filters = SortFiltersByType(
+		vpathFilters, 
+		solutionDirectory,
+		sourceFilterMap,
+		includeFilterMap,
+		noneFilterMap
+	);
 
-	// Find common path.
-	Platform::Path commonPath;
-	Platform::Path::GetCommonPath(files, commonPath);
-
-	// Generate filter list.
-	for (Platform::Path& file : files)
-	{
-		Platform::Path relativePath =
-			solutionDirectory.RelativeTo(file);
-
-		// Generate a list of unique filters.
-		std::string filter = file.GetUncommonPath(commonPath).ToString();
-
-		std::vector<std::string> fragments = Strings::Split(Platform::Path::Seperator, filter);
-
-		filter = "";
-		for (auto iter = fragments.begin(); iter != fragments.end() - 1; iter++)
-		{
-			if (!filter.empty())
-			{
-				filter += "\\";
-			}
-			filter += *iter;
-
-			if (std::find(filters.begin(), filters.end(), filter) == filters.end())
-			{
-				filters.push_back(filter);
-			}
-		}
-
-		if (relativePath.IsSourceFile())
-		{
-			sourceFilterMap[relativePath.ToString()] = filter;
-		}
-		else if (relativePath.IsIncludeFile())
-		{
-			includeFilterMap[relativePath.ToString()] = filter;
-		}
-		else
-		{
-			noneFilterMap[relativePath.ToString()] = filter;
-		}
-	}
+	XmlNode root;
 
 	// Header
-	output << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << "\n";
-	output << "<Project ToolsVersion=\"4.0\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">" << "\n";
+	root.Node("?xml")
+		.Attribute("version", "1.0")
+		.Attribute("encoding", "utf-8");
+
+	XmlNode& project =
+		root.Node("Project")
+		.Attribute("ToolsVersion", "14.0")
+		.Attribute("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003");
 
 	// Filter block.
-	output << "\t" << "<ItemGroup>" << "\n";
-
+	XmlNode& filterGroup = project.Node("ItemGroup");
 	for (std::string& filter : filters)
 	{
 		std::string guid =
-			Strings::Guid({ workspaceFile.Get_Workspace_Name(), filter, "filter" });
+			Strings::Guid({ workspaceFile.Get_Workspace_Name(), filter, "folder" });
 
-		output << "\t\t" << "<Filter Include=\"" << filter << "\">" << "\n";
-		output << "\t\t\t" << "<UniqueIdentifier>" << guid << "</UniqueIdentifier>" << "\n";
-		output << "\t\t" << "</Filter>" << "\n";
+		XmlNode& itemNode = 
+			filterGroup.Node("Filter")
+			.Attribute("Include", "%s", filter.c_str());
+
+		itemNode.Node("UniqueIdentifier").Value("%s", guid.c_str());
 	}
-
-	output << "\t" << "</ItemGroup>" << "\n";
 
 	// Source files
-	output << "\t" << "<ItemGroup>" << "\n";
+	XmlNode& sourceGroup = project.Node("ItemGroup");
 	for (auto pair : sourceFilterMap)
-	{
-		
-		output << "\t\t" << "<ClCompile Include=\"$(SolutionDir)\\" << pair.first << "\">" << "\n";
-		output << "\t\t\t" << "<Filter>" << pair.second << "</Filter>" << "\n";
-		output << "\t\t" << "</ClCompile>" << "\n";
-	}
-	output << "\t" << "</ItemGroup>" << "\n";
+	{		
+		XmlNode& itemNode =
+			sourceGroup.Node("ClCompile")
+			.Attribute("Include", "$(SolutionDir)\\%s", pair.first.c_str());
 
+		itemNode.Node("Filter").Value("%s", pair.second.c_str());
+	}
+	
 	// Header files
-	output << "\t" << "<ItemGroup>" << "\n";
+	XmlNode& headerGroup = project.Node("ItemGroup"); 
 	for (auto pair : includeFilterMap)
 	{
+		XmlNode& itemNode =
+			headerGroup.Node("ClInclude")
+			.Attribute("Include", "$(SolutionDir)\\%s", pair.first.c_str());
 
-		output << "\t\t" << "<ClInclude Include=\"$(SolutionDir)\\" << pair.first << "\">" << "\n";
-		output << "\t\t\t" << "<Filter>" << pair.second << "</Filter>" << "\n";
-		output << "\t\t" << "</ClInclude>" << "\n";
+		itemNode.Node("Filter").Value("%s", pair.second.c_str());
 	}
-	output << "\t" << "</ItemGroup>" << "\n";
 
 	// none files
-	output << "\t" << "<ItemGroup>" << "\n";
+	XmlNode& noneGroup = project.Node("ItemGroup");
 	for (auto pair : noneFilterMap)
 	{
+		XmlNode& itemNode =
+			noneGroup.Node("None")
+			.Attribute("Include", "$(SolutionDir)\\%s", pair.first.c_str());
 
-		output << "\t\t" << "<None Include=\"$(SolutionDir)\\" << pair.first << "\">" << "\n";
-		output << "\t\t\t" << "<Filter>" << pair.second << "</Filter>" << "\n";
-		output << "\t\t" << "</None>" << "\n";
+		itemNode.Node("Filter").Value("%s", pair.second.c_str());
 	}
-	output << "\t" << "</ItemGroup>" << "\n";
-
-	output << "</Project>" << "\n";
-
+	
 	// Generate result.
 	if (!WriteFile(
 		workspaceFile,
 		projectDirectory,
 		projectFiltersLocation,
-		output.str().c_str()))
+		root.ToString().c_str()))
 	{
 		return false;
 	}

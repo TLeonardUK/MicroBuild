@@ -1,4 +1,4 @@
---[[
+/*
 MicroBuild
 Copyright (C) 2016 TwinDrills
 
@@ -14,12 +14,32 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
---]]
+*/
 
--- Figure out the root directory for microbuild. This makes assumptions
--- on directory layout, so don't fiddle :)
-MBRoot = os.realpath(os.getcwd() .. "/../../../")
-print("MicroBuild Root: " .. MBRoot)
+#pragma once
 
-include("Workspace.lua")
-include("Project.lua");
+#include "App/Ides/IdeType.h"
+#include "Core/Templates/TemplateEvaluator.h"
+
+namespace MicroBuild {
+
+// Permits generating of codelite workspaces.
+class Ide_CodeLite
+	: public IdeType
+{
+public:
+
+	Ide_CodeLite();
+	~Ide_CodeLite();
+
+	virtual bool Generate(
+		WorkspaceFile& workspaceFile,
+		std::vector<ProjectFile>& projectFiles) override;
+
+protected:
+
+private:
+
+};
+
+}; // namespace MicroBuild

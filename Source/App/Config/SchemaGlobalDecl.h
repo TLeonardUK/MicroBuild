@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define START_OPTION(ValueType, Group, Key, Description)
 #define START_ARRAY_OPTION(ValueType, Group, Key, Description)
+#define START_KEY_VALUE_ARRAY_OPTION(Group, Description)
 #define OPTION_RULE_REQUIRED()
 #define OPTION_RULE_DEFAULT(Value)
 #define OPTION_RULE_VALIDATOR(ValidatorFunction)
@@ -35,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OPTION_RULE_OPTION(Option)
 #define END_OPTION()
 #define END_ARRAY_OPTION()
+#define END_KEY_VALUE_ARRAY_OPTION()
 #define START_ENUM(Name) \
 		enum class Name { 
 #define ENUM_KEY(Name) \
@@ -47,6 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #undef START_OPTION
 #undef START_ARRAY_OPTION
+#undef START_KEY_VALUE_ARRAY_OPTION
 #undef OPTION_RULE_REQUIRED
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR
@@ -55,6 +58,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef OPTION_RULE_OPTION
 #undef END_OPTION
 #undef END_ARRAY_OPTION
+#undef END_KEY_VALUE_ARRAY_OPTION
 #undef START_ENUM
 #undef ENUM_KEY
 #undef END_ENUM

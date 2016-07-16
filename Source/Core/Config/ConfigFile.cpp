@@ -1065,6 +1065,32 @@ std::vector<std::string> ConfigFile::GetValues(
 	return result;
 }
 
+std::vector<ConfigFile::KeyValuePair> ConfigFile::GetPairs(
+	const std::string& group)
+{
+	std::vector<ConfigFile::KeyValuePair> result;
+
+	auto iter = m_groups.find(group);
+	if (iter != m_groups.end())
+	{
+		ConfigFileGroup* newGroup = iter->second;
+		for (auto key : newGroup->Keys)
+		{
+			for (auto value : key.second->Values)
+			{
+				ConfigFile::KeyValuePair pair(
+					key.first,
+					value->ResolvedValue
+				);
+
+				result.push_back(pair);
+			}
+		}
+	}
+
+	return result;
+}
+
 std::string ConfigFile::GetValue(
 	const std::string& group,
 	const std::string& key)

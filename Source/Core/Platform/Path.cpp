@@ -23,6 +23,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <sstream>
 
+#ifdef MB_PLATFORM_WINDOWS
+#include <direct.h>
+#else
+#include <unistd.h>
+#endif
+
 namespace MicroBuild {
 namespace Platform {
 
@@ -839,34 +845,27 @@ std::vector<Path> MatchFilter_r(
 	return result;
 }
 
-std::vector<Path> Path::MatchFilter(const Path& path)
+bool SplitIntoMatchStack(
+	std::string pathString, 
+	std::vector<std::string>& matchStack, 
+	bool bMergeSeperators = false)
 {
-	Time::TimedScope scope("Match Filter");
-
-	std::vector<std::string> matchStack;
-	std::string pathString = path.ToString();
 	size_t offset = 0;
-
-	std::vector<Path> result;
-
-	// No match filters, early-out.
-	if (path.ToString().find('*') == std::string::npos)
-	{
-		result.push_back(path);
-		return result;
-	}
 
 	// Split up into * ** and path fragments
 	while (offset < pathString.size())
 	{
-		size_t seperatorIndex = pathString.find_first_of(Seperator, offset);
+		size_t seperatorIndex = pathString.find_first_of(Path::Seperator, offset);
 		size_t matchIndex = pathString.find_first_of('*', offset);
 
-		size_t splitIndex = seperatorIndex;
-		if (splitIndex == std::string::npos || 
-			matchIndex < seperatorIndex)
+		size_t splitIndex = matchIndex;
+		if (!bMergeSeperators)
 		{
-			splitIndex = matchIndex;
+			if (splitIndex == std::string::npos ||
+				seperatorIndex < matchIndex)
+			{
+				splitIndex = seperatorIndex;
+			}
 		}
 
 		if (splitIndex == std::string::npos)
@@ -888,15 +887,15 @@ std::vector<Path> Path::MatchFilter(const Path& path)
 
 			if (split == "*")
 			{
-				if (matchStack.size() > 0 && 
+				if (matchStack.size() > 0 &&
 					(*matchStack.rbegin() == "*" || *matchStack.rbegin() == "**"))
 				{
-					Log(LogSeverity::Fatal, 
+					Log(LogSeverity::Fatal,
 						"Wildcard followed by another wildcard in value '%s', "
-						"this is ambiguous and cannot be expanded.", 
+						"this is ambiguous and cannot be expanded.",
 						pathString.c_str());
 
-					return result;
+					return false;
 				}
 
 				if (offset < pathString.size())
@@ -916,6 +915,62 @@ std::vector<Path> Path::MatchFilter(const Path& path)
 		}
 	}
 
+	return true;
+}
+
+void TrimMatchStackDownToFirstWildcard(
+	std::vector<std::string>& matchStack,
+	std::string& subValue)
+{
+	// Start at the first directory before a match value.
+	unsigned int firstValidStartIndex = 0;
+	std::string seperatorString(1, Path::Seperator);
+
+	for (unsigned int i = 0; i < matchStack.size(); i++)
+	{
+		std::string sub = matchStack[i];
+		if (sub == seperatorString)
+		{
+			firstValidStartIndex = i;
+		}
+		else if (sub == "*" || sub == "**")
+		{
+			break;
+		}
+	}
+
+	for (unsigned int i = 0; i <= firstValidStartIndex; i++)
+	{
+		subValue += matchStack[i];
+	}
+
+	matchStack.erase(
+		matchStack.begin(),
+		matchStack.begin() + (firstValidStartIndex + 1)
+	);
+}
+
+std::vector<Path> Path::MatchFilter(const Path& path)
+{
+	Time::TimedScope scope("Match Filter");
+
+	std::vector<Path> result;
+
+	// No match filters, early-out.
+	if (path.ToString().find('*') == std::string::npos)
+	{
+		result.push_back(path);
+		return result;
+	}
+
+	// Split into wildcards and fragments.
+	std::vector<std::string> matchStack;
+	if (!SplitIntoMatchStack(path.ToString(), matchStack))
+	{
+		result.push_back(path);
+		return result;
+	}
+
 	// If we only have one split, we are done.
 	if (matchStack.size() == 1)
 	{
@@ -923,38 +978,261 @@ std::vector<Path> Path::MatchFilter(const Path& path)
 	}
 	else
 	{
-		// Start at the first directory before a match value.
-		unsigned int firstValidStartIndex = 0;
-		std::string seperatorString(1, Seperator);
-
-		for (unsigned int i = 0; i < matchStack.size(); i++)
-		{
-			std::string sub = matchStack[i];
-			if (sub == seperatorString)
-			{
-				firstValidStartIndex = i;
-			}
-			else if (sub == "*" || sub == "**")
-			{
-				break;
-			}
-		}
-
 		std::string subValue = "";
-		for (unsigned int i = 0; i <= firstValidStartIndex; i++)
-		{
-			subValue += matchStack[i];
-		}
-
-		matchStack.erase(
-			matchStack.begin(),
-			matchStack.begin() + (firstValidStartIndex + 1)
-		);
-
+		TrimMatchStackDownToFirstWildcard(matchStack, subValue);
 		result = MatchFilter_r(subValue, matchStack);
 	}
 
 	return result;
+}
+
+Path Path::GetWorkingDirectory()
+{
+	char buffer[2048];
+	getcwd(buffer, 2048);
+	return buffer;
+}
+
+bool MatchEatNeedle(const char*& remaining, const char*& match)
+{
+	while (true)
+	{
+		// No characters remaining in needle
+		// or remaining buffer? Done.
+		if (remaining[0] == '\0' &&
+			match[0] == '\0')
+		{
+			return true;
+		}
+
+		// Ran out of match characters, Done.
+		if (match[0] == '\0')
+		{
+			return true;
+		}
+
+		// Ran out of characters. No match.
+		if (remaining[0] == '\0')
+		{
+			return false;
+		}
+
+		// No recursive matching please.
+		if (remaining[0] == Path::Seperator)
+		{
+			return false;
+		}
+
+		// Check needle.
+		char needleChr = *remaining;
+		char matchChr = *match;
+
+		if (needleChr == matchChr)
+		{
+			remaining++;
+			match++;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	return false;
+}
+
+bool DoesMatchStartWith(const char* data, std::string& needle)
+{
+	for (unsigned int i = 0; i < needle.size(); i++)
+	{
+		if (data[i] == '\0')
+		{
+			return false;
+		}
+		if (data[i] != needle[i])
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Matches_r(
+	std::vector<std::string>& matchStack,
+	int matchStackIndex,
+	const char* remaining,
+	std::string& matched,
+	std::string& matchedSegment)
+{
+	static std::string seperatorString(1, Path::Seperator);
+
+	// Out of both stacks? We're done!
+	if (matchStackIndex >= matchStack.size() && remaining[0] == '\0')
+	{
+		return true;
+	}
+
+	// Out of matches, but still have path? No match.
+	// Out of path, but still have matches? No match.
+	else if (matchStackIndex >= matchStack.size() || remaining[0] == '\0')
+	{
+		return false;
+	}
+
+	std::string match = matchStack[matchStackIndex++];
+	
+	// Non-recursive/recursive match.
+	if (match == "*" || match == "**")
+	{
+		bool bIsRecursive = (match == "**");
+
+		// Search forward until next match.
+		if (matchStack.size() >= 1)
+		{
+			std::string& needle = matchStack[matchStackIndex++];
+
+			while (true)
+			{
+				// Ran out of characters. No match.
+				if (remaining[0] == '\0')
+				{
+					return false;
+				}
+
+				// Check if next part of data matches needle. If it does
+				// we are done.
+				if (DoesMatchStartWith(remaining, needle))
+				{
+					if (needle[0] == Path::Seperator)
+					{
+						matched += matchedSegment;
+						matched += Path::Seperator;
+						matchedSegment = "";
+					}
+
+					remaining += needle.size();
+					break;
+				}
+
+				// Keep track of matched path.
+				matchedSegment += remaining[0];
+				if (remaining[0] == Path::Seperator)
+				{
+					matched += matchedSegment;
+					matchedSegment = "";
+				}
+
+				// No recursive matching please. We have finished matching this
+				// wildcard.
+				if (remaining[0] == Path::Seperator && !bIsRecursive)
+				{
+					break;
+				}
+
+				remaining++;
+			}
+		}
+
+		// Accept anything remaining in this directory.
+		else
+		{
+			while (true)
+			{
+				// Got to end of data, we're done.
+				if (remaining[0] == '\0')
+				{
+					return true;
+				}
+
+				// Keep track of matched path.
+				matchedSegment += remaining[0];
+				if (remaining[0] == Path::Seperator)
+				{
+					matched += matchedSegment;
+					matchedSegment = "";
+				}
+
+				// Got to a new directory, no match.
+				if (remaining[0] == Path::Seperator && !bIsRecursive)
+				{
+					return false;
+				}
+
+				remaining++;
+			}
+		}
+	}
+
+	// Directory split match.
+	else if (match == seperatorString)
+	{
+		if (remaining[0] != Path::Seperator)
+		{
+			return false;
+		}
+		remaining++;
+	}
+
+	// Literal match.
+	else 
+	{
+		const char* matchPtr = match.c_str();
+		if (!MatchEatNeedle(remaining, matchPtr))
+		{
+			return false;
+		}
+	}
+
+	return Matches_r(matchStack, matchStackIndex, remaining, matched, matchedSegment);
+}
+
+bool Path::Matches(const Path& other, Path* matched)
+{
+	// Split into wildcards and fragments.
+	std::vector<std::string> matchStack;
+	if (!SplitIntoMatchStack(other.ToString(), matchStack, true))
+	{
+		return false;
+	}
+
+	// No wildcards? Straight match.
+	if (matchStack.size() == 1)
+	{
+		return (*this == other);
+	}
+
+	// Time to do matching shenanigans.
+	else
+	{
+		std::string basePath = "";
+		TrimMatchStackDownToFirstWildcard(matchStack, basePath);
+
+		// Base paths match?
+		if (m_raw.size() < basePath.size() || 
+			m_raw.substr(0, basePath.size()) == basePath)
+		{
+			std::string remaining = m_raw.substr(basePath.size());
+
+			std::string matchedStr = "";
+			std::string matchedSegmentStr = "";
+			bool result = Matches_r(matchStack, 0, remaining.c_str(), matchedStr, matchedSegmentStr);
+
+			if (matched != nullptr)
+			{
+				*matched = matchedStr;
+			}
+
+			return result;
+		}
+
+		// Nope not a match then.
+		else
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
 }; // namespace Platform

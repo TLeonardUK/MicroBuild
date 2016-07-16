@@ -31,16 +31,43 @@ START_ENUM(EHostPlatform)
 END_ENUM()
 
 START_ENUM(EPlatform)
-	ENUM_KEY(Windows_x86)
-	ENUM_KEY(Windows_x64)
-	ENUM_KEY(Windows_ARM)
-	ENUM_KEY(Windows_AnyCPU)
+	ENUM_KEY(x86)
+	ENUM_KEY(x64)
+	ENUM_KEY(ARM)
+	ENUM_KEY(ARM64)
+	ENUM_KEY(AnyCPU)
 
-	ENUM_KEY(Linux_x86)
-	ENUM_KEY(Linux_x64)
+	ENUM_KEY(iOS)
+	ENUM_KEY(Android)
+	ENUM_KEY(Emscripten)
+	
+	ENUM_KEY(PS4)
+	ENUM_KEY(XboxOne)
+	
+	ENUM_KEY(WiiU)
+	ENUM_KEY(Nintendo3DS)
+END_ENUM()
 
-	ENUM_KEY(MacOS_x86)
-	ENUM_KEY(MacOS_x64)
+START_ENUM(ELanguage)
+	ENUM_KEY(Cpp)
+	ENUM_KEY(CSharp)
+END_ENUM()
+
+START_ENUM(ELanguageVersion)
+	ENUM_KEY(Default)
+
+	// C++
+	ENUM_KEY(Cpp_14)
+	ENUM_KEY(Cpp_11)
+	ENUM_KEY(Cpp_98)
+
+	// C#
+	ENUM_KEY(CSharp_1_0)
+	ENUM_KEY(CSharp_2_0)
+	ENUM_KEY(CSharp_3_0)
+	ENUM_KEY(CSharp_4_0)
+	ENUM_KEY(CSharp_5_0)
+	ENUM_KEY(CSharp_6_0)
 END_ENUM()
 
 // ---------------------------------------------------------------------------

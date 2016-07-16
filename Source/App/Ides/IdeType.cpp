@@ -122,9 +122,57 @@ bool IdeType::GetProjectDependency(
 	return true;
 }
 
+void IdeType::GetGroupFoldersInternal(
+	Platform::Path group,
+	std::vector<ProjectGroupFolder>& result
+)
+{
+	std::vector<std::string> frags = group.GetFragments();
+
+	std::string folder = "";
+	for (std::string frag : frags)
+	{
+		std::string parentFolder = folder;
+
+		if (folder != "")
+		{
+			folder += Platform::Path::Seperator;
+		}
+		folder += frag;
+
+		bool bExists = false;
+
+		for (ProjectGroupFolder& existingFolder : result)
+		{
+			if (Strings::CaseInsensitiveEquals(folder, existingFolder.name))
+			{
+				bExists = true;
+				break;
+			}
+		}
+
+		if (!bExists)
+		{
+			std::string baseName = folder;
+			size_t slashOffset = baseName.find_last_of(Platform::Path::Seperator);
+			if (slashOffset != std::string::npos)
+			{
+				baseName = baseName.substr(slashOffset + 1);
+			}
+
+			ProjectGroupFolder newFolder;
+			newFolder.baseName = baseName;
+			newFolder.name = folder;
+			newFolder.parentName = parentFolder;
+			result.push_back(newFolder);
+		}
+	}
+}
+
 std::vector<ProjectGroupFolder> IdeType::GetGroupFolders(
 	WorkspaceFile& workspaceFile,
-	std::vector<ProjectFile>& projectFiles
+	std::vector<ProjectFile>& projectFiles,
+	std::vector<VPathPair>& vpaths
 )
 {
 	UNUSED_PARAMETER(workspaceFile);
@@ -133,47 +181,12 @@ std::vector<ProjectGroupFolder> IdeType::GetGroupFolders(
 
 	for (ProjectFile& project : projectFiles)
 	{
-		Platform::Path group = project.Get_Project_Group();
-		std::vector<std::string> frags = group.GetFragments();
+		GetGroupFoldersInternal(project.Get_Project_Group(), result);
+	}
 
-		std::string folder = "";
-		for (std::string frag : frags)
-		{
-			std::string parentFolder = folder;
-
-			if (folder != "")
-			{
-				folder += Platform::Path::Seperator;
-			}
-			folder += frag;
-
-			bool bExists = false;
-
-			for (ProjectGroupFolder& existingFolder : result)
-			{
-				if (Strings::CaseInsensitiveEquals(folder, existingFolder.name))
-				{
-					bExists = true;
-					break;
-				}
-			}
-
-			if (!bExists)
-			{
-				std::string baseName = folder;
-				size_t slashOffset = baseName.find_last_of(Platform::Path::Seperator);
-				if (slashOffset != std::string::npos)
-				{
-					baseName = baseName.substr(slashOffset + 1);
-				}
-
-				ProjectGroupFolder newFolder;
-				newFolder.baseName = baseName;
-				newFolder.name = folder;
-				newFolder.parentName = parentFolder;
-				result.push_back(newFolder);
-			}
-		}
+	for (auto vpath : vpaths)
+	{
+		GetGroupFoldersInternal(vpath.second, result);
 	}
 
 	return result;
@@ -244,6 +257,119 @@ bool IdeType::ArePlatformsValid(ProjectFile& file,
 		}
 	}
 	return true;
+}
+
+std::vector<IdeType::VPathPair> IdeType::ExpandVPaths(
+	std::vector<ConfigFile::KeyValuePair>& vpaths,
+	std::vector<Platform::Path>& files)
+{
+	std::vector<IdeType::VPathPair> result;
+
+	Platform::Path commonPath;
+	Platform::Path::GetCommonPath(files, commonPath);
+
+	for (Platform::Path& path : files)
+	{
+		bool bMatches = false;
+
+		for (ConfigFile::KeyValuePair& value : vpaths)
+		{
+			Platform::Path filterPath;
+
+			if (path.Matches(value.second, &filterPath))
+			{
+				std::string filter = value.first;
+
+				// Replace wildcards in filter path.
+				while (true)
+				{
+					size_t offset = filter.find('*');
+					if (offset == std::string::npos)
+					{
+						break;
+					}
+					filter.replace(offset, offset, filterPath.ToString().c_str());
+				}
+
+				// Normalize the path.
+				filter = Platform::Path(filter).ToString();
+
+				IdeType::VPathPair pair(
+					path.ToString(),
+					filter
+				);
+
+				result.push_back(pair);
+				bMatches = true;
+
+				break;
+			}
+		}
+
+		// If no match the filter is just the uncommon part of the path.
+		if (!bMatches)
+		{
+			std::string filter = 
+				path.GetUncommonPath(commonPath).GetDirectory().ToString();
+
+			IdeType::VPathPair pair(
+				path.ToString(),
+				filter
+			);
+		}
+	}
+
+	return result;
+}
+
+std::vector<std::string> IdeType::SortFiltersByType(
+	std::vector<VPathPair>& vpaths,
+	Platform::Path& rootPath,
+	std::map<std::string, std::string>& sourceFilterMap,
+	std::map<std::string, std::string>& includeFilterMap,
+	std::map<std::string, std::string>& noneFilterMap)
+{
+	std::vector<std::string> filters;
+
+	for (auto vpath : vpaths)
+	{
+		Platform::Path relativePath =
+			rootPath.RelativeTo(vpath.first);
+
+		std::vector<std::string> fragments = 
+			Strings::Split(Platform::Path::Seperator, vpath.second);
+
+		std::string	filter = "";
+
+		for (auto iter = fragments.begin(); iter != fragments.end(); iter++)
+		{
+			if (!filter.empty())
+			{
+				filter += "\\";
+			}
+			filter += *iter;
+
+			if (std::find(filters.begin(), filters.end(), filter) == filters.end())
+			{
+				filters.push_back(filter);
+			}
+		}
+
+		if (relativePath.IsSourceFile())
+		{
+			sourceFilterMap[relativePath.ToString()] = filter;
+		}
+		else if (relativePath.IsIncludeFile())
+		{
+			includeFilterMap[relativePath.ToString()] = filter;
+		}
+		else
+		{
+			noneFilterMap[relativePath.ToString()] = filter;
+		}
+	}
+
+	return filters;
 }
 
 } // namespace MicroBuild

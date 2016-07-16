@@ -45,6 +45,15 @@ private:
 	private: \
 		bool Validate_##Group##_##Key##(); 
 
+#define START_KEY_VALUE_ARRAY_OPTION(Group, Description) \
+	private: \
+		std::vector<ConfigFile::KeyValuePair> m_##Group##_value; \
+	public: \
+		std::vector<ConfigFile::KeyValuePair> Get_##Group##(); \
+		void Set_##Group##(const std::vector<ConfigFile::KeyValuePair>& value); \
+	private: \
+		bool Validate_##Group##(); 
+
 #define OPTION_RULE_REQUIRED()
 #define OPTION_RULE_DEFAULT(Value)
 #define OPTION_RULE_VALIDATOR(ValidatorFunction)
@@ -53,6 +62,7 @@ private:
 #define OPTION_RULE_OPTION(Option)
 #define END_OPTION()
 #define END_ARRAY_OPTION()
+#define END_KEY_VALUE_ARRAY_OPTION()
 #define START_ENUM(Name)
 #define ENUM_KEY(Name) 
 #define END_ENUM()
@@ -61,6 +71,7 @@ private:
 
 #undef START_OPTION
 #undef START_ARRAY_OPTION
+#undef START_KEY_VALUE_ARRAY_OPTION
 #undef OPTION_RULE_REQUIRED
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR
@@ -69,6 +80,7 @@ private:
 #undef OPTION_RULE_OPTION
 #undef END_OPTION
 #undef END_ARRAY_OPTION
+#undef END_KEY_VALUE_ARRAY_OPTION
 #undef START_ENUM
 #undef ENUM_KEY
 #undef END_ENUM

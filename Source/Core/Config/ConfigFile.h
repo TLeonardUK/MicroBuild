@@ -127,6 +127,8 @@ struct ConfigFileGroup
 class ConfigFile
 {
 public:
+	typedef std::pair<std::string, std::string> KeyValuePair;
+
 	ConfigFile();
 	ConfigFile(const ConfigFile& other);
 	~ConfigFile();
@@ -164,6 +166,10 @@ public:
 	std::vector<std::string> GetValues(
 		const std::string& group, 
 		const std::string& key);
+
+	// Gets all the keys and values in the group.
+	std::vector<KeyValuePair> GetPairs(
+		const std::string& group);
 
 	// Same as GetValues except only gets the first value.
 	std::string GetValue(

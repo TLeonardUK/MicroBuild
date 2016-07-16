@@ -27,11 +27,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Commands/Version.h"
 
 #include "App/Ides/IdeType.h"
+
 #include "App/Ides/MSBuild/VisualStudio_2015.h"
+#include "App/Ides/Make/Make.h"
+#include "App/Ides/XCode/XCode.h"
+#include "App/Ides/MonoDevelop/MonoDevelop.h"
+#include "App/Ides/NetBeans/NetBeans.h"
+#include "App/Ides/QtCreator/QtCreator.h"
+#include "App/Ides/CodeBlocks/CodeBlocks.h"
+#include "App/Ides/SharpDevelop/SharpDevelop.h"
+#include "App/Ides/CodeLite/CodeLite.h"
 
 #include "Core/Config/ConfigFile.h"
 #include "Core/Helpers/Time.h"
 #include "Core/Helpers/Strings.h"
+
+// x86
+// x64
+// anycpu
+// winrt
+// ios
+// android
+// emscripten
+// ps4
+// xboxone
+
+// c++
+// c#
+
+// visual studio
+// monodevelop
+// netbeans
+// qtcreator
+// codeblocks
+// sharpdevelop
+// codelite
+// make
+// xcode
 
 namespace MicroBuild {
 
@@ -41,6 +73,14 @@ App::App(int argc, char* argv[])
 	, m_commandLineParser(MB_NAME, MB_DESCRIPTION, MB_COPYRIGHT)
 {
 	m_ides.push_back(new Ide_VisualStudio_2015());
+	m_ides.push_back(new Ide_MonoDevelop());
+	m_ides.push_back(new Ide_NetBeans());
+	m_ides.push_back(new Ide_QtCreator());
+	m_ides.push_back(new Ide_CodeBlocks());
+	m_ides.push_back(new Ide_SharpDevelop());
+	m_ides.push_back(new Ide_CodeLite());
+	m_ides.push_back(new Ide_Make());
+	m_ides.push_back(new Ide_XCode());
 
 	m_commandLineParser.RegisterCommand(new GenerateCommand(this));
 	m_commandLineParser.RegisterCommand(new BuildCommand(this));

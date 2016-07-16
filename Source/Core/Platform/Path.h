@@ -154,9 +154,19 @@ public:
 	// Input path should be absolute.
 	static std::vector<Path> MatchFilter(const Path& path);
 
+	// Performs th same matching logic as MatchFilter to see if the given
+	// path would match the given filter.
+	// If Matched parameter is set it is set to the path segments matched
+	// for wildcards.
+	bool Matches(const Path& other, Path* Matched = nullptr);
+
 	// Gets the common path that a list of paths share, returns false if
 	// all the paths do not share a common path.
 	static bool GetCommonPath(std::vector<Path>& paths, Path& result);
+
+	// Gets the current working directory, should be used only for expanding
+	// command line input.
+	static Path GetWorkingDirectory();
 
 	// Returns the part of the path following the common path that is
 	// has been obtained from GetCommonPath.

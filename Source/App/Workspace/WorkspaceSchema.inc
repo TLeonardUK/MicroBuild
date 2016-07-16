@@ -111,3 +111,30 @@ START_ARRAY_OPTION(
 OPTION_RULE_REQUIRED()
 OPTION_RULE_EXPAND_PATH_WILDCARDS(true)
 END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+// WorkspaceFiles
+// ---------------------------------------------------------------------------
+START_ARRAY_OPTION(
+	Platform::Path,
+	WorkspaceFiles,
+	File,
+	"Location of files to include in workspace. Can contain wildcards (*) "
+	"and recursive wildcards (**)."
+)
+OPTION_RULE_REQUIRED()
+OPTION_RULE_EXPAND_PATH_WILDCARDS(true)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+// Virtual Paths
+// ---------------------------------------------------------------------------
+START_KEY_VALUE_ARRAY_OPTION(
+	WorkspaceVirtualPaths,
+	"Defines a key-value pair, with the value being a path pattern to match "
+	"workspace files against, and the key being a virtual path that the file "
+	"will be placed under in the output workspace file. In the virtual path * "
+	"will be expanded to the matched workspace path, explicitly provided path "
+	"segments in the path pattern will be exluded from the expansion."
+)
+END_KEY_VALUE_ARRAY_OPTION()
