@@ -24,5 +24,8 @@ namespace Platform {
 // Writes output to the platform specific debug output (vs output window etc).
 void DebugOutput(const char* output);
 
+// Gets the given environment variable based on its tag.
+std::string GetEnvironmentVariable(const std::string& tag);
+
 }; // namespace Platform
 }; // namespace MicroBuild

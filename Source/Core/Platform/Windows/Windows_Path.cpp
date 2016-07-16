@@ -174,8 +174,20 @@ bool Path::Copy(const Path& Destination) const
 {
 	if (IsFile())
 	{
+		Path DestDirectory = Destination.GetDirectory();
+
+		// If directory dosen't exist, get creating.
+		if (!DestDirectory.Exists())
+		{
+			if (!DestDirectory.CreateAsDirectory())
+			{
+				return false;
+			}
+		}
+
 		BOOL Ret = CopyFileA(m_raw.c_str(),
 			Destination.m_raw.c_str(), false);
+
 		if (Ret == 0)
 		{
 			return false;
@@ -198,7 +210,7 @@ bool Path::Copy(const Path& Destination) const
 		// Copy all sub-directories.
 		for (std::string& filename : SubDirs)
 		{
-			Path path = *this + filename;
+			Path path = (*this).AppendFragment(filename, true);
 			if (!path.Copy(path.ChangeDirectory(Destination)))
 			{
 				return false;
@@ -208,7 +220,7 @@ bool Path::Copy(const Path& Destination) const
 		// Copy all sub files.
 		for (std::string& filename : SubFiles)
 		{
-			Path path = *this + filename;
+			Path path = (*this).AppendFragment(filename, true);
 			if (!path.Copy(path.ChangeDirectory(Destination)))
 			{
 				return false;
@@ -234,14 +246,14 @@ bool Path::Delete() const
 		// Delete all sub directories.
 		for (std::string& path : SubDirs)
 		{
-			Path FullPath = *this + path;
+			Path FullPath = (*this).AppendFragment(path, true);
 			FullPath.Delete();
 		}
 
 		// Delete all sub files.
 		for (std::string& path : SubFiles)
 		{
-			Path FullPath = *this + path;
+			Path FullPath = (*this).AppendFragment(path, true);
 			FullPath.Delete();
 		}
 

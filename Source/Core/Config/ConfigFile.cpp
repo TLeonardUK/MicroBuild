@@ -23,6 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Helpers/Strings.h"
 #include "Core/Helpers/Time.h"
 
+#include <sstream>
+
 namespace MicroBuild {
 
 ConfigFile::ConfigFile()
@@ -590,6 +592,32 @@ bool ConfigFile::Parse(const Platform::Path& path)
 	}
 
 	return true;
+}
+
+bool ConfigFile::Serialize(const Platform::Path& path)
+{
+	std::stringstream stream;
+
+	stream << "; This file was automatically generated.\n";
+	stream << "; Modifying this file manually may cause incorrect functionality.\n";
+	stream << "\n";
+
+	for (auto groupIter : m_groups)
+	{
+		stream << "[" << groupIter.second->Name << "]\n";
+
+		for (auto keyIter : groupIter.second->Keys)
+		{
+			for (auto valueIter : keyIter.second->Values)
+			{
+				stream << keyIter.second->Name << "=" << valueIter->Value  << "\n";
+			}
+		}
+
+		stream << "\n";
+	}
+
+	return Strings::WriteFile(path, stream.str());
 }
 
 void ConfigFile::SetOrAddValue(

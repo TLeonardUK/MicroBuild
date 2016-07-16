@@ -52,6 +52,7 @@ public:
 	// Generates a basic msbuild solution file that links to the given
 	// project files.
 	bool GenerateSolutionFile(
+		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		std::vector<ProjectFile>& projectFiles,
 		BuildWorkspaceMatrix& buildMatrix
@@ -59,6 +60,7 @@ public:
 
 	// Generates a basic csharp project file.
 	bool Generate_Csproj(
+		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		ProjectFile& projectFiles,
 		BuildProjectMatrix& buildMatrix
@@ -66,6 +68,7 @@ public:
 
 	// Generates a basic msbuild project file.
 	bool Generate_Vcxproj(
+		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		ProjectFile& projectFiles,
 		BuildProjectMatrix& buildMatrix
@@ -73,14 +76,25 @@ public:
 
 	// Generates a basic msbuild project filters file.
 	bool Generate_Vcxproj_Filters(
+		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		ProjectFile& projectFiles,
 		BuildProjectMatrix& buildMatrix
 	);
 
 	virtual bool Generate(
+		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		std::vector<ProjectFile>& projectFiles) override;
+
+	virtual bool Clean(
+		WorkspaceFile& workspaceFile) override;
+
+	virtual bool Build(
+		WorkspaceFile& workspaceFile,
+		bool bRebuild,
+		const std::string& configuration,
+		const std::string& platform) override;
 
 protected:
 
@@ -105,6 +119,9 @@ protected:
 	ProjectFile* GetProjectByName(
 		std::vector<ProjectFile>& projectFiles,
 		const std::string& name);
+
+	// Gets the location of the msbuild exe.
+	virtual Platform::Path GetMSBuildLocation() = 0;
 
 private:
 	MSBuildVersion m_msBuildVersion;

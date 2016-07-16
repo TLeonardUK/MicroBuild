@@ -88,16 +88,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	{ \
 		m_##Group##_value = GetPairs(#Group); \
 
-
-
-
-
 #define OPTION_RULE_REQUIRED() \
 		if (values.size() == 0) \
 		{ \
 			ValidateError("Expected value '%s.%s'.", groupName.c_str(), keyName.c_str());\
 			bResult = false; \
 		} 
+
+#define OPTION_RULE_ORDER_IMPORTANT() // Already ordered by default, this is pointless now.
 
 #define OPTION_RULE_DEFAULT(Value) \
 		if (values.size() == 0) \
@@ -211,6 +209,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef START_ARRAY_OPTION
 #undef START_KEY_VALUE_ARRAY_OPTION
 #undef OPTION_RULE_REQUIRED
+#undef OPTION_RULE_ORDER_IMPORTANT
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR
 #undef OPTION_RULE_EXPAND_PATH_WILDCARDS
@@ -242,6 +241,7 @@ bool SCHEMA_CLASS::Validate()
 #define START_KEY_VALUE_ARRAY_OPTION(Group, Description) \
 	bResult = bResult && Validate_##Group##();
 #define OPTION_RULE_REQUIRED()
+#define OPTION_RULE_ORDER_IMPORTANT()
 #define OPTION_RULE_DEFAULT(Value)
 #define OPTION_RULE_VALIDATOR(ValidatorFunction)
 #define OPTION_RULE_EXPAND_PATH_WILDCARDS(bCanCache)
@@ -260,6 +260,7 @@ bool SCHEMA_CLASS::Validate()
 #undef START_ARRAY_OPTION
 #undef START_KEY_VALUE_ARRAY_OPTION
 #undef OPTION_RULE_REQUIRED
+#undef OPTION_RULE_ORDER_IMPORTANT
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR
 #undef OPTION_RULE_EXPAND_PATH_WILDCARDS

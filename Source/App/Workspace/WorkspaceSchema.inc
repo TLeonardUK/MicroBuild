@@ -122,7 +122,6 @@ START_ARRAY_OPTION(
 	"Location of files to include in workspace. Can contain wildcards (*) "
 	"and recursive wildcards (**)."
 )
-OPTION_RULE_REQUIRED()
 OPTION_RULE_EXPAND_PATH_WILDCARDS(true)
 END_ARRAY_OPTION()
 

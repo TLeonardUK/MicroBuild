@@ -46,8 +46,6 @@ private:
 
 	Platform::Path m_workspaceFilePath;
 
-	bool m_regenerate;
-
 };
 
 }; // namespace MicroBuild

@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "App/Database/DatabaseFile.h"
 #include "App/Workspace/WorkspaceFile.h"
 #include "App/Project/ProjectFile.h"
 #include "Core/Helpers/TextStream.h"
@@ -59,19 +60,28 @@ public:
 	// Takes a fully resolved workspace file and generates the project
 	// files it defines.
 	virtual bool Generate(
+		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile, 
 		std::vector<ProjectFile>& projectFiles) = 0;
+
+	// Requests that the ide cleans up any intermediate files. This is
+	// an optional implementation as some targets do not support cleaning. 
+	virtual bool Clean(
+		WorkspaceFile& workspaceFile);
+
+	// Rebuilds a workspace file that has previously been generated. This is
+	// an optional implementation as some targets do not support command
+	// line building.
+	virtual bool Build(
+		WorkspaceFile& workspaceFile,
+		bool bRebuild,
+		const std::string& configuration,
+		const std::string& platform
+	);
 
 protected:
 
 	typedef std::pair<Platform::Path, std::string> VPathPair;
-
-	bool WriteFile(
-		WorkspaceFile& workspaceFile,
-		Platform::Path& directory,
-		Platform::Path& location,
-		const char* data
-	);
 
 	ProjectFile* GetProjectByName(
 		std::vector<ProjectFile>& projectFiles,

@@ -25,11 +25,11 @@ namespace MicroBuild {
 
 class App;
 
-// Deploys a project for the given platform with the given configuration.
-class DeployCommand : public Command
+// Packages s project up using the steps defined in the config file.
+class PackageCommand : public Command
 {
 public:
-	DeployCommand(App* app);
+	PackageCommand(App* app);
 
 protected:
 	virtual bool Invoke(CommandLineParser* parser) override;
@@ -37,9 +37,14 @@ protected:
 private:
 	App* m_app;
 
-	Platform::Path m_workspaceFile;
+	WorkspaceFile m_workspaceFile;
+	Platform::Path m_workspaceFilePath;
+
+	Platform::Path m_packageDirectoryPath;
+
 	std::string m_configuration;
 	std::string m_platform;
+
 	bool m_rebuild;
 
 };

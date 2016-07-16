@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
+#include "Core/Platform/Platform.h"
 #include "Core/Platform/Path.h"
 #include "Core/Helpers/Strings.h"
 #include "Core/Helpers/Time.h"
@@ -375,6 +376,32 @@ void Path::Normalize()
 	if (m_raw.size() == 0)
 	{
 		return;
+	}
+
+	// Replace all environment variables.
+	for(;;)
+	{
+		size_t startOffset = m_raw.find('%');
+		if (startOffset != std::string::npos)
+		{
+			size_t endOffset = m_raw.find('%', startOffset + 1);
+			if (endOffset != std::string::npos)
+			{
+				std::string tag = m_raw.substr(startOffset + 1, (endOffset - startOffset) - 1);
+				std::string value = Platform::GetEnvironmentVariable(tag);
+
+				m_raw = m_raw.replace(startOffset, endOffset + 1, value);
+			}
+			else
+			{
+				break;
+			}
+
+		}
+		else
+		{
+			break;
+		}
 	}
 
 	char correctSeperator = Seperator;
@@ -1067,14 +1094,14 @@ bool Matches_r(
 	static std::string seperatorString(1, Path::Seperator);
 
 	// Out of both stacks? We're done!
-	if (matchStackIndex >= matchStack.size() && remaining[0] == '\0')
+	if (matchStackIndex >= (int)matchStack.size() && remaining[0] == '\0')
 	{
 		return true;
 	}
 
 	// Out of matches, but still have path? No match.
 	// Out of path, but still have matches? No match.
-	else if (matchStackIndex >= matchStack.size() || remaining[0] == '\0')
+	else if (matchStackIndex >= (int)matchStack.size() || remaining[0] == '\0')
 	{
 		return false;
 	}
@@ -1087,7 +1114,7 @@ bool Matches_r(
 		bool bIsRecursive = (match == "**");
 
 		// Search forward until next match.
-		if (matchStack.size() >= 1)
+		if (matchStackIndex < (int)matchStack.size())
 		{
 			std::string& needle = matchStack[matchStackIndex++];
 

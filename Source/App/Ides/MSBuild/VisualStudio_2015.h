@@ -31,6 +31,9 @@ public:
 
 protected:
 
+	// Gets the location of the msbuild exe.
+	virtual Platform::Path GetMSBuildLocation() override;
+
 private:
 
 };

@@ -37,6 +37,31 @@ void WorkspaceFile::Resolve()
 	BaseConfigFile::Resolve();
 }
 
+bool WorkspaceFile::IsConfigurationValid(
+	const std::string& configuration,
+	const std::string& platform)
+{
+	std::vector<EPlatform> platforms = Get_Platforms_Platform();
+	std::vector<std::string> configs = Get_Configurations_Configuration();
+
+	EPlatform platformId = CastFromString<EPlatform>(platform);
+
+	if (std::find(platforms.begin(), platforms.end(), platformId) == platforms.end())
+	{
+		return false;
+	}
+
+	for (auto iter : configs)
+	{
+		if (Strings::CaseInsensitiveEquals(iter, configuration))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 #define SCHEMA_FILE "App/Workspace/WorkspaceSchema.inc"
 #define SCHEMA_CLASS WorkspaceFile
 #include "App/Config/SchemaImpl.h"

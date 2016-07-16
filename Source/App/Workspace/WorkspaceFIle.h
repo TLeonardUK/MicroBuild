@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "App/Workspace/WorkspaceFile.h"
 #include "Core/Platform/Path.h"
 #include "Core/Helpers/Strings.h"
 #include "App/Config/BaseConfigFile.h"
@@ -39,6 +38,12 @@ public:
 	~WorkspaceFile();
 
 	virtual void Resolve() override;
+
+	// Returns true if the configuration and platform both
+	// exist in the workspace file.
+	bool IsConfigurationValid(
+		const std::string& configuration, 
+		const std::string& platform);
 
 protected:
 

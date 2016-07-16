@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Helpers/TextStream.h"
 #include "Core/Helpers/XmlNode.h"
 #include "Core/Helpers/VbNode.h"
+#include "Core/Platform/Process.h"
 
 namespace MicroBuild {
 
@@ -111,7 +112,7 @@ std::string Ide_MSBuild::GetPlatformDotNetTarget(EPlatform platform)
     {
     case EPlatform::x86:
         {
-            return "x86";
+            return "Win32";
         }
     case EPlatform::x64:
         {
@@ -163,6 +164,7 @@ std::string Ide_MSBuild::GetProjectTypeGuid(ELanguage language)
 }
 
 bool Ide_MSBuild::GenerateSolutionFile(
+	DatabaseFile& databaseFile,
     WorkspaceFile& workspaceFile,
     std::vector<ProjectFile>& projectFiles,
     BuildWorkspaceMatrix& buildMatrix
@@ -320,7 +322,7 @@ bool Ide_MSBuild::GenerateSolutionFile(
 	// Post solution block.
 	VbNode& globalConfigPostSolutionNode =
 		globalNode.Node("GlobalSection")
-		.Attribute(false, "SolutionConfigurationPlatforms")
+		.Attribute(false, "ProjectConfigurationPlatforms")
 		.Value(false, "postSolution");
 
 	for (BuildProjectMatrix& matrix : buildMatrix)
@@ -395,7 +397,7 @@ bool Ide_MSBuild::GenerateSolutionFile(
 	}
 
 	// Generate result.
-	if (!WriteFile(
+	if (!databaseFile.StoreFile(
 		workspaceFile,
 		solutionDirectory,
 		solutionLocation,
@@ -408,6 +410,7 @@ bool Ide_MSBuild::GenerateSolutionFile(
 }
 
 bool Ide_MSBuild::Generate_Csproj(
+	DatabaseFile& databaseFile,
 	WorkspaceFile& workspaceFile,
 	ProjectFile& projectFile,
 	BuildProjectMatrix& buildMatrix
@@ -554,7 +557,7 @@ bool Ide_MSBuild::Generate_Csproj(
 
 		XmlNode& platformConfig =
 			project.Node("PropertyGroup")
-			.Attribute("Condition", "'$(Configuration)|$(Platform)'=='%s|%s'", matrix.config.c_str(), platformId.c_str())
+			.Attribute("Condition", "'$(Configuration)|$(Platform)'=='%s|%s'", matrix.config.c_str(), GetPlatformDotNetTarget(matrix.platform).c_str())
 			.Attribute("Label", "Configuration");
 
 		platformConfig.Node("DebugSymbols").Value(matrix.projectFile.Get_Flags_GenerateDebugInformation());
@@ -643,7 +646,7 @@ bool Ide_MSBuild::Generate_Csproj(
 		.Attribute("Project", "$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
 
 	// Generate result.
-	if (!WriteFile(
+	if (!databaseFile.StoreFile(
 		workspaceFile,
 		projectDirectory,
 		projectLocation,
@@ -656,6 +659,7 @@ bool Ide_MSBuild::Generate_Csproj(
 }
 
 bool Ide_MSBuild::Generate_Vcxproj(
+	DatabaseFile& databaseFile,
     WorkspaceFile& workspaceFile,
     ProjectFile& projectFile,
     BuildProjectMatrix& buildMatrix
@@ -1187,7 +1191,7 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		.Attribute("Label", "ExtensionSettings");
 
 	// Generate result.
-	if (!WriteFile(
+	if (!databaseFile.StoreFile(
 		workspaceFile,
 		projectDirectory,
 		projectLocation,
@@ -1200,6 +1204,7 @@ bool Ide_MSBuild::Generate_Vcxproj(
 }
 
 bool Ide_MSBuild::Generate_Vcxproj_Filters(
+	DatabaseFile& databaseFile,
 	WorkspaceFile& workspaceFile,
 	ProjectFile& projectFile,
 	BuildProjectMatrix& buildMatrix
@@ -1304,7 +1309,7 @@ bool Ide_MSBuild::Generate_Vcxproj_Filters(
 	}
 	
 	// Generate result.
-	if (!WriteFile(
+	if (!databaseFile.StoreFile(
 		workspaceFile,
 		projectDirectory,
 		projectFiltersLocation,
@@ -1317,9 +1322,10 @@ bool Ide_MSBuild::Generate_Vcxproj_Filters(
 }
 
 bool Ide_MSBuild::Generate(
+	DatabaseFile& databaseFile,
     WorkspaceFile& workspaceFile,
     std::vector<ProjectFile>& projectFiles)
-{	
+{
 	BuildWorkspaceMatrix matrix;
 	if (!CreateBuildMatrix(workspaceFile, projectFiles, matrix))
 	{
@@ -1334,6 +1340,7 @@ bool Ide_MSBuild::Generate(
 		case ELanguage::Cpp:
 			{
 				if (!Generate_Vcxproj(
+					databaseFile,
 					workspaceFile,
 					file,
 					matrix[index]
@@ -1343,6 +1350,7 @@ bool Ide_MSBuild::Generate(
 				}
 
 				if (!Generate_Vcxproj_Filters(
+					databaseFile,
 					workspaceFile,
 					file,
 					matrix[index]
@@ -1356,6 +1364,7 @@ bool Ide_MSBuild::Generate(
 		case ELanguage::CSharp:
 			{
 				if (!Generate_Csproj(
+					databaseFile,
 					workspaceFile,
 					file,
 					matrix[index]
@@ -1379,6 +1388,7 @@ bool Ide_MSBuild::Generate(
     }
 
     if (!GenerateSolutionFile(
+		databaseFile,
         workspaceFile,
         projectFiles,
 		matrix
@@ -1388,6 +1398,104 @@ bool Ide_MSBuild::Generate(
     }
 
     return true;
+}
+
+bool Ide_MSBuild::Clean(WorkspaceFile& workspaceFile)
+{
+	Platform::Path solutionDirectory =
+		workspaceFile.Get_Workspace_Location();
+
+	Platform::Path solutionLocation =
+		solutionDirectory.AppendFragment(
+			workspaceFile.Get_Workspace_Name() + ".sln", true);
+
+	std::vector<std::string> arguments;
+	arguments.push_back(solutionLocation.ToString());
+	arguments.push_back("/t:Clean");
+
+	Platform::Process process;
+	if (process.Open(GetMSBuildLocation(), solutionDirectory, arguments, false))
+	{
+		process.Wait();
+
+		int exitCode = process.GetExitCode();
+		if (exitCode == 0)
+		{
+			return true;
+		}
+		else
+		{
+			Log(LogSeverity::Fatal, "msbuild failed with exit code %i.\n", exitCode);
+			return false;
+		}
+	}
+	else
+	{
+		Log(LogSeverity::Fatal, "Failed to start msbuild process.\n");
+		return false;
+	}
+
+	return false;
+}
+
+bool Ide_MSBuild::Build(
+	WorkspaceFile& workspaceFile,
+	bool bRebuild,
+	const std::string& configuration,
+	const std::string& platform)
+{
+	Platform::Path solutionDirectory =
+		workspaceFile.Get_Workspace_Location();
+
+	Platform::Path solutionLocation =
+		solutionDirectory.AppendFragment(
+			workspaceFile.Get_Workspace_Name() + ".sln", true);
+
+	std::vector<std::string> arguments;
+	arguments.push_back(solutionLocation.ToString());
+
+	EPlatform platformId = CastFromString<EPlatform>(platform);
+
+	if (bRebuild)
+	{
+		arguments.push_back("/t:Rebuild");
+	}
+	else
+	{
+		arguments.push_back("/t:Build");
+	}
+
+	arguments.push_back(
+		Strings::Format("/p:Configuration=%s", configuration.c_str())
+	);
+
+	arguments.push_back(
+		Strings::Format("/p:Platform=%s", GetPlatformDotNetTarget(platformId).c_str())
+	);
+
+	Platform::Process process;
+	if (process.Open(GetMSBuildLocation(), solutionDirectory, arguments, false))
+	{
+		process.Wait();
+
+		int exitCode = process.GetExitCode();
+		if (exitCode == 0)
+		{
+			return true;
+		}
+		else
+		{
+			Log(LogSeverity::Fatal, "msbuild failed with exit code %i.\n", exitCode);
+			return false;
+		}
+	}
+	else
+	{
+		Log(LogSeverity::Fatal, "Failed to start msbuild process.\n");
+		return false;
+	}
+
+	return false;
 }
 
 }; // namespace MicroBuild

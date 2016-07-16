@@ -33,9 +33,11 @@ Ide_CodeBlocks::~Ide_CodeBlocks()
 }
 
 bool Ide_CodeBlocks::Generate(
+	DatabaseFile& databaseFile,
     WorkspaceFile& workspaceFile,
     std::vector<ProjectFile>& projectFiles)
 {
+	UNUSED_PARAMETER(databaseFile);
 	UNUSED_PARAMETER(workspaceFile);
 	UNUSED_PARAMETER(projectFiles);
 	return false;

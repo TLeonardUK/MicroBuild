@@ -37,39 +37,28 @@ void IdeType::SetShortName(const std::string& value)
 }
 
 
-bool IdeType::WriteFile(
-	WorkspaceFile& workspaceFile,
-	Platform::Path& directory,
-	Platform::Path& location,
-	const char* data
-	)
+bool IdeType::Clean(WorkspaceFile& workspaceFile)
 {
-	// Dump evaluation result out to file.
-	TextStream stream;
-	stream.Write("%s", data);
+	UNUSED_PARAMETER(workspaceFile);
 
-	// Ensure location directory is created.
-	if (!directory.Exists())
-	{
-		if (!directory.CreateAsDirectory())
-		{
-			workspaceFile.ValidateError(
-				"Failed to create directory '%s'.\n",
-				directory.ToString().c_str());
+	// Unimplemented.
 
-			return false;
-		}
-	}
+	return true;
+}
 
-	// Write the solution file to the location.
-	if (!stream.WriteToFile(location))
-	{
-		workspaceFile.ValidateError(
-			"Failed to write to file '%s'.\n",
-			location.ToString().c_str());
+bool IdeType::Build(
+	WorkspaceFile& workspaceFile,
+	bool bRebuild,
+	const std::string& configuration,
+	const std::string& platform
+)
+{
+	UNUSED_PARAMETER(workspaceFile);
+	UNUSED_PARAMETER(bRebuild);
+	UNUSED_PARAMETER(configuration);
+	UNUSED_PARAMETER(platform);
 
-		return false;
-	}
+	// Unimplemented.
 
 	return true;
 }
@@ -316,6 +305,8 @@ std::vector<IdeType::VPathPair> IdeType::ExpandVPaths(
 				path.ToString(),
 				filter
 			);
+
+			result.push_back(pair);
 		}
 	}
 

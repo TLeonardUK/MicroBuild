@@ -77,8 +77,11 @@ std::vector<std::string> Split(char seperator, const std::string& value);
 // Generates a guid given the key data.
 std::string Guid(const std::vector<std::string>& values);
 
-// Escapes any quotes in teh string.
+// Escapes any quotes in the string.
 std::string Escaped(const std::string& input);
+
+// Escapes any quotes in the string and then surrounds with quotes.
+std::string Quoted(const std::string& input);
 
 }; // namespace StringHelper
 }; // namespace MicroBuild

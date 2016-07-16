@@ -171,4 +171,14 @@ std::string CastToString(const FromType& value)
 	return result;
 }
 
+// Same as above but dosen't report errors, just returns the value if successful
+// or an empty string otherwise.
+template <typename ToType>
+ToType CastFromString(const std::string& value)
+{
+	ToType result;
+	StringCast<std::string, ToType>(value, result);
+	return result;
+}
+
 }; // namespace MicroBuild

@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Core/Commands/Command.h"
 #include "Core/Platform/Path.h"
+#include "App/Workspace/WorkspaceFile.h"
 
 namespace MicroBuild {
 
@@ -37,7 +38,8 @@ protected:
 private:
 	App* m_app;
 
-	Platform::Path m_workspaceFile;
+	WorkspaceFile m_workspaceFile;
+	Platform::Path m_workspaceFilePath;
 
 };
 

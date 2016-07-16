@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PCH.h"
 #include "App/App.h"
 #include "App/Ides/IdeType.h"
-#include "App/Commands/Clean.h"
+#include "App/Commands/Package.h"
 #include "App/Commands/Build.h"
 #include "App/Database/DatabaseFile.h"
 #include "Core/Commands/CommandLineParser.h"
@@ -28,16 +28,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Commands/CommandFlagArgument.h"
 #include "Core/Commands/CommandStringArgument.h"
 #include "Core/Helpers/Time.h"
+#include "App/Packager/Packager.h"
 
 namespace MicroBuild {
 
-BuildCommand::BuildCommand(App* app)
+PackageCommand::PackageCommand(App* app)
 	: m_app(app)
 {
-	SetName("build");
-	SetShortName("b");
-	SetDescription("Builds the project files that have previously been "
-				   "generated.");
+	SetName("package");
+	SetShortName("p");
+	SetDescription("Packages the project for the given configuration and "
+				   "platform");
 
 	CommandPathArgument* workspaceFile = new CommandPathArgument();
 	workspaceFile->SetName("WorkspaceFile");
@@ -50,6 +51,18 @@ BuildCommand::BuildCommand(App* app)
 	workspaceFile->SetPositional(true);
 	workspaceFile->SetOutput(&m_workspaceFilePath);
 	RegisterArgument(workspaceFile);
+
+	CommandPathArgument* packageDirectory = new CommandPathArgument();
+	packageDirectory->SetName("PackageDirectory");
+	packageDirectory->SetShortName("o");
+	packageDirectory->SetDescription("The output directory that the package "
+									 "project will be stored in.");
+	packageDirectory->SetExpectsDirectory(true);
+	packageDirectory->SetExpectsExisting(false);
+	packageDirectory->SetRequired(true);
+	packageDirectory->SetPositional(true);
+	packageDirectory->SetOutput(&m_packageDirectoryPath);
+	RegisterArgument(packageDirectory);
 
 	CommandFlagArgument* rebuild = new CommandFlagArgument();
 	rebuild->SetName("Rebuild");
@@ -77,7 +90,7 @@ BuildCommand::BuildCommand(App* app)
 	platform->SetName("Platform");
 	platform->SetShortName("p");
 	platform->SetDescription("Defines the platform this project should "
-							 "be built for.");
+							  "be built for.");
 	platform->SetRequired(false);
 	platform->SetPositional(false);
 	platform->SetDefault("");
@@ -85,7 +98,7 @@ BuildCommand::BuildCommand(App* app)
 	RegisterArgument(platform);
 }
 
-bool BuildCommand::Invoke(CommandLineParser* parser)
+bool PackageCommand::Invoke(CommandLineParser* parser)
 {
 	UNUSED_PARAMETER(parser);
 
@@ -101,28 +114,20 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 			return false;
 		}
 
-		if (!m_workspaceFile.IsConfigurationValid(m_configuration, m_platform))
-		{
-			Log(LogSeverity::Fatal,
-				"Configuration %s|%s is not valid.\n",
-				m_configuration.c_str(),
-				m_platform.c_str());
-
-			return false;
-		}
-
 		// Database file to do all file manipulation through.
 		Platform::Path databaseFileLocation =
 			m_workspaceFile.Get_Workspace_Location()
 			.AppendFragment("workspace.mb", true);
 
 		// If database already exists then clean the workspace.
-		if (databaseFileLocation.Exists() && m_rebuild)
+		if (databaseFileLocation.Exists())
 		{
 			DatabaseFile databaseFile(databaseFileLocation, "");
 
 			if (databaseFile.Read())
 			{
+				EPlatform platformId = CastFromString<EPlatform>(m_platform);
+
 				// Ask IDE we originally tided up to clean up any build artifacts.
 				IdeType* type = m_app->GetIdeByShortName(databaseFile.Get_Target_IDE());
 				if (type == nullptr)
@@ -148,14 +153,103 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 
 						return false;
 					}
+				}
+
+				// Base configuration.
+				m_workspaceFile.Set_Target_IDE(databaseFile.Get_Target_IDE());
+				m_workspaceFile.Set_Target_Configuration(m_configuration);
+				m_workspaceFile.Set_Target_Platform(platformId);
+				m_workspaceFile.Set_Target_PackageDirectory(m_packageDirectoryPath);
+
+				m_workspaceFile.Resolve();
+
+				if (!m_workspaceFile.Validate())
+				{
+					return false;
+				}
+
+				if (!m_workspaceFile.IsConfigurationValid(m_configuration, m_platform))
+				{
+					Log(LogSeverity::Fatal,
+						"Configuration %s|%s is not valid.\n",
+						m_configuration.c_str(),
+						m_platform.c_str());
+
+					return false;
+				}
+
+				// Load all projects.
+				std::vector<Platform::Path> projectPaths =
+					m_workspaceFile.Get_Projects_Project();
+
+				std::vector<ProjectFile> projectFiles;
+				projectFiles.resize(projectPaths.size());
+
+				for (unsigned int i = 0; i < projectPaths.size(); i++)
+				{
+					if (projectFiles[i].Parse(projectPaths[i]))
+					{
+						projectFiles[i].Merge(m_workspaceFile);
+						
+						projectFiles[i].Set_Target_IDE(databaseFile.Get_Target_IDE());
+						projectFiles[i].Set_Target_Configuration(m_configuration);
+						projectFiles[i].Set_Target_Platform(platformId);
+						m_workspaceFile.Set_Target_PackageDirectory(m_packageDirectoryPath);
+						
+						projectFiles[i].Resolve();
+
+						if (!projectFiles[i].Validate())
+						{
+							return false;
+						}
+
+					}
 					else
 					{
-						Log(LogSeverity::Info, "Finished building in %.2f ms.\n",
-							timingScope.GetElapsed());
-
-						return true;
+						return false;
 					}
 				}
+
+				// Generate the package command list.
+				std::vector<std::string> packageCommands = 
+					m_workspaceFile.Get_Package_Command();
+
+				for (unsigned int i = 0; i < projectPaths.size(); i++)
+				{
+					std::vector<std::string> projectCommands = 
+						projectFiles[i].Get_Package_Command();
+
+					packageCommands.insert(
+						packageCommands.begin(), 
+						projectCommands.begin(),
+						projectCommands.end()
+					);
+				}
+
+				// Delete the folder we are packaging if it exists.
+				if (m_packageDirectoryPath.Exists())
+				{
+					if (!m_packageDirectoryPath.Delete())
+					{
+						Log(LogSeverity::Warning,
+							"Failed to delete package folder '%s'.\n", 
+							m_packageDirectoryPath.ToString().c_str());
+
+						return false;
+					}
+				}
+
+				// Now do packaging commands.
+				Packager packager;
+				if (!packager.Package(m_packageDirectoryPath, packageCommands))
+				{
+					Log(LogSeverity::Warning,
+						"Failed to build package.\n");
+
+					return false;
+				}
+
+				return true;
 			}
 			else
 			{
@@ -169,7 +263,7 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 		else
 		{
 			Log(LogSeverity::Info,
-				"Workspace database does not exist, nothing to build.\n",
+				"Workspace database does not exist, nothing to package.\n",
 				databaseFileLocation.ToString().c_str());
 
 			return true;

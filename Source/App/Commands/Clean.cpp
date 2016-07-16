@@ -18,12 +18,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/App.h"
+#include "App/Ides/IdeType.h"
 #include "App/Commands/Clean.h"
+#include "App/Database/DatabaseFile.h"
 #include "Core/Commands/CommandLineParser.h"
 #include "Core/Commands/CommandComboArgument.h"
 #include "Core/Commands/CommandPathArgument.h"
 #include "Core/Commands/CommandFlagArgument.h"
-#include "Core/Commands/CommandStringArgument.h"
+
+#include "Core/Helpers/Time.h"
 
 namespace MicroBuild {
 
@@ -44,7 +47,7 @@ CleanCommand::CleanCommand(App* app)
 	workspaceFile->SetExpectsExisting(true);
 	workspaceFile->SetRequired(true);
 	workspaceFile->SetPositional(true);
-	workspaceFile->SetOutput(&m_workspaceFile);
+	workspaceFile->SetOutput(&m_workspaceFilePath);
 	RegisterArgument(workspaceFile);
 }
 
@@ -52,9 +55,69 @@ bool CleanCommand::Invoke(CommandLineParser* parser)
 {
 	UNUSED_PARAMETER(parser);
 
-	// todo
+	Time::TimedScope timingScope;
 
-	return true;
+	// Load the workspace.
+	if (m_workspaceFile.Parse(m_workspaceFilePath))
+	{
+		m_workspaceFile.Resolve();
+
+		if (!m_workspaceFile.Validate())
+		{
+			return false;
+		}
+
+		// Database file to do all file manipulation through.
+		Platform::Path databaseFileLocation =
+			m_workspaceFile.Get_Workspace_Location()
+			.AppendFragment("workspace.mb", true);
+
+		// If database already exists then clean the workspace.
+		if (databaseFileLocation.Exists())
+		{
+			DatabaseFile databaseFile(databaseFileLocation, "");
+
+			Log(LogSeverity::Info,
+				"Found workspace, cleaning up.\n");
+
+			if (databaseFile.Read())
+			{
+				if (!databaseFile.Clean(m_app, m_workspaceFile))
+				{
+					Log(LogSeverity::Warning,
+						"Failed to clean workspace, workspace files may be in an indeterminate state.\n",
+						databaseFileLocation.ToString().c_str());
+
+					return false;
+				}
+				else
+				{
+					Log(LogSeverity::Info, "Finished cleaning in %.2f ms.\n",
+						timingScope.GetElapsed());
+
+					return true;
+				}
+			}
+			else
+			{
+				Log(LogSeverity::Fatal,
+					"Failed to read workspace database '%s'.\n",
+					databaseFileLocation.ToString().c_str());
+
+				return false;
+			}
+		}
+		else
+		{
+			Log(LogSeverity::Info,
+				"Workspace database does not exist, nothing to clean.\n",
+				databaseFileLocation.ToString().c_str());
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 }; // namespace MicroBuild

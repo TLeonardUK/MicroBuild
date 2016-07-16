@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/App.h"
 #include "App/Ides/IdeType.h"
 #include "App/Commands/Generate.h"
+#include "App/Database/DatabaseFile.h"
 #include "Core/Commands/CommandLineParser.h"
 #include "Core/Commands/CommandComboArgument.h"
 #include "Core/Commands/CommandPathArgument.h"
@@ -66,17 +67,6 @@ GenerateCommand::GenerateCommand(App* app)
 	workspaceFile->SetPositional(true);
 	workspaceFile->SetOutput(&m_workspaceFilePath);
 	RegisterArgument(workspaceFile);
-
-	CommandFlagArgument* regenerate = new CommandFlagArgument();
-	regenerate->SetName("Rebuild");
-	regenerate->SetShortName("r");
-	regenerate->SetDescription("Operation will not be performed incrementally "
-								"even if it appears nothing has changed.");
-	regenerate->SetRequired(false);
-	regenerate->SetPositional(false);
-	regenerate->SetDefault(false);
-	regenerate->SetOutput(&m_regenerate);
-	RegisterArgument(regenerate);
 }
 
 bool GenerateCommand::Invoke(CommandLineParser* parser)
@@ -93,6 +83,38 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 		if (!m_workspaceFile.Validate())
 		{
 			return false;
+		}
+
+		// Database file to do all file manipulation through.
+		Platform::Path databaseFileLocation =
+			m_workspaceFile.Get_Workspace_Location()
+			.AppendFragment("workspace.mb", true);
+
+		// If database already exists then clean the workspace.
+		if (databaseFileLocation.Exists())
+		{
+			DatabaseFile databaseFile(databaseFileLocation, "");
+
+			Log(LogSeverity::Info,
+				"Workspace already exists, cleaning old workspace.\n");
+
+			if (databaseFile.Read())
+			{
+				if (!databaseFile.Clean(m_app, m_workspaceFile))
+				{
+					Log(LogSeverity::Warning,
+						"Failed to clean workspace, generated project may not be correctly cleanable in future.\n",
+						databaseFileLocation.ToString().c_str());
+				}
+			}
+			else
+			{
+				Log(LogSeverity::Fatal,
+					"Failed to read workspace database '%s'.\n",
+					databaseFileLocation.ToString().c_str());
+
+				return false;
+			}
 		}
 
 		// Base configuration.
@@ -124,34 +146,35 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 				return false;
 			}
 		}
+
+		// Find and generate project files for our chosen ide.
+		IdeType* type = m_app->GetIdeByShortName(m_targetIde);
+		assert(type != nullptr);
+
+		Log(LogSeverity::Info, "Generating project files for '%s'.\n",
+			m_targetIde.c_str());
+
+		DatabaseFile outputDatabaseFile(databaseFileLocation, m_targetIde);
+
+		if (type->Generate(outputDatabaseFile, m_workspaceFile, m_projectFiles))
+		{
+			// Write database file.
+			if (!outputDatabaseFile.Write())
+			{
+				Log(LogSeverity::Fatal, "Failed to write workspace database to '%s'.\n",
+					databaseFileLocation.ToString().c_str());
+
+				return false;
+			}
+
+			Log(LogSeverity::Info, "Finished generation in %.2f ms.\n",
+				timingScope.GetElapsed());
+
+			return true;
+		}
 	}
-	else
-	{
-		return false;
-	}
 
-	// If we are not regenerating, see if there have been any changes.
-	if (!m_regenerate)
-	{
-		// todo
-	}
-
-	// Find and generate project files for our chosen ide.
-	IdeType* type = m_app->GetIdeByShortName(m_targetIde);
-	assert(type != nullptr);
-
-	Log(LogSeverity::Info, "Generating project files for '%s'.\n", 
-		m_targetIde.c_str());
-
-	if (type->Generate(m_workspaceFile, m_projectFiles))
-	{
-		Log(LogSeverity::Info, "Finished generation in %.2f ms.\n",
-			timingScope.GetElapsed());
-
-		return true;
-	}
-
-	return true;
+	return false;
 }
 
 }; // namespace MicroBuild

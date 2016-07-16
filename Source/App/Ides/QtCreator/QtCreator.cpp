@@ -33,9 +33,11 @@ Ide_QtCreator::~Ide_QtCreator()
 }
 
 bool Ide_QtCreator::Generate(
+	DatabaseFile& databaseFile,
     WorkspaceFile& workspaceFile,
     std::vector<ProjectFile>& projectFiles)
 {
+	UNUSED_PARAMETER(databaseFile);
 	UNUSED_PARAMETER(workspaceFile);
 	UNUSED_PARAMETER(projectFiles);
 	return false;

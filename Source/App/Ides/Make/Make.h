@@ -33,6 +33,7 @@ public:
 	~Ide_Make();
 
 	virtual bool Generate(
+		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		std::vector<ProjectFile>& projectFiles) override;
 

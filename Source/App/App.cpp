@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "App/Commands/Generate.h"
 #include "App/Commands/Build.h"
-#include "App/Commands/Deploy.h"
+#include "App/Commands/Package.h"
 #include "App/Commands/Clean.h"
 #include "App/Commands/Help.h"
 #include "App/Commands/Version.h"
@@ -84,7 +84,7 @@ App::App(int argc, char* argv[])
 
 	m_commandLineParser.RegisterCommand(new GenerateCommand(this));
 	m_commandLineParser.RegisterCommand(new BuildCommand(this));
-	m_commandLineParser.RegisterCommand(new DeployCommand(this));
+	m_commandLineParser.RegisterCommand(new PackageCommand(this));
 	m_commandLineParser.RegisterCommand(new CleanCommand(this));
 	m_commandLineParser.RegisterCommand(new HelpCommand(this));
 	m_commandLineParser.RegisterCommand(new VersionCommand(this));

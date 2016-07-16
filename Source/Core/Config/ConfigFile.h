@@ -141,6 +141,11 @@ public:
 	// group and value keys.
 	bool Parse(const Platform::Path& path);
 
+	// Writes all the stored groups and values to the given file path. Be aware
+	// this only serialize trivial values, it does not serialize conditional
+	// values or anything requiring more than simple ini key-value pairs.
+	bool Serialize(const Platform::Path& path);
+
 	// Copies all the values that exist in another config file into this one.
 	void Merge(const ConfigFile& file);
 

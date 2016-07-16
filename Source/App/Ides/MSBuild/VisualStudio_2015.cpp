@@ -30,4 +30,20 @@ Ide_VisualStudio_2015::Ide_VisualStudio_2015()
 	SetMSBuildVersion(MSBuildVersion::Version12);
 }
 
+Platform::Path Ide_VisualStudio_2015::GetMSBuildLocation()
+{
+	Platform::Path path = "%ProgramFiles%/MSBuild/14.0/bin/msbuild.exe";
+	if (!path.Exists())
+	{
+		path = "%ProgramFiles(x86)%/MSBuild/14.0/bin/msbuild.exe";
+		if (!path.Exists())
+		{
+			Log(LogSeverity::Warning, 
+				"Cannot find explicit msbuild executable.");
+			path = "msbuild";
+		}
+	}
+	return path;
+}
+
 }; // namespace MicroBuild

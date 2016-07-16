@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define START_ARRAY_OPTION(ValueType, Group, Key, Description)
 #define START_KEY_VALUE_ARRAY_OPTION(Group, Description)
 #define OPTION_RULE_REQUIRED()
+#define OPTION_RULE_ORDER_IMPORTANT()
 #define OPTION_RULE_DEFAULT(Value)
 #define OPTION_RULE_VALIDATOR(ValidatorFunction)
 #define OPTION_RULE_EXPAND_PATH_WILDCARDS(bCanCache)
@@ -51,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef START_ARRAY_OPTION
 #undef START_KEY_VALUE_ARRAY_OPTION
 #undef OPTION_RULE_REQUIRED
+#undef OPTION_RULE_ORDER_IMPORTANT
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR
 #undef OPTION_RULE_EXPAND_PATH_WILDCARDS

@@ -75,19 +75,19 @@ bool CommandPathArgument::ValidateAndSet(std::string value)
 
 			return false;
 		}
-	}
 
-	if (m_expectsDirectory)
-	{
-		if (!basePath.IsDirectory())
+		if (m_expectsDirectory)
 		{
-			Log(LogSeverity::Fatal,
-				"Path '%s', for argument '%s', is not a directory.\n",
-				value.c_str(), GetName().c_str());
+			if (!basePath.IsDirectory())
+			{
+				Log(LogSeverity::Fatal,
+					"Path '%s', for argument '%s', is not a directory.\n",
+					value.c_str(), GetName().c_str());
 
-			return false;
+				return false;
+			}
+
 		}
-
 	}
 
 	*m_output = basePath;

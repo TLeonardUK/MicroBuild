@@ -1,5 +1,5 @@
 /*
-MicroBuild
+Ludo Game Engine
 Copyright (C) 2016 TwinDrills
 
 This program is free software: you can redistribute it and/or modify
@@ -16,31 +16,26 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#include "PCH.h"
+#include "Core/Platform/Process.h"
 
-#include "App/Ides/IdeType.h"
-#include "Core/Templates/TemplateEvaluator.h"
+#include <cstdlib>
 
 namespace MicroBuild {
+namespace Platform {
 
-// Permits generating of monodevelop workspaces.
-class Ide_MonoDevelop
-	: public IdeType
+std::string GetEnvironmentVariable(const std::string& tag)
 {
-public:
+	const char* ptr = std::getenv(tag.c_str());
+	if (ptr == nullptr)
+	{
+		return "";
+	}
+	else
+	{
+		return ptr;
+	}
+}
 
-	Ide_MonoDevelop();
-	~Ide_MonoDevelop();
-
-	virtual bool Generate(
-		DatabaseFile& databaseFile,
-		WorkspaceFile& workspaceFile,
-		std::vector<ProjectFile>& projectFiles) override;
-
-protected:
-
-private:
-
-};
-
+}; // namespace Platform
 }; // namespace MicroBuild

@@ -33,9 +33,11 @@ Ide_CodeLite::~Ide_CodeLite()
 }
 
 bool Ide_CodeLite::Generate(
+	DatabaseFile& databaseFile,
     WorkspaceFile& workspaceFile,
     std::vector<ProjectFile>& projectFiles)
 {
+	UNUSED_PARAMETER(databaseFile);
 	UNUSED_PARAMETER(workspaceFile);
 	UNUSED_PARAMETER(projectFiles);
 	return false;

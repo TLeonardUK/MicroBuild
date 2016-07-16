@@ -135,3 +135,25 @@ START_OPTION(
 )
 END_OPTION()
 
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	Platform::Path,
+	Target,
+	PackageDirectory,
+	"Automatically defined to the directory the package is being built in."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+// Package
+// ---------------------------------------------------------------------------
+START_ARRAY_OPTION(
+	std::string,
+	Package,
+	Command,
+	"Defines an individual command to run while packaging. When packaging all "
+	"project commands are ran first, then the workspace commands ran after."
+)
+OPTION_RULE_ORDER_IMPORTANT()
+END_ARRAY_OPTION()

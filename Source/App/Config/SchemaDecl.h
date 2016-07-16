@@ -54,6 +54,7 @@ private:
 	private: \
 		bool Validate_##Group##(); 
 
+#define OPTION_RULE_ORDER_IMPORTANT()
 #define OPTION_RULE_REQUIRED()
 #define OPTION_RULE_DEFAULT(Value)
 #define OPTION_RULE_VALIDATOR(ValidatorFunction)
@@ -72,6 +73,7 @@ private:
 #undef START_OPTION
 #undef START_ARRAY_OPTION
 #undef START_KEY_VALUE_ARRAY_OPTION
+#undef OPTION_RULE_ORDER_IMPORTANT
 #undef OPTION_RULE_REQUIRED
 #undef OPTION_RULE_DEFAULT
 #undef OPTION_RULE_VALIDATOR

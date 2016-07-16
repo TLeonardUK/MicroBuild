@@ -134,6 +134,11 @@ std::vector<std::string> Crack(std::string value, char seperator)
 		segment += chr;
 	}
 
+	if (!segment.empty())
+	{
+		result.push_back(segment);
+	}
+
 	return result;
 }
 
@@ -362,6 +367,11 @@ std::string Escaped(const std::string& input)
 		result.push_back(chr);
 	}
 	return result;
+}
+
+std::string Quoted(const std::string& input)
+{
+	return Strings::Format("\"%s\"", Escaped(input).c_str());
 }
 
 }; // namespace Strings
