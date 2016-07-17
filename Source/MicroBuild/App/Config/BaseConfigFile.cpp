@@ -35,13 +35,42 @@ void BaseConfigFile::Resolve()
 	// Host settings.
 #if defined(MB_PLATFORM_WINDOWS)
 	Set_Host_Platform(EHostPlatform::Windows);
+	Set_Host_ExeExtension(".exe");
+	Set_Host_StaticLibExtension(".lib");
+	Set_Host_DynamicLibExtension(".dll");
+
 #elif defined(MB_PLATFORM_LINUX)
 	Set_Host_Platform(EHostPlatform::Linux);
+	Set_Host_ExeExtension("");
+	Set_Host_StaticLibExtension(".a");
+	Set_Host_DynamicLibExtension(".so");
+
 #elif defined(MB_PLATFORM_MACOS)
 	Set_Host_Platform(EHostPlatform::MacOS);
+	Set_Host_ExeExtension("");
+	Set_Host_StaticLibExtension(".a");
+	Set_Host_DynamicLibExtension(".dylib");
+
 #else
 	#error Unimplemented platform.
+
 #endif
+
+	// Store and use a base timestamp.
+	static time_t s_baseTime;
+	static bool s_timeSet = false;
+	if (!s_timeSet)
+	{
+		s_timeSet = true;
+		time(&s_baseTime);
+	}
+
+	struct tm* now = localtime(&s_baseTime);
+	char buffer[64];
+	strftime(buffer, sizeof(buffer), "%d%m%Y%H%M", now);
+	std::string bufferVal = buffer;
+
+	Set_Target_Timestamp(bufferVal);
 
 	ConfigFile::Resolve();
 }

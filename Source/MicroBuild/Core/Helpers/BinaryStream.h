@@ -35,8 +35,8 @@ public:
 	bool Open(const Platform::Path& path, bool bWrite);
 	void Close();
 
-	void WriteBuffer(const char* buffer, size_t bufferLength);
-	void ReadBuffer(char* buffer, size_t bufferLength);
+	void WriteBuffer(const char* buffer, uint64_t bufferLength);
+	void ReadBuffer(char* buffer, uint64_t bufferLength);
 
 	template <typename UnderlyingType, typename BaseType>
 	void Write(BaseType value)
@@ -54,9 +54,9 @@ public:
 	}
 
 	uint32_t Crc32();
-	uint32_t Length();
-	uint32_t Offset();
-	void	 Seek(uint32_t offset);
+	uint64_t Length();
+	uint64_t Offset();
+	void	 Seek(uint64_t offset);
 
 	void CopyTo(BinaryStream& other);
 

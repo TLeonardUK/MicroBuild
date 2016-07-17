@@ -39,22 +39,48 @@ public:
 	bool Open(const Platform::Path& path);
 	void Close();
 
-	bool AddDirectory(const Platform::Path& source, const Platform::Path& destination);
-	bool AddFile(const Platform::Path& source, const Platform::Path& destination);
+	bool AddDirectory(
+		const Platform::Path& source, 
+		const Platform::Path& destination);
+
+	bool AddFile(
+		const Platform::Path& source, 
+		const Platform::Path& destination);
 	
+protected:
+
+	bool CompressFile(
+		const Platform::Path& input,
+		const Platform::Path& output,
+		uint64_t& inputSize,
+		uint64_t& outputSize,
+		uint32_t& inputCrc32);
+
 private:
+
 	struct ZipFileBlock
 	{
 		uint32_t crc32;
-		uint32_t offset;
-		uint32_t fileSize;
+		uint64_t offset;
+		uint64_t fileSize;
+		uint64_t compressedFileSize;
 		std::string name;
 
 		Platform::Path source;
 		Platform::Path destination;
 	};
 
+	enum 
+	{
+		k_zip64Version = 45,
+		k_zip64HeaderSize = 32,
+		k_zip64CentralRecordSize = 44,
+		k_zlibCompressBuffer = 32 * 1024 * 1024,
+		k_compressionMethod = 8
+	};
+
 	std::vector<ZipFileBlock> m_blocks;
+	Platform::Path m_path;
 	BinaryStream m_stream;
 
 };

@@ -249,7 +249,7 @@ bool Ide_MSBuild::GenerateSolutionFile(
 			.Value(true, "%s", guid.c_str());
 
 		VbNode& depsNode = 
-			projectNode.Node("ProjectSelection")
+			projectNode.Node("ProjectSection")
 			.Attribute(false, "ProjectDependencies")
 			.Value(false, "postProject");
 
@@ -263,7 +263,7 @@ bool Ide_MSBuild::GenerateSolutionFile(
 
 			std::string depGuid = Strings::Guid({ workspaceFile.Get_Workspace_Name(), projectDependency->Get_Project_Name() });
 
-			depsNode.Node(depGuid.c_str())
+			depsNode.Single(depGuid.c_str())
 				.Value(false, "%s", depGuid.c_str());
 		}
 	}

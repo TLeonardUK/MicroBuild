@@ -94,6 +94,30 @@ START_OPTION(
 )
 END_OPTION()
 
+START_OPTION(
+	std::string,
+	Host,
+	ExeExtension,
+	"Automatically defined to the default executable extension of the host."
+)
+END_OPTION()
+
+START_OPTION(
+	std::string,
+	Host,
+	StaticLibExtension,
+	"Automatically defined to the default static library extension of the host."
+)
+END_OPTION()
+
+START_OPTION(
+	std::string,
+	Host,
+	DynamicLibExtension,
+	"Automatically defined to the default dynamic library extension of the host."
+)
+END_OPTION()
+
 // ---------------------------------------------------------------------------
 
 START_OPTION(
@@ -138,6 +162,16 @@ END_OPTION()
 // ---------------------------------------------------------------------------
 
 START_OPTION(
+	std::string,
+	Target,
+	Timestamp,
+	"Automatically defined to the current timestamp in DDMMYYYY."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
 	Platform::Path,
 	Target,
 	PackageDirectory,
@@ -156,4 +190,5 @@ START_ARRAY_OPTION(
 	"project commands are ran first, then the workspace commands ran after."
 )
 OPTION_RULE_ORDER_IMPORTANT()
+OPTION_RULE_NO_INHERIT()
 END_ARRAY_OPTION()

@@ -1156,6 +1156,11 @@ void ConfigFile::Merge(const ConfigFile& file)
 {
 	for (auto& groupIter : file.m_groups)
 	{
+		if (groupIter.second->bUnmergable)
+		{
+			continue;
+		}
+
 		for (auto& keyIter : groupIter.second->Keys)
 		{
 			// Do not insert values if they already exist.
@@ -1180,6 +1185,23 @@ void ConfigFile::Merge(const ConfigFile& file)
 			}
 		}
 	}
+}
+
+void ConfigFile::SetGroupUnmergable(
+	const std::string& groupName,
+	bool bUnmergable)
+{
+	auto iter = m_groups.find(groupName);
+	if (iter == m_groups.end())
+	{
+		ConfigFileGroup* group = new ConfigFileGroup();
+		group->Name = groupName;
+		m_groups.insert(
+			std::pair<std::string, ConfigFileGroup*>(groupName, group)
+		);
+	}
+
+	m_groups[groupName]->bUnmergable = bUnmergable;
 }
 
 Platform::Path ConfigFile::GetPath() const

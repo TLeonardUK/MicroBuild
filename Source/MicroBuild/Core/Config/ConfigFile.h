@@ -120,6 +120,7 @@ struct ConfigFileKey
 struct ConfigFileGroup
 {
 	std::string Name;
+	bool bUnmergable;
 	std::map<std::string, ConfigFileKey*> Keys;
 };
 
@@ -191,6 +192,11 @@ public:
 		const std::string& group,
 		const std::string& key,
 		const std::string& defValue);
+
+	// Flags a group as mergable or unmergable.
+	void SetGroupUnmergable(
+		const std::string& group,
+		bool bUnmergable);
 
 protected:
 

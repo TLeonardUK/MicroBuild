@@ -129,6 +129,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OPTION_RULE_OPTION(Option) \
 		options.push_back(#Option);
 
+#define OPTION_RULE_NO_INHERIT() \
+		SetGroupUnmergable(groupName, true);
+
 #define END_OPTION() \
 		if (values.size() > 1) \
 		{ \
@@ -215,6 +218,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef OPTION_RULE_EXPAND_PATH_WILDCARDS
 #undef OPTION_RULE_ABSOLUTE_PATH
 #undef OPTION_RULE_OPTION
+#undef OPTION_RULE_NO_INHERIT
 #undef END_OPTION
 #undef END_ARRAY_OPTION
 #undef END_KEY_VALUE_ARRAY_OPTION
@@ -246,6 +250,7 @@ bool SCHEMA_CLASS::Validate()
 #define OPTION_RULE_VALIDATOR(ValidatorFunction)
 #define OPTION_RULE_EXPAND_PATH_WILDCARDS(bCanCache)
 #define OPTION_RULE_OPTION(Option) 
+#define OPTION_RULE_NO_INHERIT()
 #define OPTION_RULE_ABSOLUTE_PATH()
 #define END_ARRAY_OPTION()
 #define END_OPTION()
@@ -266,6 +271,7 @@ bool SCHEMA_CLASS::Validate()
 #undef OPTION_RULE_EXPAND_PATH_WILDCARDS
 #undef OPTION_RULE_ABSOLUTE_PATH
 #undef OPTION_RULE_OPTION
+#undef OPTION_RULE_NO_INHERIT
 #undef END_OPTION
 #undef END_ARRAY_OPTION
 #undef END_KEY_VALUE_ARRAY_OPTION

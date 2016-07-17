@@ -79,18 +79,59 @@ void BinaryStream::Close()
 	}
 }
 
-void BinaryStream::WriteBuffer(const char* buffer, size_t bufferLength)
+void BinaryStream::WriteBuffer(const char* buffer, uint64_t bufferLength)
 {
-	fwrite(buffer, 1, bufferLength, m_file);
+	uint64_t bytesLeft = bufferLength;
+
+	while (true)
+	{
+		uint64_t chunkSize = bytesLeft;
+
+		if (chunkSize > k_ChunkSize)
+		{
+			chunkSize = k_ChunkSize;
+		}
+		if (chunkSize <= 0)
+		{
+			break;
+		}
+
+		fwrite(buffer, 1, (size_t)chunkSize, m_file);
+
+		bytesLeft -= chunkSize;
+		buffer += chunkSize;
+	}
 }
 
-void BinaryStream::ReadBuffer(char* buffer, size_t bufferLength)
+void BinaryStream::ReadBuffer(char* buffer, uint64_t bufferLength)
 {
-	fread(buffer, 1, bufferLength, m_file);
+	uint64_t bytesLeft = bufferLength;
+
+	while (true)
+	{
+		uint64_t chunkSize = bytesLeft;
+
+		if (chunkSize > k_ChunkSize)
+		{
+			chunkSize = k_ChunkSize;
+		}
+		if (chunkSize <= 0)
+		{
+			break;
+		}
+
+		fread(buffer, 1, (size_t)chunkSize, m_file);
+
+		bytesLeft -= chunkSize;
+		buffer += chunkSize;
+	}
 }
 
 uint32_t BinaryStream::Crc32()
 {
+#if 0
+	return 0;
+#else
 	if (!s_crc32TableInit)
 	{
 		uint32_t polynomial = 0xEDB88320;;
@@ -116,50 +157,70 @@ uint32_t BinaryStream::Crc32()
 
 	Seek(0);
 	uint32_t crc32 = 0xFFFFFFFF;;
-	uint32_t len = Length();
+	uint64_t bytesLeft = Length();
 
-	while (Offset() < len)
+	uint8_t buffer[k_ChunkSize];
+
+	while (true)
 	{
-		uint8_t chr = Read<uint8_t>();
-		crc32 = ((crc32) >> 8) ^ s_crc32Table[(chr) ^ ((crc32) & 0x000000FF)];
+		uint64_t chunkSize = bytesLeft;
+
+		if (chunkSize > k_ChunkSize)
+		{
+			chunkSize = k_ChunkSize;
+		}
+		if (chunkSize <= 0)
+		{
+			break;
+		}
+
+		fread(buffer, 1, (size_t)chunkSize, m_file);
+
+		for (uint64_t i = 0; i < chunkSize; i++)
+		{
+			crc32 = ((crc32) >> 8) ^ s_crc32Table[(buffer[i]) ^ ((crc32) & 0x000000FF)];
+		}
+
+		bytesLeft -= chunkSize;
 	}
 
 	return ~crc32;	
+#endif
 }
 
-uint32_t BinaryStream::Length()
+uint64_t BinaryStream::Length()
 {
-	uint32_t offset = Offset();
+	uint64_t offset = Offset();
 
-	fseek(m_file, 0, SEEK_END);	
-	uint32_t length = Offset();
+	_fseeki64(m_file, 0, SEEK_END);
+	uint64_t length = Offset();
 	
-	fseek(m_file, offset, SEEK_SET);
+	_fseeki64(m_file, offset, SEEK_SET);
 
 	return length;
 }
 
-uint32_t BinaryStream::Offset()
+uint64_t BinaryStream::Offset()
 {
-	return static_cast<uint32_t>(ftell(m_file));
+	return static_cast<uint64_t>(_ftelli64(m_file));
 }
 
-void BinaryStream::Seek(uint32_t offset)
+void BinaryStream::Seek(uint64_t offset)
 {
-	fseek(m_file, offset, SEEK_SET);
+	_fseeki64(m_file, offset, SEEK_SET);
 }
 
 void BinaryStream::CopyTo(BinaryStream& other)
 {
 	char buffer[k_ChunkSize];
 
-	uint32_t length = Length();
-	uint32_t offset = Offset();
-	uint32_t bytesLeft = length - offset;
+	uint64_t length = Length();
+	uint64_t offset = Offset();
+	uint64_t bytesLeft = length - offset;
 
 	while (true)
 	{
-		uint32_t chunkSize = bytesLeft;
+		uint64_t chunkSize = bytesLeft;
 
 		if (chunkSize > k_ChunkSize)
 		{
