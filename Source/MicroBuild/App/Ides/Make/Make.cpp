@@ -36,6 +36,9 @@ bool Ide_Make::Clean(
 	WorkspaceFile& workspaceFile) 
 {
 	UNUSED_PARAMETER(workspaceFile);
+
+	// todo: call clean method in makefile.
+
 	return false;
 }
 
@@ -49,6 +52,9 @@ bool Ide_Make::Build(
 	UNUSED_PARAMETER(bRebuild);
 	UNUSED_PARAMETER(configuration);
 	UNUSED_PARAMETER(platform);
+
+	// todo: call build method in makefile.
+
 	return false;
 }
 
@@ -60,6 +66,9 @@ bool Ide_Make::Generate(
 	UNUSED_PARAMETER(databaseFile);
 	UNUSED_PARAMETER(workspaceFile);
 	UNUSED_PARAMETER(projectFiles);
+
+
+
 	return false;
 }
 

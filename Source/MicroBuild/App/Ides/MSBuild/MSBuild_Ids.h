@@ -16,51 +16,33 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "PCH.h"
+#pragma once
+
 #include "App/Ides/IdeType.h"
 
 namespace MicroBuild {
+namespace MSBuild {
 
-IdeType::IdeType()
-	: m_shortName("")
-{
-}
+// Universal app guid.
+extern const char* k_GuiUapProject;
 
-std::string IdeType::GetShortName()
-{
-	return m_shortName;
-}
+// CSharp project guid.
+extern const char* k_GuidCSharpProject;
 
-void IdeType::SetShortName(const std::string& value)
-{
-	m_shortName = value;
-}
+// CPP project guid.
+extern const char* k_GuidCppProject;
 
+// Solution folder guid.
+extern const char* k_GuidSolutionFolder;
 
-bool IdeType::Clean(WorkspaceFile& workspaceFile)
-{
-	UNUSED_PARAMETER(workspaceFile);
+// Converts a platform enum into an msbuild platform id.
+std::string GetPlatformID(EPlatform platform);
 
-	// Unimplemented.
+// Converts a platform enum into a dotnet target id.
+std::string GetPlatformDotNetTarget(EPlatform platform);
 
-	return true;
-}
+// Finds the correct project type guid based on language.
+std::string GetProjectTypeGuid(ELanguage language);
 
-bool IdeType::Build(
-	WorkspaceFile& workspaceFile,
-	bool bRebuild,
-	const std::string& configuration,
-	const std::string& platform
-)
-{
-	UNUSED_PARAMETER(workspaceFile);
-	UNUSED_PARAMETER(bRebuild);
-	UNUSED_PARAMETER(configuration);
-	UNUSED_PARAMETER(platform);
-
-	// Unimplemented.
-
-	return true;
-}
-
-} // namespace MicroBuild
+}; // namespace MSBuild
+}; // namespace MicroBuild

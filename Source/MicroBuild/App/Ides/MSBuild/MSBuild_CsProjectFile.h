@@ -16,12 +16,32 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Include/File.h"
+#pragma once
 
-int main(int argc, char** argv)
+#include "App/Ides/IdeType.h"
+
+namespace MicroBuild {
+
+// Contains the code required to generate a .csproj file.
+class MSBuild_CsProjectFile
 {
-	(void)argc;
-	(void)argv;
-	printf("Main Called");
-	return 0;
-}
+public:
+
+	MSBuild_CsProjectFile(std::string defaultToolset);
+	~MSBuild_CsProjectFile();
+
+	// Generates a basic msbuild solution file that links to the given
+	// project files.
+	bool Generate(
+		DatabaseFile& databaseFile,
+		WorkspaceFile& workspaceFile,
+		ProjectFile& projectFile,
+		IdeHelper::BuildProjectMatrix& buildMatrix
+	);
+
+private:
+	std::string m_defaultToolsetString;
+
+};
+
+}; // namespace MicroBuild

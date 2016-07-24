@@ -16,35 +16,36 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "PCH.h"
-#include "App/Ides/MSBuild/VisualStudio_2015.h"
+#pragma once
+
+#include "App/Ides/IdeType.h"
 
 namespace MicroBuild {
 
-Ide_VisualStudio_2015::Ide_VisualStudio_2015()
+// Contains the code required to generate a .vcxproj file.
+class MSBuild_VcxProjectFile
 {
-	SetShortName("vs2015");
-	SetHeaderShortName("Visual Studio 2015");
-	SetHeaderVersion("12.0");
-	SetDefaultToolset(EPlatformToolset::v140);
-	SetDefaultToolsetString("14.0");
-	SetMSBuildVersion(MSBuildVersion::Version12);
-}
+public:
 
-Platform::Path Ide_VisualStudio_2015::GetMSBuildLocation()
-{
-	Platform::Path path = "%ProgramFiles%/MSBuild/14.0/bin/msbuild.exe";
-	if (!path.Exists())
-	{
-		path = "%ProgramFiles(x86)%/MSBuild/14.0/bin/msbuild.exe";
-		if (!path.Exists())
-		{
-			Log(LogSeverity::Warning, 
-				"Cannot find explicit msbuild executable.");
-			path = "msbuild";
-		}
-	}
-	return path;
-}
+	MSBuild_VcxProjectFile(
+		EPlatformToolset defaultToolset,
+		std::string defaultToolsetString
+	);
+	~MSBuild_VcxProjectFile();
+
+	// Generates a basic msbuild solution file that links to the given
+	// project files.
+	bool Generate(
+		DatabaseFile& databaseFile,
+		WorkspaceFile& workspaceFile,
+		ProjectFile& projectFile,
+		IdeHelper::BuildProjectMatrix& buildMatrix
+	);
+
+private:
+	EPlatformToolset m_defaultToolset;
+	std::string m_defaultToolsetString;
+
+};
 
 }; // namespace MicroBuild

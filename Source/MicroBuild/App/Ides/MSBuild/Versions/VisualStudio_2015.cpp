@@ -17,50 +17,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
-#include "App/Ides/IdeType.h"
+#include "App/Ides/MSBuild/Versions/VisualStudio_2015.h"
 
 namespace MicroBuild {
 
-IdeType::IdeType()
-	: m_shortName("")
+Ide_VisualStudio_2015::Ide_VisualStudio_2015()
 {
+	SetShortName("vs2015");
+	SetHeaderShortName("Visual Studio 2015");
+	SetHeaderVersion("12.0");
+	SetDefaultToolset(EPlatformToolset::v140);
+	SetDefaultToolsetString("14.0");
+	SetMSBuildVersion(MSBuildVersion::Version12);
 }
 
-std::string IdeType::GetShortName()
+Platform::Path Ide_VisualStudio_2015::GetMSBuildLocation()
 {
-	return m_shortName;
+	Platform::Path path = "%ProgramFiles%/MSBuild/14.0/bin/msbuild.exe";
+	if (!path.Exists())
+	{
+		path = "%ProgramFiles(x86)%/MSBuild/14.0/bin/msbuild.exe";
+		if (!path.Exists())
+		{
+			Log(LogSeverity::Warning, 
+				"Cannot find explicit msbuild executable.");
+			path = "msbuild";
+		}
+	}
+	return path;
 }
 
-void IdeType::SetShortName(const std::string& value)
-{
-	m_shortName = value;
-}
-
-
-bool IdeType::Clean(WorkspaceFile& workspaceFile)
-{
-	UNUSED_PARAMETER(workspaceFile);
-
-	// Unimplemented.
-
-	return true;
-}
-
-bool IdeType::Build(
-	WorkspaceFile& workspaceFile,
-	bool bRebuild,
-	const std::string& configuration,
-	const std::string& platform
-)
-{
-	UNUSED_PARAMETER(workspaceFile);
-	UNUSED_PARAMETER(bRebuild);
-	UNUSED_PARAMETER(configuration);
-	UNUSED_PARAMETER(platform);
-
-	// Unimplemented.
-
-	return true;
-}
-
-} // namespace MicroBuild
+}; // namespace MicroBuild

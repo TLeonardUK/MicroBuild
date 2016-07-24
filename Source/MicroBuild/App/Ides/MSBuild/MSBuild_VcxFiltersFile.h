@@ -16,12 +16,34 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Include/File.h"
+#pragma once
 
-int main(int argc, char** argv)
+#include "App/Ides/IdeType.h"
+#include "App/Ides/MSBuild/MSBuild.h"
+
+namespace MicroBuild {
+
+// Contains the code required to generate a .vcxproj.filters file.
+class MSBuild_VcxFiltersFile
 {
-	(void)argc;
-	(void)argv;
-	printf("Main Called");
-	return 0;
-}
+public:
+
+	MSBuild_VcxFiltersFile(std::string defaultToolsetString);
+	~MSBuild_VcxFiltersFile();
+
+	// Generates a basic msbuild solution file that links to the given
+	// project files.
+	bool Generate(
+		DatabaseFile& databaseFile,
+		WorkspaceFile& workspaceFile,
+		ProjectFile& projectFile,
+		IdeHelper::BuildProjectMatrix& buildMatrix,
+		std::vector<MSBuildFileGroup>& groups
+	);
+	
+private:
+	std::string m_defaultToolsetString;
+
+};
+
+}; // namespace MicroBuild

@@ -42,7 +42,6 @@ struct MSBuildFileGroup
 	std::vector<MSBuildFile> Files;
 };
 
-
 // Base class for all Microsoft Build types (visual studio).
 class Ide_MSBuild 
 	: public IdeType
@@ -62,29 +61,12 @@ public:
 	void SetDefaultToolset(EPlatformToolset toolset);
 	void SetDefaultToolsetString(const std::string& value);
 
-	// Generates a basic msbuild solution file that links to the given
-	// project files.
-	bool GenerateSolutionFile(
-		DatabaseFile& databaseFile,
-		WorkspaceFile& workspaceFile,
-		std::vector<ProjectFile>& projectFiles,
-		BuildWorkspaceMatrix& buildMatrix
-	);
-
-	// Generates a basic csharp project file.
-	bool Generate_Csproj(
-		DatabaseFile& databaseFile,
-		WorkspaceFile& workspaceFile,
-		ProjectFile& projectFiles,
-		BuildProjectMatrix& buildMatrix
-		);
-
 	// Generates a basic msbuild project file.
 	bool Generate_Vcxproj(
 		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		ProjectFile& projectFiles,
-		BuildProjectMatrix& buildMatrix
+		IdeHelper::BuildProjectMatrix& buildMatrix
 	);
 
 	// Generates a basic msbuild project filters file.
@@ -92,7 +74,7 @@ public:
 		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		ProjectFile& projectFiles,
-		BuildProjectMatrix& buildMatrix,
+		IdeHelper::BuildProjectMatrix& buildMatrix,
 		std::vector<MSBuildFileGroup>& groups
 	);
 
@@ -111,28 +93,6 @@ public:
 		const std::string& platform) override;
 
 protected:
-
-	// Generates an output file using the given template and evaluator.
-	bool GenerateTemplateFile(
-		WorkspaceFile& workspaceFile,
-		Platform::Path& directory,
-		Platform::Path& location,
-		const char* templateData,
-		TemplateEvaluator& evaluator);
-
-	// Converts a platform enum into an msbuild platform id.
-	std::string GetPlatformID(EPlatform platform);
-
-	// Converts a platform enum into a dotnet target id.
-	std::string GetPlatformDotNetTarget(EPlatform platform);
-
-	// Finds the correct project type guid based on language.
-	std::string GetProjectTypeGuid(ELanguage language);
-
-	// Finds a project in an array based on its name.
-	ProjectFile* GetProjectByName(
-		std::vector<ProjectFile>& projectFiles,
-		const std::string& name);
 
 	// Gets the location of the msbuild exe.
 	virtual Platform::Path GetMSBuildLocation() = 0;

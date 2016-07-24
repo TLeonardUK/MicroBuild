@@ -22,30 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Workspace/WorkspaceFile.h"
 #include "App/Project/ProjectFile.h"
 #include "Core/Helpers/TextStream.h"
+#include "App/Ides/IdeHelper.h"
 
 namespace MicroBuild {
-
-// Used to build a hierarchy of group folders in a workspace.
-struct ProjectGroupFolder
-{
-	std::string baseName;
-	std::string name;
-	std::string parentName;
-};
-
-
-// Used to define the platform/configuration matrix that defines what
-// projects we build in what configurations.
-struct BuildProjectPair
-{
-	std::string config;
-	EPlatform platform;
-	bool shouldBuild;
-	bool shouldDeploy;
-	ProjectFile projectFile;
-};
-typedef std::vector<BuildProjectPair> BuildProjectMatrix;
-typedef std::vector<BuildProjectMatrix> BuildWorkspaceMatrix;
 
 // Base class for all IDE targets.
 class IdeType
@@ -81,57 +60,6 @@ public:
 	);
 
 protected:
-
-	typedef std::pair<Platform::Path, std::string> VPathPair;
-
-	ProjectFile* GetProjectByName(
-		std::vector<ProjectFile>& projectFiles,
-		const std::string& name
-	);
-
-	bool GetProjectDependency(
-		WorkspaceFile& workspaceFile,
-		std::vector<ProjectFile>& projectFiles,
-		ProjectFile* activeFile,
-		ProjectFile*& output,
-		std::string name
-	);
-
-	std::vector<ProjectGroupFolder> GetGroupFolders(
-		WorkspaceFile& workspaceFile,
-		std::vector<ProjectFile>& projectFiles,
-		std::vector<VPathPair>& vpaths
-	);
-
-	void GetGroupFoldersInternal(
-		Platform::Path group,
-		std::vector<ProjectGroupFolder>& result
-	);
-
-	bool CreateBuildMatrix(
-		WorkspaceFile& workspaceFile,
-		std::vector<ProjectFile>& projectFiles,
-		BuildWorkspaceMatrix& output);
-
-	// Takes a list of virtual paths and expands them to the relative project
-	// path names that should be used for project filters.
-	std::vector<VPathPair> ExpandVPaths(
-		std::vector<ConfigFile::KeyValuePair>& vpaths,
-		std::vector<Platform::Path>& files);
-
-	// Checks if the platforms provided are in the valid list, if not
-	// an error is given and it returns false.
-	bool ArePlatformsValid(
-		ProjectFile& file,
-		std::vector<EPlatform> toCheck,
-		std::vector<EPlatform> validOptions);
-
-	// Extracts a unique list of filters from the given vpath and file list.
-	std::vector<std::string> SortFiltersByType(
-		std::vector<VPathPair>& vpaths,
-		Platform::Path& rootPath,
-		std::map<std::string, std::string>& filterMap
-	);
 
 	void SetShortName(const std::string& value);
 

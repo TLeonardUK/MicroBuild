@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "App/Ides/IdeType.h"
 
-#include "App/Ides/MSBuild/VisualStudio_2015.h"
+#include "App/Ides/MSBuild/Versions/VisualStudio_2015.h"
 #include "App/Ides/Make/Make.h"
 #include "App/Ides/XCode/XCode.h"
 #include "App/Ides/MonoDevelop/MonoDevelop.h"

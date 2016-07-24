@@ -41,11 +41,13 @@ START_ENUM(ECharacterSet)
 END_ENUM()
 
 START_ENUM(EPlatformToolset)
+
 	ENUM_KEY(Default)
 
-	// C++ Platforms
+	// MSBuild
 	ENUM_KEY(v140)
 	ENUM_KEY(v140_xp)
+	ENUM_KEY(v140_clang_3_7)
 
 	// DotNet
 	ENUM_KEY(DotNet_2_0)
@@ -56,6 +58,11 @@ START_ENUM(EPlatformToolset)
 	ENUM_KEY(DotNet_4_5_1)
 	ENUM_KEY(DotNet_4_5_2)
 	ENUM_KEY(DotNet_4_6)	
+
+	// Makefiles/etc
+	ENUM_KEY(Clang)
+	ENUM_KEY(GCC)
+
 END_ENUM()
 
 START_ENUM(EWarningLevel)
@@ -342,7 +349,7 @@ START_OPTION(
 	EPlatformToolset,
 	Build,
 	PlatformToolset,
-	"Which platform toolset to use for complication, valid values depend on "
+	"Which platform toolset to use for compilation, valid values depend on "
 	"the target ide project files are being generated for."
 )
 OPTION_RULE_DEFAULT(EPlatformToolset::Default)
