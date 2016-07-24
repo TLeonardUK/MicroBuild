@@ -36,7 +36,7 @@ START_ENUM(EPlatform)
 	ENUM_KEY(ARM)
 	ENUM_KEY(ARM64)
 	ENUM_KEY(AnyCPU)
-
+/*
 	ENUM_KEY(iOS)
 	ENUM_KEY(Android)
 	ENUM_KEY(Emscripten)
@@ -46,6 +46,14 @@ START_ENUM(EPlatform)
 	
 	ENUM_KEY(WiiU)
 	ENUM_KEY(Nintendo3DS)
+*/
+END_ENUM()
+
+// Super not sure if this is the best way to handle this? Might be a better
+// idea to have this as a part of one of the other enums (x86_WinRT?).
+START_ENUM(EPlatformSubSystem)
+	ENUM_KEY(Native)
+	ENUM_KEY(WinRT)
 END_ENUM()
 
 START_ENUM(ELanguage)

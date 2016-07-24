@@ -221,6 +221,7 @@ bool IdeType::CreateBuildMatrix(
 				}
 
 				pair.shouldBuild = pair.projectFile.Get_Project_ShouldBuild();
+				pair.shouldDeploy = pair.projectFile.Get_Project_ShouldDeploy();
 			}
 		}
 
@@ -316,9 +317,7 @@ std::vector<IdeType::VPathPair> IdeType::ExpandVPaths(
 std::vector<std::string> IdeType::SortFiltersByType(
 	std::vector<VPathPair>& vpaths,
 	Platform::Path& rootPath,
-	std::map<std::string, std::string>& sourceFilterMap,
-	std::map<std::string, std::string>& includeFilterMap,
-	std::map<std::string, std::string>& noneFilterMap)
+	std::map<std::string, std::string>& filterMap)
 {
 	std::vector<std::string> filters;
 
@@ -346,18 +345,7 @@ std::vector<std::string> IdeType::SortFiltersByType(
 			}
 		}
 
-		if (relativePath.IsSourceFile())
-		{
-			sourceFilterMap[relativePath.ToString()] = filter;
-		}
-		else if (relativePath.IsIncludeFile())
-		{
-			includeFilterMap[relativePath.ToString()] = filter;
-		}
-		else
-		{
-			noneFilterMap[relativePath.ToString()] = filter;
-		}
+		filterMap[relativePath.ToString()] = filter;
 	}
 
 	return filters;

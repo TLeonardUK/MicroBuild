@@ -16,12 +16,4 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Include/File.h"
-
-int main(int argc, char argv[])
-{
-	(void)argc;
-	(void)argv;
-	printf("Main Called");
-	return 0;
-}
+Test file that should not be compiled.

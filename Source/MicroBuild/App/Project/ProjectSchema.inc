@@ -106,6 +106,18 @@ END_OPTION()
 // ---------------------------------------------------------------------------
 
 START_OPTION(
+	bool,
+	Project,
+	ShouldDeploy,
+	"Determines if the project should be deployed, use in conjunction with if "
+	"statements to disable building projects in different configurations."
+)
+OPTION_RULE_DEFAULT(true)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
 	Platform::Path,
 	Project,
 	Location,
@@ -193,6 +205,19 @@ START_OPTION(
 )
 OPTION_RULE_DEFAULT(ELanguageVersion::Default)
 END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	EPlatformSubSystem,
+	Project,
+	Subsystem,
+	"Determines what platform subsystem should be compiled against "
+	"(winrt/native/etc)."
+)
+OPTION_RULE_DEFAULT(EPlatformSubSystem::Native)
+END_OPTION()
+
 
 // ---------------------------------------------------------------------------
 
@@ -529,13 +554,70 @@ START_OPTION(
 OPTION_RULE_DEFAULT(false)
 END_OPTION()
 
+
+// ---------------------------------------------------------------------------
+// WinRT
 // ---------------------------------------------------------------------------
 
 START_OPTION(
-	bool,
-	Flags,
-	CompileAsWinRT,
-	"Defines if a windows project is compiled as a winrt universal app."
+	std::string,
+	WinRT,
+	Locale,
+	"Determines the default locale of the project (used for app packaging)."
 )
-OPTION_RULE_DEFAULT(false)
+OPTION_RULE_DEFAULT(std::string("en-US"))
 END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	WinRT,
+	PlatformVersion,
+	"Version of the platform to compile for. Mainly used for WinRT."
+)
+OPTION_RULE_DEFAULT(std::string("10.0.10586.0"))
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	WinRT,
+	PlatformMinimumVersion,
+	"Minimum version of the platform this project should compile for. "
+	"Mainly used for WinRT."
+)
+OPTION_RULE_DEFAULT(std::string("10.0.10240.0"))
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	Platform::Path,
+	WinRT,
+	PackageSigningKey,
+	"Path to signing key to use when build app packages."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	Platform::Path,
+	WinRT,
+	Manifest,
+	"Path to the package manifest file."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+// Package References
+// ---------------------------------------------------------------------------
+START_KEY_VALUE_ARRAY_OPTION(
+	Packages,
+	"Defines a key-value pair, with the key being a package name and the value "
+	"being the verison of the package. Used primarily for winrt/nuget package "
+	"installation."
+)
+END_KEY_VALUE_ARRAY_OPTION()

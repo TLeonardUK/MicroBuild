@@ -37,6 +37,15 @@ public:
 		WorkspaceFile& workspaceFile,
 		std::vector<ProjectFile>& projectFiles) override;
 
+	virtual bool Clean(
+		WorkspaceFile& workspaceFile) override;
+
+	virtual bool Build(
+		WorkspaceFile& workspaceFile,
+		bool bRebuild,
+		const std::string& configuration,
+		const std::string& platform) override;
+
 protected:
 
 private:

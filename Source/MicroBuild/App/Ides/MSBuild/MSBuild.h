@@ -31,6 +31,18 @@ enum class MSBuildVersion
 	COUNT
 };
 
+// Simple class that stores which msbuild groups each file goes in.
+struct MSBuildFile
+{
+	std::string Path;
+	std::string TypeId;
+};
+struct MSBuildFileGroup
+{
+	std::vector<MSBuildFile> Files;
+};
+
+
 // Base class for all Microsoft Build types (visual studio).
 class Ide_MSBuild 
 	: public IdeType
@@ -48,6 +60,7 @@ public:
 	void SetHeaderShortName(const std::string& value);
 	void SetHeaderVersion(const std::string& value);
 	void SetDefaultToolset(EPlatformToolset toolset);
+	void SetDefaultToolsetString(const std::string& value);
 
 	// Generates a basic msbuild solution file that links to the given
 	// project files.
@@ -79,7 +92,8 @@ public:
 		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		ProjectFile& projectFiles,
-		BuildProjectMatrix& buildMatrix
+		BuildProjectMatrix& buildMatrix,
+		std::vector<MSBuildFileGroup>& groups
 	);
 
 	virtual bool Generate(
@@ -128,6 +142,7 @@ private:
 	std::string m_headerShortName;
 	std::string m_headerVersion;
 	EPlatformToolset m_defaultToolset;
+	std::string m_defaultToolsetString;
 
 };
 

@@ -366,6 +366,54 @@ bool Path::IsIncludeFile()  const
 	return false;
 }
 
+
+bool Path::IsXamlFile() const
+{
+	static const char* extensions[] = {
+		"xaml",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Path::IsImageFile() const
+{
+	static const char* extensions[] = {
+		"png",
+		"bmp",
+		"ico",
+		"gif",
+		"jpeg",
+		"jpg",
+		"tif",
+		"tiff",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 std::vector<std::string> Path::GetFragments() const
 {
 	return Strings::Split(Seperator, m_raw);

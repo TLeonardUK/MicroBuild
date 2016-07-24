@@ -41,6 +41,7 @@ struct BuildProjectPair
 	std::string config;
 	EPlatform platform;
 	bool shouldBuild;
+	bool shouldDeploy;
 	ProjectFile projectFile;
 };
 typedef std::vector<BuildProjectPair> BuildProjectMatrix;
@@ -129,9 +130,7 @@ protected:
 	std::vector<std::string> SortFiltersByType(
 		std::vector<VPathPair>& vpaths,
 		Platform::Path& rootPath,
-		std::map<std::string, std::string>& sourceFilterMap,
-		std::map<std::string, std::string>& includeFilterMap,
-		std::map<std::string, std::string>& noneFilterMap
+		std::map<std::string, std::string>& filterMap
 	);
 
 	void SetShortName(const std::string& value);

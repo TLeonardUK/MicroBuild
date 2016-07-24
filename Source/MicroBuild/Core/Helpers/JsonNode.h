@@ -16,35 +16,41 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "PCH.h"
-#include "App/Ides/MSBuild/VisualStudio_2015.h"
+#pragma once
+
+#include "Core/Platform/Path.h"
+
+#include <sstream>
 
 namespace MicroBuild {
 
-Ide_VisualStudio_2015::Ide_VisualStudio_2015()
+// This class wraps an json node that can be serialized into a string.
+class JsonNode
 {
-	SetShortName("vs2015");
-	SetHeaderShortName("Visual Studio 2015");
-	SetHeaderVersion("12.0");
-	SetDefaultToolset(EPlatformToolset::v140);
-	SetDefaultToolsetString("14.0");
-	SetMSBuildVersion(MSBuildVersion::Version12);
-}
+public:
+	JsonNode(const JsonNode& node) = delete;
+	JsonNode& operator=(const JsonNode&) = delete;
 
-Platform::Path Ide_VisualStudio_2015::GetMSBuildLocation()
-{
-	Platform::Path path = "%ProgramFiles%/MSBuild/14.0/bin/msbuild.exe";
-	if (!path.Exists())
-	{
-		path = "%ProgramFiles(x86)%/MSBuild/14.0/bin/msbuild.exe";
-		if (!path.Exists())
-		{
-			Log(LogSeverity::Warning, 
-				"Cannot find explicit msbuild executable.");
-			path = "msbuild";
-		}
-	}
-	return path;
-}
+	JsonNode();
+	~JsonNode();
+
+	JsonNode& Node(const char* name, ...);
+	JsonNode& Value(const char* value, ...);
+	JsonNode& Value(bool value);
+	JsonNode& Value(int value);
+	JsonNode& Value(float value);
+
+	std::string ToString(int indentLevel = 0);
+
+protected:
+	bool IsValueNode();
+
+private:
+	std::string m_name;
+	std::string m_value;
+
+	std::vector<JsonNode*> m_children;
+
+};
 
 }; // namespace MicroBuild

@@ -17,9 +17,3 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Include/File.h"
-
-int main(int argc, char argv[])
-{
-	printf("Main Called");
-	return 0;
-}

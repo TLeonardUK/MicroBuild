@@ -32,6 +32,26 @@ Ide_Make::~Ide_Make()
 {
 }
 
+bool Ide_Make::Clean(
+	WorkspaceFile& workspaceFile) 
+{
+	UNUSED_PARAMETER(workspaceFile);
+	return false;
+}
+
+bool Ide_Make::Build(
+	WorkspaceFile& workspaceFile,
+	bool bRebuild,
+	const std::string& configuration,
+	const std::string& platform) 
+{
+	UNUSED_PARAMETER(workspaceFile);
+	UNUSED_PARAMETER(bRebuild);
+	UNUSED_PARAMETER(configuration);
+	UNUSED_PARAMETER(platform);
+	return false;
+}
+
 bool Ide_Make::Generate(
 	DatabaseFile& databaseFile,
     WorkspaceFile& workspaceFile,

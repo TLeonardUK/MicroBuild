@@ -16,6 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// todo: Break this file up, its a massive clusterfuck at the moment,
+//		 there is a bunch of code that should be easy to break out
+//		 into more generic modules. Definitely make platform support
+//		 independent.
+
 #pragma once
 
 #include "PCH.h"
@@ -24,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Ides/MSBuild/VisualStudio_2015.h"
 #include "Core/Helpers/TextStream.h"
 #include "Core/Helpers/XmlNode.h"
+#include "Core/Helpers/JsonNode.h"
 #include "Core/Helpers/VbNode.h"
 #include "Core/Platform/Process.h"
 
@@ -32,6 +38,7 @@ namespace MicroBuild {
 #define GUID_SOLUTION_FOLDER "{2150E333-8FDC-42A3-9474-1A3956D46DE8}"
 #define GUID_CPP_PROJECT	 "{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}"
 #define GUID_CSHARP_PROJECT	 "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"
+#define GUID_UAP_PROJECT	 "{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A}"
 
 Ide_MSBuild::Ide_MSBuild()
     : m_msBuildVersion(MSBuildVersion::Version12)
@@ -62,6 +69,11 @@ void Ide_MSBuild::SetDefaultToolset(EPlatformToolset toolset)
 	m_defaultToolset = toolset;
 }
 
+void Ide_MSBuild::SetDefaultToolsetString(const std::string& toolset)
+{
+	m_defaultToolsetString = toolset;
+}
+
 std::string Ide_MSBuild::GetPlatformID(EPlatform platform)
 {
     switch (platform)
@@ -86,6 +98,7 @@ std::string Ide_MSBuild::GetPlatformID(EPlatform platform)
 		{
 			return "ARM64";
 		}
+	/*
 	case EPlatform::PS4:
 		{
 			return "PS4";
@@ -96,12 +109,13 @@ std::string Ide_MSBuild::GetPlatformID(EPlatform platform)
 		}
 	case EPlatform::WiiU:
 		{
-			return "CAFE";
+			return "CAFE2";
 		}
 	case EPlatform::Nintendo3DS:
 		{
 			return "CTR";
 		}
+	*/
     }
     return "";
 }
@@ -128,8 +142,9 @@ std::string Ide_MSBuild::GetPlatformDotNetTarget(EPlatform platform)
 		}
 	case EPlatform::ARM64:
 		{
-			return "ARM";
+			return "ARM64";
 		}
+	/*
 	case EPlatform::PS4:
 		{
 			return "PS4";
@@ -140,12 +155,13 @@ std::string Ide_MSBuild::GetPlatformDotNetTarget(EPlatform platform)
 		}
 	case EPlatform::WiiU:
 		{
-			return "CAFE";
+			return "CAFE2";
 		}
 	case EPlatform::Nintendo3DS:
 		{
 			return "CTR";
 		}
+	*/
     }
     return "";
 }
@@ -344,6 +360,12 @@ bool Ide_MSBuild::GenerateSolutionFile(
 					.Single("%s.%s|%s.Build.0", projectGuid.c_str(), pair.config.c_str(), platformStr.c_str())
 					.Value(false, "%s|%s", pair.config.c_str(), platformStr.c_str());
 			}
+			if (pair.shouldDeploy)
+			{
+				globalConfigPostSolutionNode
+					.Single("%s.%s|%s.Deploy.0", projectGuid.c_str(), pair.config.c_str(), platformStr.c_str())
+					.Value(false, "%s|%s", pair.config.c_str(), platformStr.c_str());
+			}
 		}
 	}
 
@@ -437,13 +459,66 @@ bool Ide_MSBuild::Generate_Csproj(
 		projectFile.Get_Project_Name() });
 
 	// Files.
+	std::vector<Platform::Path> files = projectFile.Get_Files_File();
+
+	// Find common path.
+	std::vector<ConfigFile::KeyValuePair> virtualPaths =
+		projectFile.Get_VirtualPaths();
+
+	std::vector<VPathPair> vpathFilters =
+		ExpandVPaths(virtualPaths, files);
+
+	// Generate filter list.
+	std::map<std::string, std::string> filterMap;
+	std::vector<std::string> filters = SortFiltersByType(
+		vpathFilters,
+		solutionDirectory,
+		filterMap
+	);
+
+	// Build a file->liunk map.
+	std::map<std::string, std::string> fileLinkMap;
+
+	// Split into file-type buckets.
 	std::vector<std::string> sourceFiles;
 	std::vector<std::string> miscFiles;
+	std::vector<std::string> xamlFiles;
+	std::vector<std::string> imageFiles;
 
-	for (Platform::Path& path : projectFile.Get_Files_File())
+	std::string appxManifestFile;
+	std::string packageSigningKey =
+		solutionDirectory.RelativeTo(projectFile.Get_WinRT_PackageSigningKey()).ToString();
+
+	std::string defaultAppxManifest;
+	std::string defaultPackageSignedKey;
+
+	for (Platform::Path& path : files)
 	{
-		std::string relativePath = "$(SolutionDir)\\" +
+		std::string nonPrefixedPath =
 			solutionDirectory.RelativeTo(path).ToString();
+
+		std::string relativePath = "$(SolutionDir)" +
+			nonPrefixedPath;
+
+		std::string filter = filterMap[nonPrefixedPath].c_str();
+
+		std::string linkPath = filter;
+		
+		if (!linkPath.empty())
+		{
+			linkPath = Strings::Format(
+				"%s%c%s",
+				linkPath.c_str(),
+				Platform::Path::Seperator,
+				path.GetFilename().c_str()
+			);
+		}
+		else
+		{
+			linkPath = path.GetFilename().c_str();
+		}
+
+		fileLinkMap[relativePath] = linkPath;
 
 		if (path.IsSourceFile())
 		{
@@ -451,8 +526,49 @@ bool Ide_MSBuild::Generate_Csproj(
 		}
 		else
 		{
-			miscFiles.push_back(relativePath);
+			if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+			{
+				if (path == projectFile.Get_WinRT_Manifest())
+				{
+					appxManifestFile = relativePath;
+				}
+
+				if (path.GetExtension() == "pfx")
+				{
+					defaultPackageSignedKey = relativePath;
+				}
+				else if (path.GetExtension() == "appxmanifest")
+				{
+					defaultAppxManifest = relativePath;
+				}
+
+				if (path.IsXamlFile())
+				{
+					xamlFiles.push_back(relativePath);
+				}
+				else if (path.IsImageFile())
+				{
+					imageFiles.push_back(relativePath);
+				}
+				else
+				{
+					miscFiles.push_back(relativePath);
+				}
+			}
+			else
+			{
+				miscFiles.push_back(relativePath);
+			}
 		}
+	}
+
+	if (appxManifestFile.empty())
+	{
+		appxManifestFile = defaultAppxManifest;
+	}
+	if (projectFile.Get_WinRT_PackageSigningKey().IsEmpty())
+	{
+		packageSigningKey = defaultPackageSignedKey;
 	}
 
 	XmlNode root;
@@ -465,8 +581,13 @@ bool Ide_MSBuild::Generate_Csproj(
 	XmlNode& project =
 		root.Node("Project")
 		.Attribute("DefaultTargets", "Build")
-		.Attribute("ToolsVersion", "14.0")
+		.Attribute("ToolsVersion", "%s", m_defaultToolsetString.c_str())
 		.Attribute("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003");
+
+	// Import block.
+	project.Node("Import")
+		.Attribute("Project", "$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.props")
+		.Attribute("Condition", "Exists('$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.props')");
 
 	// Globals
 	XmlNode& configPropertyGroup =
@@ -483,13 +604,40 @@ bool Ide_MSBuild::Generate_Csproj(
 	configPropertyGroup.Node("ProjectGuid")
 		.Value("%s", projectGuid.c_str());
 
+
+	// WinRT support.
+	if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+	{
+		configPropertyGroup.Node("DefaultLanguage").Value("%s", projectFile.Get_WinRT_Locale().c_str());
+		configPropertyGroup.Node("TargetPlatformIdentifier").Value("UAP");
+		configPropertyGroup.Node("TargetPlatformVersion").Value("%s", projectFile.Get_WinRT_PlatformVersion().c_str());
+		configPropertyGroup.Node("TargetPlatformMinVersion").Value("%s", projectFile.Get_WinRT_PlatformMinimumVersion().c_str());
+		configPropertyGroup.Node("MinimumVisualStudioVersion").Value("%s", m_defaultToolsetString.c_str());
+		configPropertyGroup.Node("ProjectTypeGuids").Value("%s;%s", GUID_UAP_PROJECT, GUID_CSHARP_PROJECT);
+		configPropertyGroup.Node("PackageCertificateKeyFile").Value("%s", defaultPackageSignedKey.c_str());
+	}
+
 	switch (projectFile.Get_Project_OutputType())
 	{
 	case EOutputType::Executable:
-		configPropertyGroup.Node("OutputType").Value("WinExe");
+		if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+		{
+			configPropertyGroup.Node("OutputType").Value("AppContainerExe");
+		}
+		else
+		{
+			configPropertyGroup.Node("OutputType").Value("WinExe");
+		}
 		break;
 	case EOutputType::ConsoleApp:
-		configPropertyGroup.Node("OutputType").Value("Exe");
+		if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+		{
+			configPropertyGroup.Node("OutputType").Value("AppContainerExe");
+		}
+		else
+		{
+			configPropertyGroup.Node("OutputType").Value("Exe");
+		}
 		break;
 	case EOutputType::DynamicLib:
 		configPropertyGroup.Node("OutputType").Value("Library");
@@ -547,7 +695,7 @@ bool Ide_MSBuild::Generate_Csproj(
 	{
 		std::string platformId = GetPlatformID(matrix.platform);
 
-				Platform::Path outDir = matrix.projectFile.Get_Project_OutputDirectory();
+		Platform::Path outDir = matrix.projectFile.Get_Project_OutputDirectory();
 		Platform::Path intDir = matrix.projectFile.Get_Project_IntermediateDirectory();
 
 		Platform::Path outDirRelative = solutionDirectory.RelativeTo(outDir);
@@ -555,16 +703,23 @@ bool Ide_MSBuild::Generate_Csproj(
 
 		std::vector<std::string> defines = matrix.projectFile.Get_Defines_Define();
 
+		if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+		{
+			defines.push_back("WINDOWS_UWP");
+			defines.push_back("NETFX_CORE");
+		}
+
 		XmlNode& platformConfig =
 			project.Node("PropertyGroup")
-			.Attribute("Condition", "'$(Configuration)|$(Platform)'=='%s|%s'", matrix.config.c_str(), GetPlatformDotNetTarget(matrix.platform).c_str())
-			.Attribute("Label", "Configuration");
+			.Attribute("Condition", "'$(Configuration)|$(Platform)' == '%s|%s'", matrix.config.c_str(), GetPlatformDotNetTarget(matrix.platform).c_str())
+			;//.Attribute("Label", "Configuration");
 
 		platformConfig.Node("DebugSymbols").Value(matrix.projectFile.Get_Flags_GenerateDebugInformation());
 		platformConfig.Node("BaseOutputPath").Value("$(SolutionDir)\\%s", outDirRelative.ToString().c_str());
 		platformConfig.Node("OutputPath").Value("$(BaseOutputPath)\\");
-		platformConfig.Node("BaseIntermediateOutputPath").Value("$(SolutionDir)\\%s\\", intDirRelative.ToString().c_str());
-		platformConfig.Node("IntermediateOutputPath").Value("$(BaseIntermediateOutputPath)\\");
+		//platformConfig.Node("BaseIntermediateOutputPath").Value("$(SolutionDir)\\%s\\", intDirRelative.ToString().c_str());
+		//platformConfig.Node("IntermediateOutputPath").Value("$(SolutionDir)\\%s\\", intDirRelative.ToString().c_str());
+		//platformConfig.Node("IntermediateOutputPath").Value("$(BaseIntermediateOutputPath)\\");
 		platformConfig.Node("DefineConstants").Value("%s", Strings::Join(defines, ";").c_str());
 		platformConfig.Node("DebugType").Value(matrix.projectFile.Get_Flags_GenerateDebugInformation() ? "full" : "pdbonly");
 		platformConfig.Node("PlatformTarget").Value("%s", GetPlatformDotNetTarget(matrix.platform).c_str());
@@ -573,6 +728,24 @@ bool Ide_MSBuild::Generate_Csproj(
 		platformConfig.Node("CodeAnalysisRuleSet").Value("MinimumRecommendedRules.ruleset");
 		platformConfig.Node("Prefer32Bit").Value(matrix.projectFile.Get_Flags_Prefer32Bit());
 		platformConfig.Node("AllowUnsafeBlocks").Value(matrix.projectFile.Get_Flags_AllowUnsafeCode());
+
+		std::vector<std::string> disabledWarnings =
+			matrix.projectFile.Get_DisabledWarnings_DisabledWarning();
+
+		if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+		{
+			disabledWarnings.push_back("2008");
+		}
+
+		if (disabledWarnings.size() > 0)
+		{
+			platformConfig.Node("NoWarn").Value("%s", Strings::Join(disabledWarnings, ";").c_str());
+		}
+
+		if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+		{
+			platformConfig.Node("UseVSHostingProcess").Value("false");
+		}
 
 		if (matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::None ||
 			matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::Debug)
@@ -618,32 +791,201 @@ bool Ide_MSBuild::Generate_Csproj(
 	project.Node("PropertyGroup").Node("StartupObject");
 
 	// References
-	XmlNode& referenceFileGroup = project.Node("ItemGroup");
-	for (auto file : projectFile.Get_References_Reference())
+	// WinRT references are part of projects.json, which is up to the user to deal with.
+	if (projectFile.Get_Project_Subsystem() != EPlatformSubSystem::WinRT)
 	{
-		referenceFileGroup.Node("Reference")
-			.Attribute("Include", "%s", file.ToString().c_str());
+		XmlNode& referenceFileGroup = project.Node("ItemGroup");
+		for (auto file : projectFile.Get_References_Reference())
+		{
+			referenceFileGroup.Node("Reference")
+				.Attribute("Include", "%s", file.ToString().c_str());
+		}
+	}
+	else
+	{
+		XmlNode& referenceFileGroup = project.Node("ItemGroup");
+
+		referenceFileGroup.Node("None")
+			.Attribute("Include", "project.json");
+
+		Platform::Path projectJsonLocation =
+			projectDirectory.AppendFragment("project.json", true);
+
+		// Write out reference file.
+		JsonNode jsonRoot;
+		
+		JsonNode& dependencyRoot = jsonRoot.Node("dependencies");
+		for (auto package : projectFile.Get_Packages())
+		{
+			dependencyRoot
+				.Node("%s", package.first.c_str())
+				.Value("%s", package.second.c_str());
+		}
+
+		JsonNode& frameworkRoot = jsonRoot.Node("frameworks");
+		frameworkRoot.Node("uap10.0").Value("");
+
+		JsonNode& runtimesRoot = jsonRoot.Node("runtimes");
+		runtimesRoot.Node("win10-arm").Value("");
+		runtimesRoot.Node("win10-arm-aot").Value("");
+		runtimesRoot.Node("win10-x86").Value("");
+		runtimesRoot.Node("win10-x86-aot").Value("");
+		runtimesRoot.Node("win10-x64").Value("");
+		runtimesRoot.Node("win10-x64-aot").Value("");
+
+		// Generate result.
+		if (!databaseFile.StoreFile(
+			workspaceFile,
+			projectDirectory,
+			projectJsonLocation,
+			jsonRoot.ToString().c_str()))
+		{
+			return false;
+		}
+	}
+
+	// Keep a list of item nodes so we can do global adjustments later.
+	std::vector<std::pair<std::string, XmlNode*>> fileNodes;
+
+	// Xaml files
+	if (xamlFiles.size() > 0)
+	{
+		XmlNode& xamlFileGroup = project.Node("ItemGroup");
+		for (auto file : xamlFiles)
+		{
+			Platform::Path filePath = file;
+
+			// It seems the app xaml always has to be named App.xaml, convinent for us.
+			if (filePath.GetFilename() == "App.xaml")
+			{
+				XmlNode& fileNode = xamlFileGroup.Node("ApplicationDefinition")
+					.Attribute("Include", "%s", file.c_str());
+
+				fileNode
+					.Node("SubType")
+					.Value("Designer");
+
+				fileNode
+					.Node("Generator")
+					.Value("MSBuild:Compile");
+
+				fileNode
+					.Node("Link")
+					.Value("%s", fileLinkMap[file.c_str()].c_str());
+			}
+			else
+			{
+				XmlNode& fileNode = xamlFileGroup.Node("Page")
+					.Attribute("Include", "%s", file.c_str());
+
+				fileNode
+					.Node("SubType")
+					.Value("Designer");
+
+				fileNode
+					.Node("Generator")
+					.Value("MSBuild:Compile");
+
+				fileNode
+					.Node("Link")
+					.Value("%s", fileLinkMap[file.c_str()].c_str());
+			}
+		}
 	}
 
 	// Source files
-	XmlNode& sourceFileGroup = project.Node("ItemGroup");
-	for (auto file : sourceFiles)
+	if (sourceFiles.size() > 0)
 	{
-		sourceFileGroup.Node("Compile")
-			.Attribute("Include", "%s", file.c_str());
+		XmlNode& sourceFileGroup = project.Node("ItemGroup");
+		for (auto file : sourceFiles)
+		{
+			XmlNode& fileNode =
+				sourceFileGroup.Node("Compile")
+				.Attribute("Include", "%s", file.c_str());
+
+			if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+			{
+				size_t xamlOffset = file.find(".xaml.");
+				if (xamlOffset != std::string::npos)
+				{
+					fileNode.Node("DependentUpon")
+						.Value("%s", fileLinkMap[file.substr(0, xamlOffset + 5)].c_str());
+				}
+			}
+
+			fileNode
+				.Node("Link")
+				.Value("%s", fileLinkMap[file.c_str()].c_str());
+		}
 	}
 
 	// Misc file.
-	XmlNode& miscFileGroup = project.Node("ItemGroup");
-	for (auto file : miscFiles)
+	if (miscFiles.size() > 0)
 	{
-		miscFileGroup.Node("None")
-			.Attribute("Include", "%s", file.c_str());
+		XmlNode& miscFileGroup = project.Node("ItemGroup");
+		for (auto file : miscFiles)
+		{
+			if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+			{
+				if (file == appxManifestFile)
+				{
+					XmlNode& fileNode = miscFileGroup.Node("AppxManifest")
+						.Attribute("Include", "%s", file.c_str());
+
+					fileNode
+						.Node("SubType")
+						.Value("Designer");
+
+					fileNode
+						.Node("Link")
+						.Value("%s", fileLinkMap[file.c_str()].c_str());
+
+					continue;
+				}
+			}
+
+			XmlNode& fileNode = miscFileGroup.Node("None")
+				.Attribute("Include", "%s", file.c_str());
+
+			fileNode
+				.Node("Link")
+				.Value("%s", fileLinkMap[file.c_str()].c_str());
+		}
+	}
+
+	// Image files.
+	if (imageFiles.size() > 0)
+	{
+		XmlNode& imageFileGroup = project.Node("ItemGroup");
+		for (auto file : imageFiles)
+		{
+			XmlNode& fileNode = imageFileGroup.Node("Content")
+				.Attribute("Include", "%s", file.c_str());
+
+			fileNode
+				.Node("Link")
+				.Value("%s", fileLinkMap[file.c_str()].c_str());
+		}
 	}
 
 	// Import
-	project.Node("Import")
-		.Attribute("Project", "$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
+	if (projectFile.Get_Project_Subsystem() != EPlatformSubSystem::WinRT)
+	{
+		project.Node("Import")
+			.Attribute("Project", "$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
+	}
+	else
+	{
+		XmlNode& versionPropertyGroup =
+			project.Node("PropertyGroup")
+			.Attribute("Condition", "'$(VisualStudioVersion)'=='' or '$(VisualStudioVersion)' &lt; '%s' ", m_defaultToolsetString.c_str());
+
+		versionPropertyGroup.Node("VisualStudioVersion")
+			.Value("%s", m_defaultToolsetString.c_str());
+
+		project.Node("Import")
+			.Attribute("Project", "$(MSBuildExtensionsPath)\\Microsoft\\WindowsXaml\\v$(VisualStudioVersion)\\Microsoft.Windows.UI.Xaml.CSharp.targets");
+	}
 
 	// Generate result.
 	if (!databaseFile.StoreFile(
@@ -689,11 +1031,20 @@ bool Ide_MSBuild::Generate_Vcxproj(
 	std::vector<std::string> includeFiles;
 	std::vector<std::string> sourceFiles;
 	std::vector<std::string> miscFiles;
+	std::vector<std::string> xamlFiles;
+	std::vector<std::string> imageFiles;
+
 	std::string precompiledSourceFile;
+	std::string appxManifestFile;
+	std::string packageSigningKey =
+		solutionDirectory.RelativeTo(projectFile.Get_WinRT_PackageSigningKey()).ToString();
+
+	std::string defaultAppxManifest;
+	std::string defaultPackageSignedKey;
 
 	for (Platform::Path& path : projectFile.Get_Files_File())
 	{
-		std::string relativePath = "$(SolutionDir)\\" +
+		std::string relativePath = "$(SolutionDir)" +
 			solutionDirectory.RelativeTo(path).ToString();
 
 		if (path == projectFile.Get_Build_PrecompiledSource())
@@ -711,8 +1062,49 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		}
 		else
 		{
-			miscFiles.push_back(relativePath);
+			if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+			{
+				if (path == projectFile.Get_WinRT_Manifest())
+				{
+					appxManifestFile = relativePath;
+				}
+
+				if (path.GetExtension() == "pfx")
+				{
+					defaultPackageSignedKey = relativePath;
+				}
+				else if (path.GetExtension() == "appxmanifest")
+				{
+					defaultAppxManifest = relativePath;
+				}
+
+				if (path.IsXamlFile())
+				{
+					xamlFiles.push_back(relativePath);
+				}
+				else if (path.IsImageFile())
+				{
+					imageFiles.push_back(relativePath);
+				}
+				else
+				{
+					miscFiles.push_back(relativePath);
+				}
+			}
+			else
+			{
+				miscFiles.push_back(relativePath);
+			}
 		}
+	}
+
+	if (appxManifestFile.empty())
+	{
+		appxManifestFile = defaultAppxManifest;
+	}
+	if (projectFile.Get_WinRT_PackageSigningKey().IsEmpty())
+	{
+		packageSigningKey = defaultPackageSignedKey;
 	}
 
 	XmlNode root;
@@ -725,7 +1117,7 @@ bool Ide_MSBuild::Generate_Vcxproj(
 	XmlNode& project = 
 		root.Node("Project")
 		.Attribute("DefaultTargets", "Build")
-		.Attribute("ToolsVersion", "14.0")
+		.Attribute("ToolsVersion", "")
 		.Attribute("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003");
 
 	// Build Matrix
@@ -754,6 +1146,18 @@ bool Ide_MSBuild::Generate_Vcxproj(
 	globals.Node("IgnoreWarnCompileDuplicatedFilename").Value("true");
 	globals.Node("Keyword").Value("Win32Proj");
 	globals.Node("RootNamespace").Value("%s", projectFile.Get_Project_RootNamespace().c_str());
+
+	// WinRT support.
+	if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+	{
+		globals.Node("DefaultLanguage").Value("%s", projectFile.Get_WinRT_Locale().c_str());
+		globals.Node("MinimumVisualStudioVersion").Value("%s", m_defaultToolsetString.c_str());
+		globals.Node("AppContainerApplication").Value("true");
+		globals.Node("ApplicationType").Value("Windows Store");
+		globals.Node("WindowsTargetPlatformVersion").Value("%s", projectFile.Get_WinRT_PlatformVersion().c_str());
+		globals.Node("WindowsTargetPlatformMinVersion").Value("%s", projectFile.Get_WinRT_PlatformMinimumVersion().c_str());
+		globals.Node("ApplicationTypeRevision").Value("10.0");
+	}
 
 	// Imports
 	project.Node("Import")
@@ -848,6 +1252,12 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		{
 			propertyGroup.Node("WholeProgramOptimization").Value("true");
 		}
+
+		// WinRT support.
+		if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+		{
+			propertyGroup.Node("UseDotNetNativeToolchain").Value(true);
+		}
 	}
 
 	// Imports
@@ -877,6 +1287,17 @@ bool Ide_MSBuild::Generate_Vcxproj(
 	// Macros settings
 	project.Node("PropertyGroup")
 		.Attribute("Label", "UserMacros");
+
+	// WinRT.
+	if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+	{
+		XmlNode& winrtNode =
+			project.Node("PropertyGroup");
+
+		winrtNode
+			.Node("PackageCertificateKeyFile")
+			.Value("%s", defaultPackageSignedKey.c_str());
+	}
 
 	// Output property group.
 	for (auto matrix : buildMatrix)
@@ -976,6 +1397,10 @@ bool Ide_MSBuild::Generate_Vcxproj(
 				compileGroup.Node("PrecompiledHeader").Value("Use");
 				compileGroup.Node("PrecompiledHeaderFile").Value("%s", precompiledHeader.GetFilename().c_str());
 			}
+			else
+			{
+				compileGroup.Node("PrecompiledHeader").Value("NotUsing");
+			}
 
 			// General settings.
 			if (matrix.projectFile.Get_Defines_Define().size() > 0)
@@ -1052,9 +1477,17 @@ bool Ide_MSBuild::Generate_Vcxproj(
 
 			compileGroup.Node("TreatWarningAsError").Value(matrix.projectFile.Get_Flags_CompilerWarningsFatal());
 
-			if (matrix.projectFile.Get_DisabledWarnings_DisabledWarning().size() > 0)
+			std::vector<std::string> disabledWarnings =
+				matrix.projectFile.Get_DisabledWarnings_DisabledWarning();
+			
+			if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
 			{
-				std::vector<std::string> disabledWarnings = matrix.projectFile.Get_DisabledWarnings_DisabledWarning();
+				disabledWarnings.push_back("4453");
+				disabledWarnings.push_back("28204");
+			}
+
+			if (disabledWarnings.size() > 0)
+			{
 				compileGroup.Node("DisableSpecificWarnings").Value("%s;$(DisableSpecificWarnings)", Strings::Join(disabledWarnings, ";").c_str());
 			}
 
@@ -1083,10 +1516,20 @@ bool Ide_MSBuild::Generate_Vcxproj(
 			}
 
 			// Additional options.
+			std::string addtionalOptions = "";
+			if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+			{
+				addtionalOptions += "/bigobj ";
+			}
 			if (!matrix.projectFile.Get_Build_CompilerArguments().empty())
 			{
+				addtionalOptions += matrix.projectFile.Get_Build_CompilerArguments();
+			}
+
+			if (!addtionalOptions.empty())
+			{
 				compileGroup.Node("AdditionalOptions")
-					.Value("%s $(AdditionalOptions)", matrix.projectFile.Get_Build_CompilerArguments().c_str());
+					.Value("%s $(AdditionalOptions)", addtionalOptions.c_str());
 			}
 
 			if (forcedIncludes.size() > 0)
@@ -1152,36 +1595,181 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		}
 	}
 
+	// We store which groups each file goes into so we can easily
+	// generate a filters file.
+	std::vector<MSBuildFileGroup> fileGroupList;
+
 	// Include files
-	XmlNode& includeFileGroup = project.Node("ItemGroup");
-	for (auto file : includeFiles)
+	if (includeFiles.size() > 0)
 	{
-		includeFileGroup.Node("ClInclude")
-			.Attribute("Include", "%s", file.c_str());
+		MSBuildFileGroup group;
+
+		XmlNode& includeFileGroup = project.Node("ItemGroup");
+		for (auto file : includeFiles)
+		{
+			XmlNode& fileNode =
+				includeFileGroup.Node("ClInclude")
+				.Attribute("Include", "%s", file.c_str());
+
+			MSBuildFile groupFile;
+			groupFile.TypeId = "ClInclude";
+			groupFile.Path = file;
+			group.Files.push_back(groupFile);
+
+			if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+			{
+				size_t xamlOffset = file.find(".xaml.");
+				if (xamlOffset != std::string::npos)
+				{
+					fileNode.Node("DependentUpon")
+						.Value("%s", file.substr(0, xamlOffset + 5).c_str());
+				}
+			}
+		}
+
+		fileGroupList.push_back(group);
+	}
+
+	// Xaml files
+	if (xamlFiles.size() > 0)
+	{
+		MSBuildFileGroup group;
+
+		XmlNode& xamlFileGroup = project.Node("ItemGroup");
+		for (auto file : xamlFiles)
+		{
+			Platform::Path filePath = file;
+
+			// It seems the app xaml always has to be named App.xaml, convinent for us.
+			if (filePath.GetFilename() == "App.xaml") 
+			{
+				XmlNode& fileNode = xamlFileGroup.Node("ApplicationDefinition")
+					.Attribute("Include", "%s", file.c_str());
+				
+				fileNode
+					.Node("SubType")
+					.Value("Designer");
+
+				MSBuildFile groupFile;
+				groupFile.TypeId = "ApplicationDefinition";
+				groupFile.Path = file;
+				group.Files.push_back(groupFile);
+			}
+			else
+			{
+				XmlNode& fileNode = xamlFileGroup.Node("Page")
+					.Attribute("Include", "%s", file.c_str());
+
+				fileNode
+					.Node("SubType")
+					.Value("Designer");
+
+				MSBuildFile groupFile;
+				groupFile.TypeId = "Page";
+				groupFile.Path = file;
+				group.Files.push_back(groupFile);
+			}
+		}
+
+		fileGroupList.push_back(group);
+	}
+
+	// None files.
+	if (miscFiles.size() > 0)
+	{
+		MSBuildFileGroup group;
+
+		XmlNode& miscFileGroup = project.Node("ItemGroup");
+		for (auto file : miscFiles)
+		{
+			if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+			{
+				if (file == appxManifestFile)
+				{
+					XmlNode& fileNode = miscFileGroup.Node("AppxManifest")
+						.Attribute("Include", "%s", file.c_str());
+
+					fileNode
+						.Node("SubType")
+						.Value("Designer");
+
+					MSBuildFile groupFile;
+					groupFile.TypeId = "AppxManifest";
+					groupFile.Path = file;
+					group.Files.push_back(groupFile);
+
+					continue;
+				}
+			}
+
+			miscFileGroup.Node("None")
+				.Attribute("Include", "%s", file.c_str());
+
+			MSBuildFile groupFile;
+			groupFile.TypeId = "Include";
+			groupFile.Path = file;
+			group.Files.push_back(groupFile);
+		}
+
+		fileGroupList.push_back(group);
+	}
+
+	// Image files.
+	if (imageFiles.size() > 0)
+	{
+		MSBuildFileGroup group;
+
+		XmlNode& imageFileGroup = project.Node("ItemGroup");
+		for (auto file : imageFiles)
+		{
+			imageFileGroup.Node("Image")
+				.Attribute("Include", "%s", file.c_str());
+
+			MSBuildFile groupFile;
+			groupFile.TypeId = "Image";
+			groupFile.Path = file;
+			group.Files.push_back(groupFile);
+		}
+
+		fileGroupList.push_back(group);
 	}
 
 	// Source files
-	XmlNode& sourceFileGroup = project.Node("ItemGroup");
-	for (auto file : sourceFiles)
+	if (sourceFiles.size() > 0)
 	{
-		XmlNode& fileNode =
-			sourceFileGroup.Node("ClCompile")
-			.Attribute("Include", "%s", file.c_str());
+		MSBuildFileGroup group;
 
-		if (file == precompiledSourceFile)
+		XmlNode& sourceFileGroup = project.Node("ItemGroup");
+		for (auto file : sourceFiles)
 		{
-			fileNode.Node("PrecompiledHeader").Value("Create");
+			XmlNode& fileNode =
+				sourceFileGroup.Node("ClCompile")
+				.Attribute("Include", "%s", file.c_str());
+
+			MSBuildFile groupFile;
+			groupFile.TypeId = "ClCompile";
+			groupFile.Path = file;
+			group.Files.push_back(groupFile);
+
+			if (file == precompiledSourceFile)
+			{
+				fileNode.Node("PrecompiledHeader").Value("Create");
+			}
+
+			if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+			{
+				size_t xamlOffset = file.find(".xaml.");
+				if (xamlOffset != std::string::npos)
+				{
+					fileNode.Node("DependentUpon")
+						.Value("%s", file.substr(0, xamlOffset + 5).c_str());
+				}
+			}
 		}
+
+		fileGroupList.push_back(group);
 	}
 	
-	// Misc file.
-	XmlNode& miscFileGroup = project.Node("ItemGroup");
-	for (auto file : miscFiles)
-	{
-		miscFileGroup.Node("None")
-			.Attribute("Include", "%s", file.c_str());
-	}
-
 	// Imports
 	project.Node("Import")
 		.Attribute("Project", "$(VCTargetsPath)\\Microsoft.Cpp.targets");
@@ -1200,6 +1788,18 @@ bool Ide_MSBuild::Generate_Vcxproj(
 		return false;
 	}
 
+	// Generate the filters file.
+	if (!Generate_Vcxproj_Filters(
+		databaseFile,
+		workspaceFile,
+		projectFile,
+		buildMatrix,
+		fileGroupList
+	))
+	{
+		return false;
+	}
+
     return true;
 }
 
@@ -1207,8 +1807,9 @@ bool Ide_MSBuild::Generate_Vcxproj_Filters(
 	DatabaseFile& databaseFile,
 	WorkspaceFile& workspaceFile,
 	ProjectFile& projectFile,
-	BuildProjectMatrix& buildMatrix
-	)
+	BuildProjectMatrix& buildMatrix,
+	std::vector<MSBuildFileGroup>& groups
+)
 {
 	UNUSED_PARAMETER(buildMatrix);
 
@@ -1221,13 +1822,7 @@ bool Ide_MSBuild::Generate_Vcxproj_Filters(
 	Platform::Path projectFiltersLocation =
 		projectDirectory.AppendFragment(
 			projectFile.Get_Project_Name() + ".vcxproj.filters", true);
-
-	std::vector<std::string> configurations =
-		workspaceFile.Get_Configurations_Configuration();
-
-	std::vector<EPlatform> platforms =
-		workspaceFile.Get_Platforms_Platform();
-
+	
 	std::vector<Platform::Path> files = projectFile.Get_Files_File();
 
 	// Find common path.
@@ -1238,15 +1833,11 @@ bool Ide_MSBuild::Generate_Vcxproj_Filters(
 		ExpandVPaths(virtualPaths, files);
 
 	// Generate filter list.
-	std::map<std::string, std::string> sourceFilterMap;
-	std::map<std::string, std::string> includeFilterMap;
-	std::map<std::string, std::string> noneFilterMap;
+	std::map<std::string, std::string> filterMap;
 	std::vector<std::string> filters = SortFiltersByType(
 		vpathFilters, 
 		solutionDirectory,
-		sourceFilterMap,
-		includeFilterMap,
-		noneFilterMap
+		filterMap
 	);
 
 	XmlNode root;
@@ -1258,7 +1849,7 @@ bool Ide_MSBuild::Generate_Vcxproj_Filters(
 
 	XmlNode& project =
 		root.Node("Project")
-		.Attribute("ToolsVersion", "14.0")
+		.Attribute("ToolsVersion", "%s", m_defaultToolsetString.c_str())
 		.Attribute("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003");
 
 	// Filter block.
@@ -1268,44 +1859,31 @@ bool Ide_MSBuild::Generate_Vcxproj_Filters(
 		std::string guid =
 			Strings::Guid({ workspaceFile.Get_Workspace_Name(), filter, "folder" });
 
-		XmlNode& itemNode = 
+		XmlNode& itemNode =
 			filterGroup.Node("Filter")
 			.Attribute("Include", "%s", filter.c_str());
 
 		itemNode.Node("UniqueIdentifier").Value("%s", guid.c_str());
 	}
 
-	// Source files
-	XmlNode& sourceGroup = project.Node("ItemGroup");
-	for (auto pair : sourceFilterMap)
-	{		
-		XmlNode& itemNode =
-			sourceGroup.Node("ClCompile")
-			.Attribute("Include", "$(SolutionDir)\\%s", pair.first.c_str());
+	// Dump out each group.
+	std::string filePrefix = "$(SolutionDir)";
 
-		itemNode.Node("Filter").Value("%s", pair.second.c_str());
-	}
-	
-	// Header files
-	XmlNode& headerGroup = project.Node("ItemGroup"); 
-	for (auto pair : includeFilterMap)
+	for (MSBuildFileGroup& group : groups)
 	{
-		XmlNode& itemNode =
-			headerGroup.Node("ClInclude")
-			.Attribute("Include", "$(SolutionDir)\\%s", pair.first.c_str());
+		XmlNode& sourceGroup = project.Node("ItemGroup");
+		for (MSBuildFile& file : group.Files)
+		{			
+			XmlNode& itemNode =
+				sourceGroup.Node(file.TypeId.c_str())
+				.Attribute("Include", "%s", file.Path.c_str());
 
-		itemNode.Node("Filter").Value("%s", pair.second.c_str());
-	}
+			std::string nonPrefixedPath = file.Path.substr(filePrefix.size());
 
-	// none files
-	XmlNode& noneGroup = project.Node("ItemGroup");
-	for (auto pair : noneFilterMap)
-	{
-		XmlNode& itemNode =
-			noneGroup.Node("None")
-			.Attribute("Include", "$(SolutionDir)\\%s", pair.first.c_str());
-
-		itemNode.Node("Filter").Value("%s", pair.second.c_str());
+			itemNode
+				.Node("Filter")
+				.Value("%s", filterMap[nonPrefixedPath].c_str());
+		}
 	}
 	
 	// Generate result.
@@ -1340,16 +1918,6 @@ bool Ide_MSBuild::Generate(
 		case ELanguage::Cpp:
 			{
 				if (!Generate_Vcxproj(
-					databaseFile,
-					workspaceFile,
-					file,
-					matrix[index]
-					))
-				{
-					return false;
-				}
-
-				if (!Generate_Vcxproj_Filters(
 					databaseFile,
 					workspaceFile,
 					file,

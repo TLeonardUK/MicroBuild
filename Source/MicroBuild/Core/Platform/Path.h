@@ -122,6 +122,12 @@ public:
 	// Returns true if the extension of this path looks like an include file.
 	bool IsIncludeFile() const;
 
+	// Returns true if the extension of this path looks like a xaml file.
+	bool IsXamlFile() const;
+
+	// Returns true if the extension of this path looks like a image file.
+	bool IsImageFile() const;
+
 	// Creates this path as a directory.
 	bool CreateAsDirectory() const;
 
