@@ -1,4 +1,4 @@
-/*
+--[[
 MicroBuild
 Copyright (C) 2016 TwinDrills
 
@@ -14,31 +14,12 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+--]]
 
-#include "PCH.h"
-#include "App/Ides/XCode/XCode.h"
-#include "Core/Helpers/TextStream.h"
+-- Figure out the root directory for microbuild. This makes assumptions
+-- on directory layout, so don't fiddle :)
+MBRoot = os.realpath(os.getcwd() .. "/../../../")
+print("MicroBuild Root: " .. MBRoot)
 
-namespace MicroBuild {
-
-Ide_XCode::Ide_XCode()
-{
-}
-
-Ide_XCode::~Ide_XCode()
-{
-}
-
-bool Ide_XCode::Generate(
-	DatabaseFile& databaseFile,
-	WorkspaceFile& workspaceFile,
-	std::vector<ProjectFile>& projectFiles)
-{
-	UNUSED_PARAMETER(databaseFile);
-	UNUSED_PARAMETER(workspaceFile);
-	UNUSED_PARAMETER(projectFiles);
-	return false;
-}
-
-}; // namespace MicroBuild
+include("Workspace.lua")
+include("Project.lua");

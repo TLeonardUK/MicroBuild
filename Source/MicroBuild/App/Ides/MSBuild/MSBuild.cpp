@@ -27,8 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //		 into more generic modules. Definitely make platform support
 //		 independent.
 
-#pragma once
-
 #include "PCH.h"
 #include "App/Project/ProjectFile.h"
 #include "App/Ides/MSBuild/MSBuild.h"

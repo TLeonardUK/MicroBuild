@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
 #include "PCH.h"
 #include "Core/Helpers/Strings.h"
 #include "Core/Helpers/BinaryStream.h"
@@ -129,9 +127,6 @@ void BinaryStream::ReadBuffer(char* buffer, uint64_t bufferLength)
 
 uint32_t BinaryStream::Crc32()
 {
-#if 0
-	return 0;
-#else
 	if (!s_crc32TableInit)
 	{
 		uint32_t polynomial = 0xEDB88320;;
@@ -185,29 +180,44 @@ uint32_t BinaryStream::Crc32()
 	}
 
 	return ~crc32;	
-#endif
 }
 
 uint64_t BinaryStream::Length()
 {
 	uint64_t offset = Offset();
 
+#if defined(MB_PLATFORM_WINDOWS)
 	_fseeki64(m_file, 0, SEEK_END);
+#else
+	fseeko64(m_file, 0, SEEK_END);
+#endif
 	uint64_t length = Offset();
 	
+#if defined(MB_PLATFORM_WINDOWS)
 	_fseeki64(m_file, offset, SEEK_SET);
+#else
+	fseeko64(m_file, offset, SEEK_SET);
+#endif
 
 	return length;
 }
 
 uint64_t BinaryStream::Offset()
 {
+#if defined(MB_PLATFORM_WINDOWS)
 	return static_cast<uint64_t>(_ftelli64(m_file));
+#else
+	return static_cast<uint64_t>(ftello64(m_file));
+#endif
 }
 
 void BinaryStream::Seek(uint64_t offset)
 {
+#if defined(MB_PLATFORM_WINDOWS)
 	_fseeki64(m_file, offset, SEEK_SET);
+#else
+	fseeko64(m_file, offset, SEEK_SET);
+#endif
 }
 
 void BinaryStream::CopyTo(BinaryStream& other)

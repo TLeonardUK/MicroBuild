@@ -157,7 +157,7 @@ Path Path::ChangeExtension(const std::string& Value) const
 	{
 		return Strings::Format(
 			"%s.%s",
-			m_raw,
+			m_raw.c_str(),
 			Value.c_str()
 		);
 	}
@@ -204,13 +204,13 @@ Path Path::ChangeMount(const std::string& Value) const
 		if (m_raw[0] == Seperator)
 		{
 			return Strings::Format("%s%s",
-				m_raw.substr(1),
+				m_raw.substr(1).c_str(),
 				Value.c_str());
 		}
 		else if (m_raw.size() > 1 && m_raw[1] == ':')
 		{
 			return Strings::Format("%s%s",
-				m_raw.substr(2),
+				m_raw.substr(2).c_str(),
 				Value.c_str());
 		}
 	}
@@ -581,7 +581,7 @@ Path Path::RelativeTo(const Path& Destination) const
 
 	// Work out which directories are matching.
 	int matchingDirs = 0;
-	size_t minDirCount = min(fragmentsDirCount, destFragmentsDirCount);
+	size_t minDirCount = Min(fragmentsDirCount, destFragmentsDirCount);
 
 	for (unsigned int i = 0; i < minDirCount; i++)
 	{
@@ -631,7 +631,7 @@ bool Path::GetCommonPath(std::vector<Path>& paths, Path& result)
 	size_t maxOffset = INT_MAX;
 	for (Path& path : paths)
 	{
-		maxOffset = min(maxOffset, path.ToString().size());
+		maxOffset = Min(maxOffset, path.ToString().size());
 	}
 
 	std::string matchPath = "";

@@ -23,15 +23,24 @@ project "MicroBuild"
 	targetdir(MBRoot .. "/Binaries/")
 	targetname("microbuild_%{cfg.system:lower()}_%{cfg.buildcfg:lower()}_%{cfg.architecture:lower()}")
 	objdir(MBRoot .. "/Build/Bootstrap/ProjectFiles/Obj/%{cfg.system:lower()}.%{cfg.buildcfg:lower()}.%{cfg.architecture:lower()}/")
-			
-	pchheader("PCH.h")
-	pchsource(MBRoot .. "/Source/PCH.cpp")
-			
+	
+	--premake seems to choke on these on linux.
+	--pchheader("PCH.h")
+	--pchsource(MBRoot .. "/Source/PCH.cpp")
+		
 	files 
 	{ 
 		(MBRoot .. "/Source/**.h"), 
-		(MBRoot .. "/Source/**.cpp"), 
+		(MBRoot .. "/Source/**.cpp"),
+		(MBRoot .. "/Source/**.c"), 
 		(MBRoot .. "/Source/**.template"), 
 		(MBRoot .. "/Source/**.inc")
+	}
+	
+	includedirs
+	{ 
+		(MBRoot .. "/Source/"),
+		(MBRoot .. "/Source/MicroBuild/"),
+		(MBRoot .. "/Source/ZLib/")
 	}
 		

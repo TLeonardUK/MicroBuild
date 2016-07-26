@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
 #include "PCH.h"
 #include "App/Ides/CodeBlocks/CodeBlocks.h"
 #include "Core/Helpers/TextStream.h"

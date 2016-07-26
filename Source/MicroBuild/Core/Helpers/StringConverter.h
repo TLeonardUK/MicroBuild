@@ -22,6 +22,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Platform/Path.h"
 #include "Core/Log.h"
 
+// This is outside the MB namespace as gcc differs from msbuild as it appends
+// the namespace to the nested extern reference :(. Theres probably a nicer way
+// to deal with this.
+template <typename FromType, typename ToType>
+struct OutsideNamespaceStringConverter
+{
+	bool Cast(const FromType& value, ToType& type)
+	{
+		extern bool StringConvert(const FromType& value, ToType& type);
+		return StringConvert(value, type);
+	}
+};
+
 namespace MicroBuild {
 
 template <typename FromType, typename ToType>
@@ -29,8 +42,8 @@ struct StringConverter
 {
 	bool Cast(const FromType& value, ToType& type)
 	{
-		extern bool StringConvert(const FromType& value, ToType& type);
-		return StringConvert(value, type);
+		OutsideNamespaceStringConverter<FromType, ToType> converter;
+		return converter.Cast(value, type);
 	}
 };
 

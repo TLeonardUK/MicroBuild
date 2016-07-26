@@ -31,28 +31,28 @@ private:
 	private: \
 		ValueType m_##Group##_##Key##_value; \
 	public: \
-		ValueType Get_##Group##_##Key##(); \
-		void Set_##Group##_##Key##(const ValueType& value); \
+		ValueType Get_##Group##_##Key(); \
+		void Set_##Group##_##Key(const ValueType& value); \
 	private: \
-		bool Validate_##Group##_##Key##(); 
+		bool Validate_##Group##_##Key(); 
 
 #define START_ARRAY_OPTION(ValueType, Group, Key, Description) \
 	private: \
 		std::vector<ValueType> m_##Group##_##Key##_value; \
 	public: \
-		std::vector<ValueType> Get_##Group##_##Key##(); \
-		void Set_##Group##_##Key##(const std::vector<ValueType>& value); \
+		std::vector<ValueType> Get_##Group##_##Key(); \
+		void Set_##Group##_##Key(const std::vector<ValueType>& value); \
 	private: \
-		bool Validate_##Group##_##Key##(); 
+		bool Validate_##Group##_##Key(); 
 
 #define START_KEY_VALUE_ARRAY_OPTION(Group, Description) \
 	private: \
 		std::vector<ConfigFile::KeyValuePair> m_##Group##_value; \
 	public: \
-		std::vector<ConfigFile::KeyValuePair> Get_##Group##(); \
-		void Set_##Group##(const std::vector<ConfigFile::KeyValuePair>& value); \
+		std::vector<ConfigFile::KeyValuePair> Get_##Group(); \
+		void Set_##Group(const std::vector<ConfigFile::KeyValuePair>& value); \
 	private: \
-		bool Validate_##Group##(); 
+		bool Validate_##Group(); 
 
 #define OPTION_RULE_ORDER_IMPORTANT()
 #define OPTION_RULE_REQUIRED()

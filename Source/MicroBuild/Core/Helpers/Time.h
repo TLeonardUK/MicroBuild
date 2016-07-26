@@ -59,7 +59,7 @@ struct TimedScope
 
 private:
 	std::string m_scope;
-	std::chrono::time_point<std::chrono::steady_clock> m_start;
+	std::chrono::high_resolution_clock::time_point m_start;
 
 };
 
