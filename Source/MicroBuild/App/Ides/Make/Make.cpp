@@ -24,6 +24,7 @@ namespace MicroBuild {
 
 Ide_Make::Ide_Make()
 {
+	SetShortName("make");
 }
 
 Ide_Make::~Ide_Make()
@@ -58,16 +59,41 @@ bool Ide_Make::Build(
 
 bool Ide_Make::Generate(
 	DatabaseFile& databaseFile,
-    WorkspaceFile& workspaceFile,
-    std::vector<ProjectFile>& projectFiles)
+	WorkspaceFile& workspaceFile,
+	std::vector<ProjectFile>& projectFiles)
 {
-	UNUSED_PARAMETER(databaseFile);
-	UNUSED_PARAMETER(workspaceFile);
-	UNUSED_PARAMETER(projectFiles);
+	IdeHelper::BuildWorkspaceMatrix matrix;
+	if (!IdeHelper::CreateBuildMatrix(workspaceFile, projectFiles, matrix))
+	{
+		return false;
+	}
 
+	for (ProjectFile& file : projectFiles)
+	{
+		Make_ProjectFile projectFile;
 
+		if (!projectFile.Generate(
+			databaseFile,
+			workspaceFile,
+			file,
+			matrix[index]))
+		{
+			return false;
+		}
+	}
 
-	return false;
+	Make_SolutionFile solutionFile;
+
+	if (!solutionFile.Generate(
+		databaseFile,
+		workspaceFile,
+		projectFiles,
+		matrix))
+	{
+		return false;
+	}
+
+    return true;
 }
 
 }; // namespace MicroBuild

@@ -81,7 +81,7 @@ std::vector<std::string> Path::GetDirectories() const
 		if (entry->d_type == DT_DIR)
 		{
 			std::string value = entry->d_name;
-			if (value == "." || value == "..")
+			if (value != "." && value != "..")
 			{
 				result.push_back(value);
 			}
@@ -114,7 +114,7 @@ bool Path::Copy(const Path& Destination) const
 			return false;
 		}
 
-	    dest << source.rdbuf();
+	    	dest << source.rdbuf();
 
 		source.close();
 		dest.close();

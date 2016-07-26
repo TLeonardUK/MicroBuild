@@ -80,8 +80,8 @@ void Ide_MSBuild::SetDefaultToolsetString(const std::string& toolset)
 
 bool Ide_MSBuild::Generate(
 	DatabaseFile& databaseFile,
-    WorkspaceFile& workspaceFile,
-    std::vector<ProjectFile>& projectFiles)
+   	WorkspaceFile& workspaceFile,
+   	std::vector<ProjectFile>& projectFiles)
 {
 	IdeHelper::BuildWorkspaceMatrix matrix;
 	if (!IdeHelper::CreateBuildMatrix(workspaceFile, projectFiles, matrix))
@@ -90,8 +90,8 @@ bool Ide_MSBuild::Generate(
 	}
 
 	int index = 0;
-    for (ProjectFile& file : projectFiles)
-    {
+    	for (ProjectFile& file : projectFiles)
+    	{
 		switch (file.Get_Project_Language())
 		{
 		case ELanguage::Cpp:
@@ -139,7 +139,7 @@ bool Ide_MSBuild::Generate(
 		}
 
 		index++;
-    }
+    	}
 
 	MSBuild_SlnSolutionFile slnFile(
 		m_headerVersion, 
@@ -148,8 +148,8 @@ bool Ide_MSBuild::Generate(
 
     if (!slnFile.Generate(
 		databaseFile,
-        workspaceFile,
-        projectFiles,
+        	workspaceFile,
+        	projectFiles,
 		matrix
         ))
     {

@@ -421,6 +421,8 @@ std::vector<std::string> Path::GetFragments() const
 
 void Path::Normalize()
 {
+	std::string original = m_raw;
+
 	if (m_raw.size() == 0)
 	{
 		return;
@@ -536,6 +538,12 @@ void Path::Normalize()
 					}
 				}
 				fragment = "";
+
+				// If we are the first character, make sure to append the seperator so linux paths work.
+				if (i == 0)
+				{
+					result = chr + result;
+				}
 			}
 			else
 			{
@@ -556,6 +564,8 @@ void Path::Normalize()
 
 		m_raw = result;
 	}
+
+	//printf("original=%s raw=%s\n", original.c_str(), m_raw.c_str());
 }
 
 Path Path::RelativeTo(const Path& Destination) const
@@ -746,6 +756,7 @@ std::vector<Path> MatchFilter_r(
 			frag.valid = true;
 			frag.isDirectory = true;
 			potentialMatches.push_back(frag);
+
 		}
 
 		for (std::string& path : files)
@@ -756,6 +767,7 @@ std::vector<Path> MatchFilter_r(
 			frag.valid = true;
 			frag.isDirectory = false;
 			potentialMatches.push_back(frag);
+
 		}
 		
 		bool bFinished = false;
