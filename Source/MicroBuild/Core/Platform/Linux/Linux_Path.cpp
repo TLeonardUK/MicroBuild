@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PCH.h"
 #include "Core/Platform/Path.h"
 
+#ifdef MB_PLATFORM_LINUX
+
 #include <iostream>
 #include <fstream>
 #include <unistd.h>
@@ -26,8 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/types.h>
 #include <fcntl.h>
 #include <dirent.h>
-
-#ifdef MB_PLATFORM_LINUX
 
 namespace MicroBuild {
 namespace Platform {
