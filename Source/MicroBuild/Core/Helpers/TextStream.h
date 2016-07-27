@@ -40,6 +40,8 @@ public:
 
 	bool WriteToFile(Platform::Path& path);
 
+	std::string ToString();
+
 private:
 	int m_indentLevel;
 	std::stringstream m_stream;

@@ -81,4 +81,10 @@ bool TextStream::WriteToFile(Platform::Path& path)
 	return Strings::WriteFile(path, result);
 }
 
+std::string TextStream::ToString()
+{
+	std::string result = m_stream.str();
+	return result;
+}
+
 }; // namespace MicroBuild

@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Ides/Make/Make.h"
+#include "App/Ides/Make/Make_ProjectFile.h"
+#include "App/Ides/Make/Make_SolutionFile.h"
 #include "Core/Helpers/TextStream.h"
 
 namespace MicroBuild {
@@ -68,6 +70,7 @@ bool Ide_Make::Generate(
 		return false;
 	}
 
+	int index = 0;
 	for (ProjectFile& file : projectFiles)
 	{
 		Make_ProjectFile projectFile;
@@ -80,6 +83,8 @@ bool Ide_Make::Generate(
 		{
 			return false;
 		}
+
+		index++;
 	}
 
 	Make_SolutionFile solutionFile;
@@ -92,7 +97,6 @@ bool Ide_Make::Generate(
 	{
 		return false;
 	}
-
     return true;
 }
 

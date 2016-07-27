@@ -214,11 +214,15 @@ std::string FormatVa(std::string format, va_list args)
 	char stackBuffer[STACK_BUFFER_SIZE];
 	char* buffer = stackBuffer;
 
-	int bytesRequired = vsnprintf(buffer, STACK_BUFFER_SIZE, format.c_str(), args);
+	va_list baseArgs;
+	va_copy(baseArgs, args);
+
+	int bytesRequired = vsnprintf(buffer, STACK_BUFFER_SIZE, format.c_str(), baseArgs);
 	if (bytesRequired >= STACK_BUFFER_SIZE - 1)
 	{
+		va_copy(baseArgs, args);
 		buffer = new char[bytesRequired + 1];
-		vsnprintf(buffer, bytesRequired + 1, format.c_str(), args);
+		vsnprintf(buffer, bytesRequired + 1, format.c_str(), baseArgs);
 	}
 
 	std::string result = buffer;
