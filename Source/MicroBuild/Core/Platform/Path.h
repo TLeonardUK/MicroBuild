@@ -128,6 +128,18 @@ public:
 	// Returns true if the extension of this path looks like a image file.
 	bool IsImageFile() const;
 
+	// Returns true if the extension of this path looks like a c file.
+	bool IsCFile() const;
+
+	// Returns true if the extension of this path looks like a objc file.
+	bool IsObjCFile() const;
+
+	// Returns true if the extension of this path looks like a c++ file.
+	bool IsCppFile() const;
+
+	// Returns true if the extension of this path looks like a csharp file.
+	bool IsCSharpFile() const;
+
 	// Creates this path as a directory.
 	bool CreateAsDirectory() const;
 

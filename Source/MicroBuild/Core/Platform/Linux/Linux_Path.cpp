@@ -179,7 +179,11 @@ bool Path::CreateAsDirectory() const
 
 bool Path::CreateAsFile() const
 {
-	int fd = open(m_raw.c_str(), O_CREAT | O_RDWR);
+	int fd = open(
+		m_raw.c_str(), 
+		O_CREAT | O_RDWR,  
+		S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH
+	);
 	if (fd == 0)
 	{
 		return false;

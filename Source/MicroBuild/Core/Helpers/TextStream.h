@@ -29,7 +29,7 @@ namespace MicroBuild {
 class TextStream
 {
 public:
-	TextStream();
+	TextStream(bool bUseSpacesForIndents = false);
 	~TextStream();
 
 	void Indent();
@@ -43,6 +43,7 @@ public:
 	std::string ToString();
 
 private:
+	bool m_bUseSpacesForIndents;
 	int m_indentLevel;
 	std::stringstream m_stream;
 

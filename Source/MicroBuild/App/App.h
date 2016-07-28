@@ -45,9 +45,9 @@ protected:
 	void PrintLicense();
 
 private:
-	CommandLineParser m_commandLineParser;
 	char** m_argv;
 	int m_argc;
+	CommandLineParser m_commandLineParser;
 
 	std::vector<IdeType*> m_ides;
 

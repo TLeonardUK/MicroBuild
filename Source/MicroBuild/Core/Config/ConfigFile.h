@@ -103,8 +103,8 @@ struct ConfigFileValue
 
 	ConfigFileValue()
 		: HasResolvedValue(false)
-		, ConditionResult(true)
 		, HasResolvedCondition(false)
+		, ConditionResult(true)
 	{
 	}
 };

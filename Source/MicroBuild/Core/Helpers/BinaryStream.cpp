@@ -94,10 +94,10 @@ void BinaryStream::WriteBuffer(const char* buffer, uint64_t bufferLength)
 			break;
 		}
 
-		fwrite(buffer, 1, (size_t)chunkSize, m_file);
+		size_t bytesWritten = fwrite(buffer, 1, (size_t)chunkSize, m_file);
 
-		bytesLeft -= chunkSize;
-		buffer += chunkSize;
+		bytesLeft -= bytesWritten;
+		buffer += bytesWritten;
 	}
 }
 
@@ -118,10 +118,10 @@ void BinaryStream::ReadBuffer(char* buffer, uint64_t bufferLength)
 			break;
 		}
 
-		fread(buffer, 1, (size_t)chunkSize, m_file);
+		size_t bytesRead = fread(buffer, 1, (size_t)chunkSize, m_file);
 
-		bytesLeft -= chunkSize;
-		buffer += chunkSize;
+		bytesLeft -= bytesRead;
+		buffer += bytesRead;
 	}
 }
 
@@ -169,7 +169,8 @@ uint32_t BinaryStream::Crc32()
 			break;
 		}
 
-		fread(buffer, 1, (size_t)chunkSize, m_file);
+		size_t bytesRead = fread(buffer, 1, (size_t)chunkSize, m_file);
+		assert(bytesRead > 0);
 
 		for (uint64_t i = 0; i < chunkSize; i++)
 		{

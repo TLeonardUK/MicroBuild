@@ -67,7 +67,7 @@ bool Make_SolutionFile::Generate(
 	std::vector<IdeHelper::ProjectGroupFolder> folders =
 		IdeHelper::GetGroupFolders(workspaceFile, projectFiles, vpathFilters);
 
-	TextStream stream;
+	TextStream stream(true);
 
 	std::string defaultConfigId = 
 		configurations[0] + "_" + CastToString(platforms[0]);
@@ -134,7 +134,7 @@ bool Make_SolutionFile::Generate(
 	}
 	stream.WriteLine("");
 	stream.WriteLine("");
-	stream.WriteLine(".PHONY all clean help $(PROJECTS)");
+	stream.WriteLine(".PHONY: all clean help $(PROJECTS)");
 	stream.WriteLine("");
 	stream.WriteLine("all: $(PROJECTS)");
 
@@ -150,23 +150,37 @@ bool Make_SolutionFile::Generate(
 		Platform::Path relativeLocation =
 			solutionDirectory.RelativeTo(projectLocation);
 
+		std::vector<std::string> dependencyNames;
+		for (std::string dependency : file.Get_Dependencies_Dependency())
+		{
+			ProjectFile* projectDependency = nullptr;
+			if (!IdeHelper::GetProjectDependency(
+				workspaceFile, 
+				projectFiles, 
+				&file, 
+				projectDependency, 
+				dependency))
+			{
+				return false;
+			}
+
+			dependencyNames.push_back(projectDependency->Get_Project_Name());
+		}
+
 		stream.WriteLine("");
-		stream.WriteLine("%s:", projectName.c_str());
+		stream.WriteLine("%s: %s", projectName.c_str(), Strings::Join(dependencyNames, " ").c_str());
 		stream.WriteLine("ifneq (,$(%s_config))", projectName.c_str());
-		stream.Indent();
-			stream.WriteLine("@echo \"==== Building %s ($(%s_config)) ====\"", projectName.c_str(), projectName.c_str());
-			stream.WriteLine("@${MAKE} --no-print-directory -C %s -f %s config=$(%s_config)", 					
-				relativeLocation.GetDirectory().ToString().c_str(),
-				relativeLocation.GetFilename().c_str(),
-				projectName.c_str());
-		stream.Undent();
+		stream.WriteLine("\t@echo \"==== Building %s ($(%s_config)) ====\"", projectName.c_str(), projectName.c_str());
+		stream.WriteLine("\t@${MAKE} --no-print-directory -C %s -f %s config=$(%s_config)", 					
+			relativeLocation.GetDirectory().ToString().c_str(),
+			relativeLocation.GetFilename().c_str(),
+			projectName.c_str());
 		stream.WriteLine("endif");
 	}
 
 	// Clean recipie
 	stream.WriteLine("");
 	stream.WriteLine("clean:");
-	stream.Indent();
 	for (ProjectFile& file : projectFiles)
 	{
 		Platform::Path projectLocation;
@@ -176,38 +190,35 @@ bool Make_SolutionFile::Generate(
 		Platform::Path relativeLocation =
 			solutionDirectory.RelativeTo(projectLocation);
 
-		stream.WriteLine("@${MAKE} --no-print-directory -C %s -f %s clean", 
+		stream.WriteLine("\t@${MAKE} --no-print-directory -C %s -f %s clean", 
 			relativeLocation.GetDirectory().ToString().c_str(),
 			relativeLocation.GetFilename().c_str()
 		);
 	}
-	stream.Undent();
 
 	// Help recipie	
 	stream.WriteLine("");
 	stream.WriteLine("help:");
-	stream.Indent();
-	stream.WriteLine("@echo \"Usage: make [config=name] [target]\"");
-	stream.WriteLine("@echo \"\"");
-	stream.WriteLine("@echo \"CONFIGURATIONS:\"");
+	stream.WriteLine("\t@echo \"Usage: make [config=name] [target]\"");
+	stream.WriteLine("\t@echo \"\"");
+	stream.WriteLine("\t@echo \"CONFIGURATIONS:\"");
 	for (auto config : configurations)
 	{
 		for (auto platform : platforms)
 		{
 			std::string id = config + "_" + CastToString(platform);
-    			stream.WriteLine("@echo \"\t%s\"", id.c_str());
+    			stream.WriteLine("\t@echo \"\t%s\"", id.c_str());
 		}
 	}
-	stream.WriteLine("@echo \"\"");
-	stream.WriteLine("@echo \"TARGETS:\"");
-	stream.WriteLine("@echo \"\tall (default)\"");
-	stream.WriteLine("@echo \"\tclean\"");
+	stream.WriteLine("\t@echo \"\"");
+	stream.WriteLine("\t@echo \"TARGETS:\"");
+	stream.WriteLine("\t@echo \"\tall (default)\"");
+	stream.WriteLine("\t@echo \"\tclean\"");
 	for (ProjectFile& file : projectFiles)
 	{
-		stream.WriteLine("@echo \"\t%s\"", file.Get_Project_Name().c_str());
+		stream.WriteLine("\t@echo \"\t%s\"", file.Get_Project_Name().c_str());
 	}
-	stream.WriteLine("@echo \"\"");
-	stream.Undent();
+	stream.WriteLine("\t@echo \"\"");
 
 	// Generate result.
 	if (!databaseFile.StoreFile(

@@ -68,8 +68,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 App::App(int argc, char* argv[])    
-	: m_argc(argc)
-	, m_argv(argv)
+	: m_argv(argv)
+	, m_argc(argc)
 	, m_commandLineParser(MB_NAME, MB_DESCRIPTION, MB_COPYRIGHT)
 {
 	m_ides.push_back(new Ide_VisualStudio_2015());

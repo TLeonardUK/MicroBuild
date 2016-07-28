@@ -414,6 +414,91 @@ bool Path::IsImageFile() const
 	return false;
 }
 
+bool Path::IsObjCFile() const
+{
+	static const char* extensions[] = {
+		"mm",
+		"m",
+		"objc",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Path::IsCFile() const
+{
+	static const char* extensions[] = {
+		"c",
+		"cc",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Path::IsCppFile() const
+{
+	static const char* extensions[] = {
+		"cpp",
+		"c++",
+		"cxx",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Path::IsCSharpFile() const
+{
+	static const char* extensions[] = {
+		"cs",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 std::vector<std::string> Path::GetFragments() const
 {
 	return Strings::Split(Seperator, m_raw);
@@ -1076,8 +1161,9 @@ std::vector<Path> Path::MatchFilter(const Path& path)
 Path Path::GetWorkingDirectory()
 {
 	char buffer[2048];
-	getcwd(buffer, 2048);
-	return buffer;
+	char* result = getcwd(buffer, 2048);
+	assert(result != nullptr);
+	return result;
 }
 
 bool MatchEatNeedle(const char*& remaining, const char*& match)

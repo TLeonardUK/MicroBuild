@@ -957,15 +957,16 @@ ConfigFileExpressionResult ConfigFile::EvaluateExpression(
 
 			break;
 		}
+		default:
+		{			
+			result = false;
+		}
 	}
 
 	if (expression.Invert)
 	{
 		result = !result.ToBool();
 	}
-
-
-	assert((int)expression.Operator != 0xdddddddd);
 
 	return result;
 }
