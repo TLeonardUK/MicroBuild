@@ -1,13 +1,8 @@
 language: cpp
 compiler:
   - gcc
-addons:
-  apt:
-    packages:
-      - libstdc++6
 script: 
   - cd ./Build/
-  - strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX
   - ./Generate.Linux.sh
   - cd ./ProjectFiles
   - make config=Shipping_x64

@@ -316,6 +316,12 @@ bool Make_CppProjectFile::Generate(
 			ldflags.push_back("-g");
 		}
 
+		// rtti
+		if (matrix.projectFile.Get_Flags_StaticRuntime())
+		{
+			ldflags.push_back("-static");
+		}
+
 		// architecture depth
 		switch (matrix.platform)
 		{
