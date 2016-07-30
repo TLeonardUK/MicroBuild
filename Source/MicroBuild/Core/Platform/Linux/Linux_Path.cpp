@@ -57,9 +57,15 @@ std::vector<std::string> Path::GetFiles() const
 
 		Log(LogSeverity::Verbose, "\tdirent: name=%s type=%i\n", entry->d_name, entry->d_type);
 
-		if (entry->d_type == DT_REG)
+		struct stat attr;
+		int res = stat(AppendFragment(entry->d_name, true).ToString().c_str(), &attr);
+
+		// note: don't use d_type, its unsupported on older kernels.
+
+		if (res == 0 && S_ISREG(attr.st_mode))
 		{
-			result.push_back(entry->d_name);
+			std::string value = entry->d_name;
+			result.push_back(value);
 		}
 	}
 
@@ -90,7 +96,12 @@ std::vector<std::string> Path::GetDirectories() const
 
 		Log(LogSeverity::Verbose, "\tdirent: name=%s type=%i\n", entry->d_name, entry->d_type);
 
-		if (entry->d_type == DT_DIR)
+		struct stat attr;
+		int res = stat(AppendFragment(entry->d_name, true).ToString().c_str(), &attr);
+
+		// note: don't use d_type, its unsupported on older kernels.
+
+		if (res == 0 && S_ISDIR(attr.st_mode))
 		{
 			std::string value = entry->d_name;
 			if (value != "." && value != "..")
