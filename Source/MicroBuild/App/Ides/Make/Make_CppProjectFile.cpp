@@ -344,7 +344,7 @@ bool Make_CppProjectFile::Generate(
 		case ELanguageVersion::Default:
 			break;
 		case ELanguageVersion::Cpp_11:
-			cxxflags.push_back("-std=c++11");
+			cxxflags.push_back("-std=c++0x");
 			break;
 		case ELanguageVersion::Cpp_98:
 			cxxflags.push_back("-std=c++98");
