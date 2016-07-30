@@ -342,7 +342,7 @@ bool Make_CppProjectFile::Generate(
 		switch (matrix.projectFile.Get_Project_LanguageVersion())
 		{
 		case ELanguageVersion::Default:
-			// Fallthrough
+			break;
 		case ELanguageVersion::Cpp_11:
 			cxxflags.push_back("-std=c++11");
 			break;
