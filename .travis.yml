@@ -3,10 +3,8 @@ compiler:
   - gcc
 addons:
   apt:
-    sources:
-      - ubuntu-toolchain-r
     packages:
-      - libstdc++-3.4
+      - libstdc++6
 script: 
   - cd ./Build/
   - strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX
