@@ -23,12 +23,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 // Contains the code required to generate a Makefile file.
-class Make_ProjectFile
+class Make_CppProjectFile
 {
 public:
 
-	Make_ProjectFile();
-	~Make_ProjectFile();
+	Make_CppProjectFile();
+	~Make_CppProjectFile();
 
 	// Generates a basic msbuild solution file that links to the given
 	// project files.

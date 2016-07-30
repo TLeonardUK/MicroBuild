@@ -17,21 +17,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
-#include "App/Ides/Make/Make_ProjectFile.h"
+#include "App/Ides/Make/Make_CppProjectFile.h"
 
 namespace MicroBuild {
 
-Make_ProjectFile::Make_ProjectFile()
+Make_CppProjectFile::Make_CppProjectFile()
 {
 
 }
 
-Make_ProjectFile::~Make_ProjectFile()
+Make_CppProjectFile::~Make_CppProjectFile()
 {
 
 }
 
-bool Make_ProjectFile::Generate(
+bool Make_CppProjectFile::Generate(
 	DatabaseFile& databaseFile,
 	WorkspaceFile& workspaceFile,
 	ProjectFile& projectFile,

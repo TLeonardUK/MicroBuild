@@ -376,5 +376,20 @@ std::string Quoted(const std::string& input)
 	return Strings::Format("\"%s\"", Escaped(input).c_str());
 }
 
+std::string SpacesEscaped(const std::string& input)
+{
+	std::string result;
+	result.reserve(input.size());
+	for (char chr : input)
+	{
+		if (chr == ' ')
+		{
+			result.push_back('\\');
+		}
+		result.push_back(chr);
+	}
+	return result;
+}
+
 }; // namespace Strings
 }; // namespace MicroBuild

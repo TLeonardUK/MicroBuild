@@ -337,7 +337,7 @@ bool MSBuild_CsProjectFile::Generate(
 		std::vector<std::string> disabledWarnings =
 			matrix.projectFile.Get_DisabledWarnings_DisabledWarning();
 
-		if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+		if (matrix.projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
 		{
 			disabledWarnings.push_back("2008");
 		}
@@ -347,7 +347,7 @@ bool MSBuild_CsProjectFile::Generate(
 			platformConfig.Node("NoWarn").Value("%s", Strings::Join(disabledWarnings, ";").c_str());
 		}
 
-		if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+		if (matrix.projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
 		{
 			platformConfig.Node("UseVSHostingProcess").Value("false");
 		}
@@ -362,7 +362,7 @@ bool MSBuild_CsProjectFile::Generate(
 			platformConfig.Node("Optimize").Value("true");
 		}
 
-		switch (projectFile.Get_Project_LanguageVersion())
+		switch (matrix.projectFile.Get_Project_LanguageVersion())
 		{
 		case ELanguageVersion::Default:
 			break;

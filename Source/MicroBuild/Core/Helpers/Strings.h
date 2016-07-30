@@ -83,5 +83,8 @@ std::string Escaped(const std::string& input);
 // Escapes any quotes in the string and then surrounds with quotes.
 std::string Quoted(const std::string& input);
 
+// Escapes any quotes in the string.
+std::string SpacesEscaped(const std::string& input);
+
 }; // namespace StringHelper
 }; // namespace MicroBuild

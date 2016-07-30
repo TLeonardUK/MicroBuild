@@ -186,6 +186,9 @@ public:
 	// command line input.
 	static Path GetWorkingDirectory();
 
+	// Sets the current working directory.
+	static void SetWorkingDirectory(const Path& other);	
+
 	// Returns the part of the path following the common path that is
 	// has been obtained from GetCommonPath.
 	Path GetUncommonPath(Path& commonPath);

@@ -1166,6 +1166,12 @@ Path Path::GetWorkingDirectory()
 	return result;
 }
 
+void Path::SetWorkingDirectory(const Path& other)
+{
+	int result = chdir(other.m_raw.c_str());
+	assert(result == 0);
+}
+
 bool MatchEatNeedle(const char*& remaining, const char*& match)
 {
 	while (true)

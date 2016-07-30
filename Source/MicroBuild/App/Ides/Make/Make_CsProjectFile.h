@@ -18,34 +18,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "Core/Platform/Path.h"
-
-#include <sstream>
+#include "App/Ides/IdeType.h"
 
 namespace MicroBuild {
 
-// This class provides a nice wrapper interface for reading and writing
-// text data to files/string output.
-class TextStream
+// Contains the code required to generate a Makefile file.
+class Make_CsProjectFile
 {
 public:
-	TextStream(bool bUseSpacesForIndents = false);
-	~TextStream();
 
-	void Indent();
-	void Undent();
+	Make_CsProjectFile();
+	~Make_CsProjectFile();
 
-	void Write(const char* format, ...);
-	void WriteLine(const char* format, ...);
-
-	bool WriteToFile(Platform::Path& path);
-
-	std::string ToString();
+	// Generates a basic msbuild solution file that links to the given
+	// project files.
+	bool Generate(
+		DatabaseFile& databaseFile,
+		WorkspaceFile& workspaceFile,
+		ProjectFile& projectFile,
+		IdeHelper::BuildProjectMatrix& buildMatrix
+	);
 
 private:
-	int m_indentLevel;
-	bool m_bUseSpacesForIndents;
-	std::stringstream m_stream;
 
 };
 

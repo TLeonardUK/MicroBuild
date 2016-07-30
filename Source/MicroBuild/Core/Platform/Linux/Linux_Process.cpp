@@ -68,7 +68,7 @@ bool Process::Open(
 	// Escape and pack arguments into a single command line incase it has spaces!
 	std::vector<std::string> argvBase;
 	argvBase.push_back(command.ToString());
-	argvBase.insert(argvBase.begin(), arguments.begin(), arguments.end());
+	argvBase.insert(argvBase.begin() + 1, arguments.begin(), arguments.end());
 
 	std::vector<char*> argv;
 	for (const std::string& arg : argvBase)
@@ -82,6 +82,12 @@ bool Process::Open(
 	data->m_attached = true;
 
 	// Create process.
+	
+	// We have to change the working directory as posix_spawn inherits
+	// the current processes one -_-
+	Platform::Path originalWorkingDirectory = Platform::Path::GetWorkingDirectory();
+	Platform::Path::SetWorkingDirectory(workingDirectory);
+
 	int result = posix_spawn(
 		&data->m_processId, 
 		command.ToString().c_str(),
@@ -90,6 +96,8 @@ bool Process::Open(
 		reinterpret_cast<char* const*>(argv.data()),
 		environ
 	);
+
+	Platform::Path::SetWorkingDirectory(originalWorkingDirectory);
 
 	if (result != 0)
 	{
@@ -143,6 +151,7 @@ bool Process::Wait()
 
 	int resultCode = 0;
 	waitpid(data->m_processId, &resultCode, 0);
+
 	return true;
 }
 
