@@ -1,6 +1,10 @@
 language: cpp
 compiler:
   - gcc
+addons:
+  apt:
+    packages:
+      - libstdc++-3.4
 script: 
   - cd ./Build/
   - ./Generate.Linux.sh
