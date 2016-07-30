@@ -1,0 +1,8 @@
+language: cpp
+compiler:
+  - gcc
+script: 
+  - ./Build/Generate.Linux.sh
+  - cd ./Build/ProjectFiles
+  - make config=Shipping_x64
+
