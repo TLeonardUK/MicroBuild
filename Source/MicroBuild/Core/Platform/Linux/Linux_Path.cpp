@@ -40,9 +40,12 @@ std::vector<std::string> Path::GetFiles() const
 	
 	DIR* handle = opendir(m_raw.c_str());
 	if (handle == nullptr)
-	{
+	{	
+		Log(LogSeverity::Warning, "Failed to enumerate directory: %s\n", m_raw.c_str());
 		return result;
 	}
+
+	Log(LogSeverity::Verbose, "GetFiles(%s)\n", m_raw.c_str());
 
 	while (true)
 	{
@@ -50,7 +53,10 @@ std::vector<std::string> Path::GetFiles() const
 		if (entry == nullptr)
 		{	
 			break;
-		}
+		}		
+
+		Log(LogSeverity::Verbose, "\tdirent: name=%s type=%i\n", entry->d_name, entry->d_type);
+
 		if (entry->d_type == DT_REG)
 		{
 			result.push_back(entry->d_name);
@@ -68,8 +74,11 @@ std::vector<std::string> Path::GetDirectories() const
 	DIR* handle = opendir(m_raw.c_str());
 	if (handle == nullptr)
 	{
+		Log(LogSeverity::Warning, "Failed to enumerate directory: %s\n", m_raw.c_str());
 		return result;
 	}
+
+	Log(LogSeverity::Verbose, "GetDirectories(%s)\n", m_raw.c_str());
 
 	while (true)
 	{
@@ -78,6 +87,9 @@ std::vector<std::string> Path::GetDirectories() const
 		{	
 			break;
 		}
+
+		Log(LogSeverity::Verbose, "\tdirent: name=%s type=%i\n", entry->d_name, entry->d_type);
+
 		if (entry->d_type == DT_DIR)
 		{
 			std::string value = entry->d_name;
