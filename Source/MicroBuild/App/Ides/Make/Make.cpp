@@ -45,9 +45,9 @@ bool Ide_Make::Clean(
 		solutionDirectory.AppendFragment("Makefile", true);
 
 	std::stringstream commandLine;
-	commandLine << "make" << " ";
-	commandLine << " -f" << solutionLocation.GetFilename().c_str() << " ";
-	commandLine << "clean" << " ";
+	commandLine << "make";
+	commandLine << " -f" << solutionLocation.GetFilename().c_str();
+	commandLine << " clean";
 
 	std::vector<std::string> arguments;
 	arguments.push_back("-c");
@@ -91,8 +91,9 @@ bool Ide_Make::Build(
 		solutionDirectory.AppendFragment("Makefile", true);
 
 	std::stringstream commandLine;
-	commandLine << "make" << " ";
-	commandLine << " -f" << solutionLocation.GetFilename().c_str() << " ";
+	commandLine << "make";
+	commandLine << " -f" << solutionLocation.GetFilename().c_str();
+	commandLine << " config=" << configuration.c_str() << "_" << platform.c_str();
 
 	std::vector<std::string> arguments;
 	arguments.push_back("-c");
