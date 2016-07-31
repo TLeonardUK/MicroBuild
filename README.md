@@ -7,6 +7,14 @@ Quick, simple, cross platform project generator.
        src="https://scan.coverity.com/projects/9006/badge.svg"/>
 </a>
 
+
+<a href="https://travis-ci.org/TLeonardUK/MicroBuild">
+  <img alt="Travis CI"
+       src="https://travis-ci.org/TLeonardUK/MicroBuild.svg?branch=master"/>
+</a>
+
+
+
 ## Project Aims
 MicroBuild aims to produce project files on all platforms it supports that match, as close as possible, the visual studio solution format. As this project is primarily created by game programmers its available functionality similarily reflects what would typically be required in game development.
 
