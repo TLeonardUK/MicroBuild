@@ -13,4 +13,4 @@ before_build:
   - cd ProjectFiles
 
 build:
-  project: MicroBuild.sln
+  project: ProjectFiles/MicroBuild.sln
