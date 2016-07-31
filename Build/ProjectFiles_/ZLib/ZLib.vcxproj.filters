@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup/>
+	<ItemGroup>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\crc32.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\deflate.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\gzguts.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\inffast.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\inffixed.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\inflate.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\inftrees.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\trees.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\zconf.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\zlib.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\zutil.h">
+			<Filter/>
+		</ClInclude>
+	</ItemGroup>
+	<ItemGroup>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\adler32.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\compress.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\crc32.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\deflate.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\gzclose.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\gzlib.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\gzread.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\gzwrite.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\infback.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\inffast.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\inflate.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\inftrees.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\trees.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\uncompr.c">
+			<Filter/>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\zutil.c">
+			<Filter/>
+		</ClCompile>
+	</ItemGroup>
+</Project>

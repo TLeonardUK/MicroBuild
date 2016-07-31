@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<Filter Include="App">
+			<UniqueIdentifier>{00000000-0000-0000-0000-658702448936}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Commands">
+			<UniqueIdentifier>{00000000-0000-0000-0000-152537302392}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Config">
+			<UniqueIdentifier>{00000000-0000-0000-0000-863343666240}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Database">
+			<UniqueIdentifier>{00000000-0000-0000-0000-596220727120}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Ides">
+			<UniqueIdentifier>{00000000-0000-0000-0000-174375574684}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Ides\Make">
+			<UniqueIdentifier>{00000000-0000-0000-0000-346170110047}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Ides\MSBuild">
+			<UniqueIdentifier>{00000000-0000-0000-0000-147714019167}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Ides\MSBuild\Versions">
+			<UniqueIdentifier>{00000000-0000-0000-0000-158030213900}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Ides\XCode">
+			<UniqueIdentifier>{00000000-0000-0000-0000-164897569921}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Packager">
+			<UniqueIdentifier>{00000000-0000-0000-0000-280584095612}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Project">
+			<UniqueIdentifier>{00000000-0000-0000-0000-236496330509}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="App\Workspace">
+			<UniqueIdentifier>{00000000-0000-0000-0000-131264401115}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Core">
+			<UniqueIdentifier>{00000000-0000-0000-0000-360612223738}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Core\Commands">
+			<UniqueIdentifier>{00000000-0000-0000-0000-141612577471}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Core\Config">
+			<UniqueIdentifier>{00000000-0000-0000-0000-149245676127}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Core\Helpers">
+			<UniqueIdentifier>{00000000-0000-0000-0000-108501751233}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Core\Platform">
+			<UniqueIdentifier>{00000000-0000-0000-0000-182598193564}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Core\Templates">
+			<UniqueIdentifier>{00000000-0000-0000-0000-102239976167}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Core\Platform\Linux">
+			<UniqueIdentifier>{00000000-0000-0000-0000-136185823639}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Core\Platform\MacOS">
+			<UniqueIdentifier>{00000000-0000-0000-0000-569428588300}</UniqueIdentifier>
+		</Filter>
+		<Filter Include="Core\Platform\Windows">
+			<UniqueIdentifier>{00000000-0000-0000-0000-396634887314}</UniqueIdentifier>
+		</Filter>
+	</ItemGroup>
+	<ItemGroup>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\App.h">
+			<Filter>App</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\BuildInfo.h">
+			<Filter>App</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Build.h">
+			<Filter>App\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Clean.h">
+			<Filter>App\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Generate.h">
+			<Filter>App\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Help.h">
+			<Filter>App\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Package.h">
+			<Filter>App\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Version.h">
+			<Filter>App\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Config\BaseConfigFile.h">
+			<Filter>App\Config</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Config\SchemaDecl.h">
+			<Filter>App\Config</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Config\SchemaGlobalDecl.h">
+			<Filter>App\Config</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Config\SchemaImpl.h">
+			<Filter>App\Config</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Database\DatabaseFile.h">
+			<Filter>App\Database</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\IdeHelper.h">
+			<Filter>App\Ides</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\IdeType.h">
+			<Filter>App\Ides</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\Make\Make.h">
+			<Filter>App\Ides\Make</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\Make\Make_CppProjectFile.h">
+			<Filter>App\Ides\Make</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\Make\Make_CsProjectFile.h">
+			<Filter>App\Ides\Make</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\Make\Make_SolutionFile.h">
+			<Filter>App\Ides\Make</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild.h">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild_CsProjectFile.h">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild_Ids.h">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild_SlnSolutionFile.h">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild_VcxFiltersFile.h">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild_VcxProjectFile.h">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\Versions\VisualStudio_2015.h">
+			<Filter>App\Ides\MSBuild\Versions</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\XCode\XCode.h">
+			<Filter>App\Ides\XCode</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Packager\Packager.h">
+			<Filter>App\Packager</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Project\ProjectFile.h">
+			<Filter>App\Project</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Workspace\WorkspaceFile.h">
+			<Filter>App\Workspace</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Compiler.h">
+			<Filter>Core</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Log.h">
+			<Filter>Core</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\Command.h">
+			<Filter>Core\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandArgument.h">
+			<Filter>Core\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandComboArgument.h">
+			<Filter>Core\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandFlagArgument.h">
+			<Filter>Core\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandLineParser.h">
+			<Filter>Core\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandPathArgument.h">
+			<Filter>Core\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandStringArgument.h">
+			<Filter>Core\Commands</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Config\ConfigFile.h">
+			<Filter>Core\Config</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Config\ConfigTokenizer.h">
+			<Filter>Core\Config</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\BinaryStream.h">
+			<Filter>Core\Helpers</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\JsonNode.h">
+			<Filter>Core\Helpers</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\StringConverter.h">
+			<Filter>Core\Helpers</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\Strings.h">
+			<Filter>Core\Helpers</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\TextStream.h">
+			<Filter>Core\Helpers</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\Time.h">
+			<Filter>Core\Helpers</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\VbNode.h">
+			<Filter>Core\Helpers</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\XmlNode.h">
+			<Filter>Core\Helpers</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\ZipFile.h">
+			<Filter>Core\Helpers</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Path.h">
+			<Filter>Core\Platform</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Platform.h">
+			<Filter>Core\Platform</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Process.h">
+			<Filter>Core\Platform</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Templates\TemplateEvaluator.h">
+			<Filter>Core\Templates</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\PCH.h">
+			<Filter/>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Config\BaseSchema.inc">
+			<Filter>App\Config</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Database\DatabaseSchema.inc">
+			<Filter>App\Database</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Project\ProjectSchema.inc">
+			<Filter>App\Project</Filter>
+		</ClInclude>
+		<ClInclude Include="$(SolutionDir)..\..\Source\MicroBuild\App\Workspace\WorkspaceSchema.inc">
+			<Filter>App\Workspace</Filter>
+		</ClInclude>
+	</ItemGroup>
+	<ItemGroup>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\App.cpp">
+			<Filter>App</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\EntryPoint.cpp">
+			<Filter>App</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Build.cpp">
+			<Filter>App\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Clean.cpp">
+			<Filter>App\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Generate.cpp">
+			<Filter>App\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Help.cpp">
+			<Filter>App\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Package.cpp">
+			<Filter>App\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Commands\Version.cpp">
+			<Filter>App\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Config\BaseConfigFile.cpp">
+			<Filter>App\Config</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Database\DatabaseFile.cpp">
+			<Filter>App\Database</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\IdeHelper.cpp">
+			<Filter>App\Ides</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\IdeType.cpp">
+			<Filter>App\Ides</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\Make\Make.cpp">
+			<Filter>App\Ides\Make</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\Make\Make_CppProjectFile.cpp">
+			<Filter>App\Ides\Make</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\Make\Make_CsProjectFile.cpp">
+			<Filter>App\Ides\Make</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\Make\Make_SolutionFile.cpp">
+			<Filter>App\Ides\Make</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild.cpp">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild_CsProjectFile.cpp">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild_Ids.cpp">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild_SlnSolutionFile.cpp">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild_VcxFiltersFile.cpp">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\MSBuild_VcxProjectFile.cpp">
+			<Filter>App\Ides\MSBuild</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\MSBuild\Versions\VisualStudio_2015.cpp">
+			<Filter>App\Ides\MSBuild\Versions</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Ides\XCode\XCode.cpp">
+			<Filter>App\Ides\XCode</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Packager\Packager.cpp">
+			<Filter>App\Packager</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Project\ProjectFile.cpp">
+			<Filter>App\Project</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\App\Workspace\WorkspaceFile.cpp">
+			<Filter>App\Workspace</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Log.cpp">
+			<Filter>Core</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\Command.cpp">
+			<Filter>Core\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandArgument.cpp">
+			<Filter>Core\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandComboArgument.cpp">
+			<Filter>Core\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandFlagArgument.cpp">
+			<Filter>Core\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandLineParser.cpp">
+			<Filter>Core\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandPathArgument.cpp">
+			<Filter>Core\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Commands\CommandStringArgument.cpp">
+			<Filter>Core\Commands</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Config\ConfigFile.cpp">
+			<Filter>Core\Config</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Config\ConfigTokenizer.cpp">
+			<Filter>Core\Config</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\BinaryStream.cpp">
+			<Filter>Core\Helpers</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\JsonNode.cpp">
+			<Filter>Core\Helpers</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\StringConverter.cpp">
+			<Filter>Core\Helpers</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\Strings.cpp">
+			<Filter>Core\Helpers</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\TextStream.cpp">
+			<Filter>Core\Helpers</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\Time.cpp">
+			<Filter>Core\Helpers</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\VbNode.cpp">
+			<Filter>Core\Helpers</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\XmlNode.cpp">
+			<Filter>Core\Helpers</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Helpers\ZipFile.cpp">
+			<Filter>Core\Helpers</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Path.cpp">
+			<Filter>Core\Platform</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Process.cpp">
+			<Filter>Core\Platform</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Linux\Linux_Path.cpp">
+			<Filter>Core\Platform\Linux</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Linux\Linux_Platform.cpp">
+			<Filter>Core\Platform\Linux</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Linux\Linux_Process.cpp">
+			<Filter>Core\Platform\Linux</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\MacOS\MacOS_Path.cpp">
+			<Filter>Core\Platform\MacOS</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\MacOS\MacOS_Platform.cpp">
+			<Filter>Core\Platform\MacOS</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\MacOS\MacOS_Process.cpp">
+			<Filter>Core\Platform\MacOS</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Windows\Windows_Path.cpp">
+			<Filter>Core\Platform\Windows</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Windows\Windows_Platform.cpp">
+			<Filter>Core\Platform\Windows</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Platform\Windows\Windows_Process.cpp">
+			<Filter>Core\Platform\Windows</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\Core\Templates\TemplateEvaluator.cpp">
+			<Filter>Core\Templates</Filter>
+		</ClCompile>
+		<ClCompile Include="$(SolutionDir)..\..\Source\MicroBuild\PCH.cpp">
+			<Filter/>
+		</ClCompile>
+	</ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+; This file was automatically generated.
+; Modifying this file manually may cause incorrect functionality.
+
+[Clean]
+File=$(Database.Directory)/MicroBuild\MicroBuild.vcxproj
+File=$(Database.Directory)/MicroBuild\MicroBuild.vcxproj.filters
+File=$(Database.Directory)/ZLib\ZLib.vcxproj
+File=$(Database.Directory)/ZLib\ZLib.vcxproj.filters
+File=$(Database.Directory)/MicroBuild.sln
+
+[Database]
+Directory=D:\Perforce\TLeonard_Main\TLeonard_Main\MicroBuild\Build\ProjectFiles
+File=D:\Perforce\TLeonard_Main\TLeonard_Main\MicroBuild\Build\ProjectFiles\workspace.mb
+
+[Target]
+IDE=vs2015
+

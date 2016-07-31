@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup Label="ProjectConfiguration">
+		<ProjectConfiguration Include="Debug|Win32">
+			<Configuration>Debug</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Debug|x64">
+			<Configuration>Debug</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Release|Win32">
+			<Configuration>Release</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Release|x64">
+			<Configuration>Release</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Shipping|Win32">
+			<Configuration>Shipping</Configuration>
+			<Platform>Win32</Platform>
+		</ProjectConfiguration>
+		<ProjectConfiguration Include="Shipping|x64">
+			<Configuration>Shipping</Configuration>
+			<Platform>x64</Platform>
+		</ProjectConfiguration>
+	</ItemGroup>
+	<PropertyGroup Label="Globals">
+		<ProjectGuid>{00000000-0000-0000-0000-242979084601}</ProjectGuid>
+		<IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+		<Keyword>Win32Proj</Keyword>
+		<RootNamespace>MicroBuild</RootNamespace>
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+		<ConfigurationType>StaticLibrary</ConfigurationType>
+		<UseDebugLibraries>true</UseDebugLibraries>
+		<PlatformToolset>v140</PlatformToolset>
+		<WholeProgramOptimization>false</WholeProgramOptimization>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+		<ConfigurationType>StaticLibrary</ConfigurationType>
+		<UseDebugLibraries>true</UseDebugLibraries>
+		<PlatformToolset>v140</PlatformToolset>
+		<WholeProgramOptimization>false</WholeProgramOptimization>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+		<ConfigurationType>StaticLibrary</ConfigurationType>
+		<UseDebugLibraries>false</UseDebugLibraries>
+		<PlatformToolset>v140</PlatformToolset>
+		<WholeProgramOptimization>true</WholeProgramOptimization>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+		<ConfigurationType>StaticLibrary</ConfigurationType>
+		<UseDebugLibraries>false</UseDebugLibraries>
+		<PlatformToolset>v140</PlatformToolset>
+		<WholeProgramOptimization>true</WholeProgramOptimization>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|Win32'" Label="Configuration">
+		<ConfigurationType>StaticLibrary</ConfigurationType>
+		<UseDebugLibraries>false</UseDebugLibraries>
+		<PlatformToolset>v140</PlatformToolset>
+		<WholeProgramOptimization>true</WholeProgramOptimization>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|x64'" Label="Configuration">
+		<ConfigurationType>StaticLibrary</ConfigurationType>
+		<UseDebugLibraries>false</UseDebugLibraries>
+		<PlatformToolset>v140</PlatformToolset>
+		<WholeProgramOptimization>true</WholeProgramOptimization>
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+	<ImportGroup Label="ExtensionSettings"/>
+	<ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
+	</ImportGroup>
+	<ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
+	</ImportGroup>
+	<ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
+	</ImportGroup>
+	<ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
+	</ImportGroup>
+	<ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Shipping|Win32'">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
+	</ImportGroup>
+	<ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Shipping|x64'">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
+	</ImportGroup>
+	<PropertyGroup Label="UserMacros"/>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+		<LinkIncremental>true</LinkIncremental>
+		<OutDir>$(SolutionDir)..\..\Binaries\</OutDir>
+		<IntDir>$(SolutionDir)ZLib\Obj\</IntDir>
+		<TargetName>ZLib_Windows_x86_Debug</TargetName>
+		<TargetExt>.lib</TargetExt>
+		<IncludePath>$(SolutionDir)\..\..\Source\ZLib\;$(IncludePath)</IncludePath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<LinkIncremental>true</LinkIncremental>
+		<OutDir>$(SolutionDir)..\..\Binaries\</OutDir>
+		<IntDir>$(SolutionDir)ZLib\Obj\</IntDir>
+		<TargetName>ZLib_Windows_x64_Debug</TargetName>
+		<TargetExt>.lib</TargetExt>
+		<IncludePath>$(SolutionDir)\..\..\Source\ZLib\;$(IncludePath)</IncludePath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+		<LinkIncremental>false</LinkIncremental>
+		<OutDir>$(SolutionDir)..\..\Binaries\</OutDir>
+		<IntDir>$(SolutionDir)ZLib\Obj\</IntDir>
+		<TargetName>ZLib_Windows_x86_Release</TargetName>
+		<TargetExt>.lib</TargetExt>
+		<IncludePath>$(SolutionDir)\..\..\Source\ZLib\;$(IncludePath)</IncludePath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<LinkIncremental>false</LinkIncremental>
+		<OutDir>$(SolutionDir)..\..\Binaries\</OutDir>
+		<IntDir>$(SolutionDir)ZLib\Obj\</IntDir>
+		<TargetName>ZLib_Windows_x64_Release</TargetName>
+		<TargetExt>.lib</TargetExt>
+		<IncludePath>$(SolutionDir)\..\..\Source\ZLib\;$(IncludePath)</IncludePath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|Win32'">
+		<LinkIncremental>false</LinkIncremental>
+		<OutDir>$(SolutionDir)..\..\Binaries\</OutDir>
+		<IntDir>$(SolutionDir)ZLib\Obj\</IntDir>
+		<TargetName>ZLib_Windows_x86_Shipping</TargetName>
+		<TargetExt>.lib</TargetExt>
+		<IncludePath>$(SolutionDir)\..\..\Source\ZLib\;$(IncludePath)</IncludePath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|x64'">
+		<LinkIncremental>false</LinkIncremental>
+		<OutDir>$(SolutionDir)..\..\Binaries\</OutDir>
+		<IntDir>$(SolutionDir)ZLib\Obj\</IntDir>
+		<TargetName>ZLib_Windows_x64_Shipping</TargetName>
+		<TargetExt>.lib</TargetExt>
+		<IncludePath>$(SolutionDir)\..\..\Source\ZLib\;$(IncludePath)</IncludePath>
+	</PropertyGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<PreprocessorDefinitions>MB_DEBUG_BUILD;$(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<MinimalRebuild>false</MinimalRebuild>
+			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+			<RuntimeTypeInfo>true</RuntimeTypeInfo>
+			<WarningLevel>Level1</WarningLevel>
+			<ExceptionHandling>Async</ExceptionHandling>
+			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+			<TreatWarningAsError>false</TreatWarningAsError>
+			<Optimization>Disabled</Optimization>
+		</ClCompile>
+		<Link>
+			<TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+			<WholeProgramOptimization>false</WholeProgramOptimization>
+			<SubSystem>Console</SubSystem>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+		</Link>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<PreprocessorDefinitions>MB_DEBUG_BUILD;$(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<MinimalRebuild>false</MinimalRebuild>
+			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+			<RuntimeTypeInfo>true</RuntimeTypeInfo>
+			<WarningLevel>Level1</WarningLevel>
+			<ExceptionHandling>Async</ExceptionHandling>
+			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+			<TreatWarningAsError>false</TreatWarningAsError>
+			<Optimization>Disabled</Optimization>
+		</ClCompile>
+		<Link>
+			<TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+			<WholeProgramOptimization>false</WholeProgramOptimization>
+			<SubSystem>Console</SubSystem>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+		</Link>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<PreprocessorDefinitions>MB_RELEASE_BUILD;$(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<MinimalRebuild>false</MinimalRebuild>
+			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+			<RuntimeTypeInfo>true</RuntimeTypeInfo>
+			<WarningLevel>Level1</WarningLevel>
+			<ExceptionHandling>Async</ExceptionHandling>
+			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+			<TreatWarningAsError>false</TreatWarningAsError>
+			<Optimization>Full</Optimization>
+		</ClCompile>
+		<Link>
+			<TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+			<WholeProgramOptimization>false</WholeProgramOptimization>
+			<SubSystem>Console</SubSystem>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+		</Link>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<PreprocessorDefinitions>MB_RELEASE_BUILD;$(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<MinimalRebuild>false</MinimalRebuild>
+			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+			<RuntimeTypeInfo>true</RuntimeTypeInfo>
+			<WarningLevel>Level1</WarningLevel>
+			<ExceptionHandling>Async</ExceptionHandling>
+			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+			<TreatWarningAsError>false</TreatWarningAsError>
+			<Optimization>Full</Optimization>
+		</ClCompile>
+		<Link>
+			<TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+			<WholeProgramOptimization>false</WholeProgramOptimization>
+			<SubSystem>Console</SubSystem>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+		</Link>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|Win32'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<PreprocessorDefinitions>MB_SHIPPING_BUILD;$(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<MinimalRebuild>false</MinimalRebuild>
+			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+			<RuntimeTypeInfo>true</RuntimeTypeInfo>
+			<WarningLevel>Level1</WarningLevel>
+			<ExceptionHandling>Async</ExceptionHandling>
+			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+			<TreatWarningAsError>false</TreatWarningAsError>
+			<Optimization>Full</Optimization>
+		</ClCompile>
+		<Link>
+			<TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+			<WholeProgramOptimization>false</WholeProgramOptimization>
+			<SubSystem>Console</SubSystem>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+		</Link>
+	</ItemDefinitionGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|x64'">
+		<ClCompile>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<PreprocessorDefinitions>MB_SHIPPING_BUILD;$(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<MinimalRebuild>false</MinimalRebuild>
+			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+			<RuntimeTypeInfo>true</RuntimeTypeInfo>
+			<WarningLevel>Level1</WarningLevel>
+			<ExceptionHandling>Async</ExceptionHandling>
+			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+			<TreatWarningAsError>false</TreatWarningAsError>
+			<Optimization>Full</Optimization>
+		</ClCompile>
+		<Link>
+			<TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
+			<WholeProgramOptimization>false</WholeProgramOptimization>
+			<SubSystem>Console</SubSystem>
+			<GenerateDebugInformation>true</GenerateDebugInformation>
+			<EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+		</Link>
+	</ItemDefinitionGroup>
+	<ItemGroup>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\crc32.h"/>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\deflate.h"/>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\gzguts.h"/>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\inffast.h"/>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\inffixed.h"/>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\inflate.h"/>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\inftrees.h"/>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\trees.h"/>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\zconf.h"/>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\zlib.h"/>
+		<ClInclude Include="$(SolutionDir)..\..\Source\ZLib\zutil.h"/>
+	</ItemGroup>
+	<ItemGroup>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\adler32.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\compress.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\crc32.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\deflate.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\gzclose.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\gzlib.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\gzread.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\gzwrite.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\infback.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\inffast.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\inflate.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\inftrees.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\trees.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\uncompr.c"/>
+		<ClCompile Include="$(SolutionDir)..\..\Source\ZLib\zutil.c"/>
+	</ItemGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+	<ImportGroup Label="ExtensionSettings"/>
+</Project>

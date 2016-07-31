@@ -10,6 +10,7 @@ configuration:
 before_build:
   - cd Build
   - Generate.Windows.bat
+  - cd ..
 
 build:
   project: Build\ProjectFiles\MicroBuild.sln
