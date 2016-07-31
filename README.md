@@ -29,4 +29,4 @@ It aims to  fulfills the following requirements:
 Extension documentation is available on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
 
 ## License
-MicroBuild is free software and is distributed under GPL. If you need distribution under another license, shoot me a message.
+MicroBuild is free software and is distributed under GPL (version 3). If you need distribution under another license, shoot me a message.
