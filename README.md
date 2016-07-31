@@ -20,10 +20,10 @@ MicroBuild aims to produce project files on all platforms it supports that match
 
 It aims to  fulfills the following requirements:
 
-+ Fast - Project files should never take a long time to generate.
-+ No dependencies - Should be compilable off the bat on any standard C++ compiler, the project should also be able to be run from just the executable file on its own.
-+ Quick to setup - You should not have to dig into complex documents to setup simple projects. Just very simple ini-like files defining the properties required to build.
-+ Cross platform - Should be able to generate projects on any support platform for any other platform.
++ __Fast__ - Project files should never take a long time to generate.
++ __No dependencies__ - Should be compilable off the bat on any standard C++ compiler, the project should also be able to be run from just the executable file on its own.
++ __Quick to setup__ - You should not have to dig into complex documents to setup simple projects. Just very simple ini-like files defining the properties required to build.
++ __Cross platform__ - Should be able to generate projects on any support platform for any other platform.
 
 ## Documentation
 Extension documentation is available on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
