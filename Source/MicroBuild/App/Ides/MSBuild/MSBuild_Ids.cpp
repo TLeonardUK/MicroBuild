@@ -77,46 +77,15 @@ std::string GetPlatformDotNetTarget(EPlatform platform)
 {
 	switch (platform)
 	{
-		case EPlatform::x86:
-		{
-			return "Win32";
-		}
-		case EPlatform::x64:
-		{
-			return "x64";
-		}
 		case EPlatform::AnyCPU:
 		{
 			return "AnyCPU";
 		}
-		case EPlatform::ARM:
+		default:
 		{
-			return "ARM";
+			return GetPlatformDotNetTarget(platform);
 		}
-		case EPlatform::ARM64:
-		{
-			return "ARM64";
-		}
-		/*
-		case EPlatform::PS4:
-		{
-			return "PS4";
-		}
-		case EPlatform::XboxOne:
-		{
-			return "Durango";
-		}
-		case EPlatform::WiiU:
-		{
-			return "CAFE2";
-		}
-		case EPlatform::Nintendo3DS:
-		{
-			return "CTR";
-		}
-		*/
 	}
-	return "";
 }
 
 std::string GetProjectTypeGuid(ELanguage language)
