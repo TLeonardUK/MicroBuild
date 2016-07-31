@@ -8,10 +8,9 @@ configuration:
   - Shipping
 
 before_build:
-  - cd ./Build/
-  - ./Generate.Windows.sh
-  - cd ./ProjectFiles
-  - make config=Shipping_x64
+  - cd Build
+  - Generate.Windows.sh
+  - cd ProjectFiles
 
 build:
-  project: ALL_BUILD.vcxproj
+  project: MicroBuild.sln
