@@ -1,1 +1,17 @@
- 
+os: Visual Studio 2015
+
+platform:
+  - x86
+  - x64
+
+configuration:
+  - Shipping
+
+before_build:
+  - cd ./Build/
+  - ./Generate.Windows.sh
+  - cd ./ProjectFiles
+  - make config=Shipping_x64
+
+build:
+  project: ALL_BUILD.vcxproj
