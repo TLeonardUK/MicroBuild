@@ -20,7 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Helpers/Strings.h"
 
 #include <algorithm>
+
+#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
+#undef __STDC_FORMAT_MACROS
 
 namespace MicroBuild {
 namespace Strings {
