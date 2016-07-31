@@ -1,8 +1,10 @@
 language: cpp
 compiler:
   - gcc
+sudo: required
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-6" CC="gcc-6"; fi
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
 addons:
   apt:
     sources:
