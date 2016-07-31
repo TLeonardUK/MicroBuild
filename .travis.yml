@@ -27,7 +27,7 @@ addons:
     notification_email: tim@programmingbytim.com
     build_command_prepend: "cd ./Build/ProjectFiles"
     build_command: "make config=Shipping_x64"
-    branch_pattern: default    
+    branch_pattern: master    
 script: 
   - cd ./Build/
   - ./Generate.Linux.sh
