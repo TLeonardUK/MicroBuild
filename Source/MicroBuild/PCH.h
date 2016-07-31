@@ -27,6 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h>
 #include <chrono>
 #include <map>
+#include <algorithm>
+#include <climits>
 
 #include "Core/Compiler.h"
 #include "Core/Log.h"

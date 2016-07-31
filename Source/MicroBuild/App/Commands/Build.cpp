@@ -117,7 +117,7 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 			.AppendFragment("workspace.mb", true);
 
 		// If database already exists then clean the workspace.
-		if (databaseFileLocation.Exists() && m_rebuild)
+		if (databaseFileLocation.Exists())
 		{
 			DatabaseFile databaseFile(databaseFileLocation, "");
 

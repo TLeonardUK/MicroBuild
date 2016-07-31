@@ -26,6 +26,10 @@ IdeType::IdeType()
 {
 }
 
+IdeType::~IdeType()
+{
+}
+
 std::string IdeType::GetShortName()
 {
 	return m_shortName;

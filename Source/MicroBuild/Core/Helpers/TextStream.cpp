@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
 #include "PCH.h"
 #include "Core/Helpers/Strings.h"
 #include "Core/Helpers/TextStream.h"
@@ -26,8 +24,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-TextStream::TextStream()
+TextStream::TextStream(bool bUseSpacesForIndents)
 	: m_indentLevel(0)
+	, m_bUseSpacesForIndents(bUseSpacesForIndents)
 {
 }
 
@@ -55,7 +54,14 @@ void TextStream::Write(const char* format, ...)
 
 	for (int i = 0; i < m_indentLevel; i++)
 	{
-		m_stream << "\t";
+		if (m_bUseSpacesForIndents)
+		{
+			m_stream << "    ";
+		}
+		else
+		{
+			m_stream << "\t";			
+		}
 	}
 
 	m_stream << formatted;
@@ -70,7 +76,14 @@ void TextStream::WriteLine(const char* format, ...)
 
 	for (int i = 0; i < m_indentLevel; i++)
 	{
-		m_stream << "\t";
+		if (m_bUseSpacesForIndents)
+		{
+			m_stream << "    ";
+		}
+		else
+		{
+			m_stream << "\t";			
+		}
 	}
 
 	m_stream << formatted;
@@ -81,6 +94,12 @@ bool TextStream::WriteToFile(Platform::Path& path)
 {
 	std::string result = m_stream.str();
 	return Strings::WriteFile(path, result);
+}
+
+std::string TextStream::ToString()
+{
+	std::string result = m_stream.str();
+	return result;
 }
 
 }; // namespace MicroBuild

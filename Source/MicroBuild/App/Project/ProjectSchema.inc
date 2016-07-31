@@ -59,6 +59,9 @@ START_ENUM(EPlatformToolset)
 	ENUM_KEY(DotNet_4_5_2)
 	ENUM_KEY(DotNet_4_6)	
 
+	// Mono
+	ENUM_KEY(Mono)
+
 	// Makefiles/etc
 	ENUM_KEY(Clang)
 	ENUM_KEY(GCC)

@@ -16,13 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
 #include "PCH.h"
 #include "Core/Helpers/Strings.h"
 
 #include <algorithm>
+
+#define __STDC_FORMAT_MACROS
 #include <inttypes.h>
+#undef __STDC_FORMAT_MACROS
 
 namespace MicroBuild {
 namespace Strings {
@@ -216,11 +217,15 @@ std::string FormatVa(std::string format, va_list args)
 	char stackBuffer[STACK_BUFFER_SIZE];
 	char* buffer = stackBuffer;
 
-	int bytesRequired = vsnprintf(buffer, STACK_BUFFER_SIZE, format.c_str(), args);
+	va_list baseArgs;
+	va_copy(baseArgs, args);
+
+	int bytesRequired = vsnprintf(buffer, STACK_BUFFER_SIZE, format.c_str(), baseArgs);
 	if (bytesRequired >= STACK_BUFFER_SIZE - 1)
 	{
+		va_copy(baseArgs, args);
 		buffer = new char[bytesRequired + 1];
-		vsnprintf(buffer, bytesRequired + 1, format.c_str(), args);
+		vsnprintf(buffer, bytesRequired + 1, format.c_str(), baseArgs);
 	}
 
 	std::string result = buffer;
@@ -372,6 +377,21 @@ std::string Escaped(const std::string& input)
 std::string Quoted(const std::string& input)
 {
 	return Strings::Format("\"%s\"", Escaped(input).c_str());
+}
+
+std::string SpacesEscaped(const std::string& input)
+{
+	std::string result;
+	result.reserve(input.size());
+	for (char chr : input)
+	{
+		if (chr == ' ')
+		{
+			result.push_back('\\');
+		}
+		result.push_back(chr);
+	}
+	return result;
 }
 
 }; // namespace Strings

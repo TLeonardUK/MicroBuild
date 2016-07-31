@@ -22,11 +22,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef MB_PLATFORM_LINUX
 
+#include <unistd.h>
+#include <spawn.h>
+#include <sys/wait.h>
+
+extern char **environ;
+
 namespace MicroBuild {
 namespace Platform {
 
 struct Linux_Process
 {
+	bool m_attached;
+	pid_t m_processId;
 };
 
 Process::Process()
@@ -34,6 +42,8 @@ Process::Process()
 	m_impl = new Linux_Process();
 
 	Linux_Process* data = reinterpret_cast<Linux_Process*>(m_impl);
+	data->m_processId = 0;
+	data->m_attached = false;
 }
 
 Process::~Process()
@@ -53,75 +63,139 @@ bool Process::Open(
 	bool bRedirectStdInOut)
 {
 	Linux_Process* data = reinterpret_cast<Linux_Process*>(m_impl);
+	assert(!IsAttached());
 
-	// todo
-	return false;
+	// Escape and pack arguments into a single command line incase it has spaces!
+	std::vector<std::string> argvBase;
+	argvBase.push_back(command.ToString());
+	argvBase.insert(argvBase.begin() + 1, arguments.begin(), arguments.end());
+
+	std::vector<char*> argv;
+	for (const std::string& arg : argvBase)
+	{
+		// Gross, plz change signature of posix_spawn so this isn't neccessary.
+		argv.push_back(const_cast<char*>(arg.c_str())); 
+	}
+	argv.push_back('\0');
+
+	// Store state.
+	data->m_attached = true;
+
+	// Create process.
+	
+	// We have to change the working directory as posix_spawn inherits
+	// the current processes one -_-
+	Platform::Path originalWorkingDirectory = Platform::Path::GetWorkingDirectory();
+	Platform::Path::SetWorkingDirectory(workingDirectory);
+
+	int result = posix_spawn(
+		&data->m_processId, 
+		command.ToString().c_str(),
+		nullptr,
+		nullptr,
+		reinterpret_cast<char* const*>(argv.data()),
+		environ
+	);
+
+	Platform::Path::SetWorkingDirectory(originalWorkingDirectory);
+
+	if (result != 0)
+	{
+		Log(LogSeverity::Warning, 
+			"spawn failed with 0x%08x.\n", result);
+
+		Detach();
+		return false;
+	}
+
+	return true;
 }
 
 void Process::Detach()
 {
 	Linux_Process* data = reinterpret_cast<Linux_Process*>(m_impl);
-	// todo
+	assert(IsAttached());
+
+	data->m_processId = 0;
+	data->m_attached = false;
 }
 
 void Process::Terminate()
 {
 	Linux_Process* data = reinterpret_cast<Linux_Process*>(m_impl);
-	// todo
+	assert(IsAttached());
+
+	kill(data->m_processId, SIGKILL);
 }
 
 bool Process::IsRunning()
 {
 	Linux_Process* data = reinterpret_cast<Linux_Process*>(m_impl);
+	assert(IsAttached());
 
-	// todo
-	return false;
+	int result = kill(data->m_processId, 0);
+	return (result == 0);
 }
 
 bool Process::IsAttached()
 {
-	// todo
-	return false;
+	Linux_Process* data = reinterpret_cast<Linux_Process*>(m_impl);
+
+	return data->m_attached;
 }
 
 bool Process::Wait()
 {
-	// todo
-	return false;
+	Linux_Process* data = reinterpret_cast<Linux_Process*>(m_impl);
+	assert(IsAttached());
+
+	int resultCode = 0;
+	waitpid(data->m_processId, &resultCode, 0);
+
+	return true;
 }
 
 int Process::GetExitCode()
 {
-	// todo
-	return 0;
+	Linux_Process* data = reinterpret_cast<Linux_Process*>(m_impl);
+	assert(IsAttached());
+
+	int resultCode = 0;
+	waitpid(data->m_processId, &resultCode, WNOHANG);
+	return WEXITSTATUS(resultCode);
 }
 
 bool Process::Write(void* buffer, uint64_t bufferLength)
-{
-	// todo
+{	
+	// Not currently implemented on this platform.
+	assert(false);
 	return false;
 }
 
 bool Process::Read(void* Bbffer, uint64_t bufferLength)
 {
-	// todo
+	// Not currently implemented on this platform.
+	assert(false);
 	return false;
 }
 
 bool Process::AtEnd()
 {
-	// todo
+	// Not currently implemented on this platform.
+	assert(false);
 	return false;
 }
 
 void Process::Flush()
 {
-	// todo
+	// Not currently implemented on this platform.
+	assert(false);
 }
 
 uint64_t Process::BytesLeft()
-{
-	// todo
+{	
+	// Not currently implemented on this platform.
+	assert(false);
 	return 0;
 }
 

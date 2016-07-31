@@ -134,8 +134,8 @@ protected:
 		*m_output = m_default;
 	}
 
-	DataType m_default;
 	DataType* m_output;
+	DataType m_default;
 
 };
 

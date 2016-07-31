@@ -16,29 +16,31 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "PCH.h"
-#include "App/Ides/XCode/XCode.h"
-#include "Core/Helpers/TextStream.h"
+#pragma once
+
+#include "App/Ides/IdeType.h"
 
 namespace MicroBuild {
 
-Ide_XCode::Ide_XCode()
+// Contains the code required to generate a Makefile file.
+class Make_CsProjectFile
 {
-}
+public:
 
-Ide_XCode::~Ide_XCode()
-{
-}
+	Make_CsProjectFile();
+	~Make_CsProjectFile();
 
-bool Ide_XCode::Generate(
-	DatabaseFile& databaseFile,
-	WorkspaceFile& workspaceFile,
-	std::vector<ProjectFile>& projectFiles)
-{
-	UNUSED_PARAMETER(databaseFile);
-	UNUSED_PARAMETER(workspaceFile);
-	UNUSED_PARAMETER(projectFiles);
-	return false;
-}
+	// Generates a basic msbuild solution file that links to the given
+	// project files.
+	bool Generate(
+		DatabaseFile& databaseFile,
+		WorkspaceFile& workspaceFile,
+		ProjectFile& projectFile,
+		IdeHelper::BuildProjectMatrix& buildMatrix
+	);
+
+private:
+
+};
 
 }; // namespace MicroBuild

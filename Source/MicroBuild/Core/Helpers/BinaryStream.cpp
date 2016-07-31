@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
 #include "PCH.h"
 #include "Core/Helpers/Strings.h"
 #include "Core/Helpers/BinaryStream.h"
@@ -96,10 +94,10 @@ void BinaryStream::WriteBuffer(const char* buffer, uint64_t bufferLength)
 			break;
 		}
 
-		fwrite(buffer, 1, (size_t)chunkSize, m_file);
+		size_t bytesWritten = fwrite(buffer, 1, (size_t)chunkSize, m_file);
 
-		bytesLeft -= chunkSize;
-		buffer += chunkSize;
+		bytesLeft -= bytesWritten;
+		buffer += bytesWritten;
 	}
 }
 
@@ -120,18 +118,15 @@ void BinaryStream::ReadBuffer(char* buffer, uint64_t bufferLength)
 			break;
 		}
 
-		fread(buffer, 1, (size_t)chunkSize, m_file);
+		size_t bytesRead = fread(buffer, 1, (size_t)chunkSize, m_file);
 
-		bytesLeft -= chunkSize;
-		buffer += chunkSize;
+		bytesLeft -= bytesRead;
+		buffer += bytesRead;
 	}
 }
 
 uint32_t BinaryStream::Crc32()
 {
-#if 0
-	return 0;
-#else
 	if (!s_crc32TableInit)
 	{
 		uint32_t polynomial = 0xEDB88320;;
@@ -174,7 +169,8 @@ uint32_t BinaryStream::Crc32()
 			break;
 		}
 
-		fread(buffer, 1, (size_t)chunkSize, m_file);
+		size_t bytesRead = fread(buffer, 1, (size_t)chunkSize, m_file);
+		assert(bytesRead > 0);
 
 		for (uint64_t i = 0; i < chunkSize; i++)
 		{
@@ -185,29 +181,44 @@ uint32_t BinaryStream::Crc32()
 	}
 
 	return ~crc32;	
-#endif
 }
 
 uint64_t BinaryStream::Length()
 {
 	uint64_t offset = Offset();
 
+#if defined(MB_PLATFORM_WINDOWS)
 	_fseeki64(m_file, 0, SEEK_END);
+#else
+	fseeko64(m_file, 0, SEEK_END);
+#endif
 	uint64_t length = Offset();
 	
+#if defined(MB_PLATFORM_WINDOWS)
 	_fseeki64(m_file, offset, SEEK_SET);
+#else
+	fseeko64(m_file, offset, SEEK_SET);
+#endif
 
 	return length;
 }
 
 uint64_t BinaryStream::Offset()
 {
+#if defined(MB_PLATFORM_WINDOWS)
 	return static_cast<uint64_t>(_ftelli64(m_file));
+#else
+	return static_cast<uint64_t>(ftello64(m_file));
+#endif
 }
 
 void BinaryStream::Seek(uint64_t offset)
 {
+#if defined(MB_PLATFORM_WINDOWS)
 	_fseeki64(m_file, offset, SEEK_SET);
+#else
+	fseeko64(m_file, offset, SEEK_SET);
+#endif
 }
 
 void BinaryStream::CopyTo(BinaryStream& other)

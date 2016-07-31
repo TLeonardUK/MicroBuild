@@ -26,18 +26,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // ----------------------------------------------------------------------------
 
 #define START_OPTION(ValueType, Group, Key, Description) \
-	ValueType SCHEMA_CLASS::Get_##Group##_##Key##() \
+	ValueType SCHEMA_CLASS::Get_##Group##_##Key() \
 	{ \
 		return m_##Group##_##Key##_value; \
 	} \
-	void SCHEMA_CLASS::Set_##Group##_##Key##(const ValueType& value) \
+	void SCHEMA_CLASS::Set_##Group##_##Key(const ValueType& value) \
 	{ \
 		m_##Group##_##Key##_value = value; \
 		std::string converted; \
 		StringCast(value, converted); \
 		SetOrAddValue(#Group, #Key, converted, true); \
 	} \
-	bool SCHEMA_CLASS::Validate_##Group##_##Key##() \
+	bool SCHEMA_CLASS::Validate_##Group##_##Key() \
 	{ \
 		std::string groupName = #Group;\
 		std::string keyName = #Key;\
@@ -47,11 +47,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		bool bResult = true;
 
 #define START_ARRAY_OPTION(ValueType, Group, Key, Description) \
-	std::vector<ValueType> SCHEMA_CLASS::Get_##Group##_##Key##() \
+	std::vector<ValueType> SCHEMA_CLASS::Get_##Group##_##Key() \
 	{ \
 		return m_##Group##_##Key##_value; \
 	} \
-	void SCHEMA_CLASS::Set_##Group##_##Key##(const std::vector<ValueType>& value) \
+	void SCHEMA_CLASS::Set_##Group##_##Key(const std::vector<ValueType>& value) \
 	{ \
 		m_##Group##_##Key##_value = value; \
 		std::vector<std::string> result; \
@@ -63,7 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		} \
 		SetOrAddValue(#Group, #Key, result, true); \
 	} \
-	bool SCHEMA_CLASS::Validate_##Group##_##Key##() \
+	bool SCHEMA_CLASS::Validate_##Group##_##Key() \
 	{ \
 		std::string groupName = #Group;\
 		std::string keyName = #Key;\
@@ -75,16 +75,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		bool bResult = true;
 
 #define START_KEY_VALUE_ARRAY_OPTION(Group, Description) \
-	std::vector<ConfigFile::KeyValuePair> SCHEMA_CLASS::Get_##Group##() \
+	std::vector<ConfigFile::KeyValuePair> SCHEMA_CLASS::Get_##Group() \
 	{ \
 		return m_##Group##_value; \
 	} \
-	void SCHEMA_CLASS::Set_##Group##(const std::vector<ConfigFile::KeyValuePair>& value) \
+	void SCHEMA_CLASS::Set_##Group(const std::vector<ConfigFile::KeyValuePair>& value) \
 	{ \
 		UNUSED_PARAMETER(value); \
 		assert(false); \
 	} \
-	bool SCHEMA_CLASS::Validate_##Group##() \
+	bool SCHEMA_CLASS::Validate_##Group() \
 	{ \
 		m_##Group##_value = GetPairs(#Group); \
 
@@ -179,17 +179,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define START_ENUM(Name) \
 	}; /*namespace MicroBuild*/ \
-	extern const char* ##Name##_Strings[(int)MicroBuild::Name::COUNT]; \
+	extern const char* Name##_Strings[(int)MicroBuild::Name::COUNT]; \
 	bool StringConvert(const MicroBuild::Name& value, std::string& type) \
 	{ \
-		type = ##Name##_Strings[(int)value]; \
+		type = Name##_Strings[(int)value]; \
 		return true; \
 	} \
 	bool StringConvert(const std::string& value, MicroBuild::Name& type) \
 	{ \
 		for (int i = 0; i < (int)MicroBuild::Name::COUNT; i++) \
 		{ \
-			if (MicroBuild::Strings::CaseInsensitiveEquals(##Name##_Strings[i], value)) \
+			if (MicroBuild::Strings::CaseInsensitiveEquals(Name##_Strings[i], value)) \
 			{ \
 				type = (MicroBuild::Name)i; \
 				return true; \
@@ -197,7 +197,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		} \
 		return false; \
 	} \
-	const char* ##Name##_Strings[(int)MicroBuild::Name::COUNT] = { 
+	const char* Name##_Strings[(int)MicroBuild::Name::COUNT] = { 
 
 #define ENUM_KEY(Name) \
 		#Name,
@@ -239,11 +239,11 @@ bool SCHEMA_CLASS::Validate()
 
 	bool bResult = true;
 #define START_OPTION(ValueType, Group, Key, Description) \
-	bResult = bResult && Validate_##Group##_##Key##();
+	bResult = bResult && Validate_##Group##_##Key();
 #define START_ARRAY_OPTION(ValueType, Group, Key, Description) \
-	bResult = bResult && Validate_##Group##_##Key##();
+	bResult = bResult && Validate_##Group##_##Key();
 #define START_KEY_VALUE_ARRAY_OPTION(Group, Description) \
-	bResult = bResult && Validate_##Group##();
+	bResult = bResult && Validate_##Group();
 #define OPTION_RULE_REQUIRED()
 #define OPTION_RULE_ORDER_IMPORTANT()
 #define OPTION_RULE_DEFAULT(Value)

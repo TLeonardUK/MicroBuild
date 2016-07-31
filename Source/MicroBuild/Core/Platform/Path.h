@@ -128,6 +128,18 @@ public:
 	// Returns true if the extension of this path looks like a image file.
 	bool IsImageFile() const;
 
+	// Returns true if the extension of this path looks like a c file.
+	bool IsCFile() const;
+
+	// Returns true if the extension of this path looks like a objc file.
+	bool IsObjCFile() const;
+
+	// Returns true if the extension of this path looks like a c++ file.
+	bool IsCppFile() const;
+
+	// Returns true if the extension of this path looks like a csharp file.
+	bool IsCSharpFile() const;
+
 	// Creates this path as a directory.
 	bool CreateAsDirectory() const;
 
@@ -173,6 +185,9 @@ public:
 	// Gets the current working directory, should be used only for expanding
 	// command line input.
 	static Path GetWorkingDirectory();
+
+	// Sets the current working directory.
+	static void SetWorkingDirectory(const Path& other);	
 
 	// Returns the part of the path following the common path that is
 	// has been obtained from GetCommonPath.

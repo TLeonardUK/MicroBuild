@@ -74,12 +74,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 // min/max macros if they don't already exists.
-#ifndef min
-#define min(x, y) ((x) < (y) ? (x) : (y))
+#ifndef Min
+#define Min(x, y) ((x) < (y) ? (x) : (y))
 #endif
 
-#ifndef max
-#define max(x, y) ((x) > (y) ? (x) : (y))
+#ifndef Max
+#define Max(x, y) ((x) > (y) ? (x) : (y))
 #endif
 
 // Used to explicitly mark parameters as unused so they don't cause warnings.

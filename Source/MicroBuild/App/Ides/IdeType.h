@@ -32,6 +32,7 @@ class IdeType
 public:
 
 	IdeType();
+	virtual ~IdeType();
 
 	// Gets the short-named use on the command line and in config files
 	// to refer to this IDE.

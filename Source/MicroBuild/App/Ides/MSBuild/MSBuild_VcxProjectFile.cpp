@@ -487,97 +487,101 @@ bool MSBuild_VcxProjectFile::Generate(
 			switch (matrix.projectFile.Get_Build_PlatformToolset())
 			{
 			case EPlatformToolset::v140_clang_3_7:
-			{
-				// Warning level.
-				switch (matrix.projectFile.Get_Build_WarningLevel())
 				{
-				case EWarningLevel::Default:
-					break;
-				case EWarningLevel::None:
-					compileGroup.Node("WarningLevel").Value("TurnOffAllWarnings");
-					break;
-				case EWarningLevel::Low:
-					compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
-					break;
-				case EWarningLevel::Medium:
-					compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
-					break;
-				case EWarningLevel::High:
-					compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
-					break;
-				case EWarningLevel::Verbose:
-					compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
-					break;
-				default:
-					projectFile.ValidateError(
-						"Warning level '%s' is not valid for msbuild C++ projects.",
-						CastToString(matrix.projectFile.Get_Build_WarningLevel()).c_str());
-					return false;
-				}
+					// Warning level.
+					switch (matrix.projectFile.Get_Build_WarningLevel())
+					{
+					case EWarningLevel::Default:
+						break;
+					case EWarningLevel::None:
+						compileGroup.Node("WarningLevel").Value("TurnOffAllWarnings");
+						break;
+					case EWarningLevel::Low:
+						compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
+						break;
+					case EWarningLevel::Medium:
+						compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
+						break;
+					case EWarningLevel::High:
+						compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
+						break;
+					case EWarningLevel::Verbose:
+						compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
+						break;
+					default:
+						projectFile.ValidateError(
+							"Warning level '%s' is not valid for msbuild C++ projects.",
+							CastToString(matrix.projectFile.Get_Build_WarningLevel()).c_str());
+						return false;
+					}
 
-				// Exception handling.
-				compileGroup
-					.Node("ExceptionHandling")
-					.Value((matrix.projectFile.Get_Flags_Exceptions() ? "Disabled" : "Enabled"));
+					// Exception handling.
+					compileGroup
+						.Node("ExceptionHandling")
+						.Value((matrix.projectFile.Get_Flags_Exceptions() ? "Disabled" : "Enabled"));
 
-				// Debug database.
-				if (matrix.projectFile.Get_Flags_GenerateDebugInformation())
-				{
-					compileGroup.Node("DebugInformationFormat").Value("FullDebug");
-				}
-				else
-				{
-					compileGroup.Node("DebugInformationFormat").Value("None");
-				}
+					// Debug database.
+					if (matrix.projectFile.Get_Flags_GenerateDebugInformation())
+					{
+						compileGroup.Node("DebugInformationFormat").Value("FullDebug");
+					}
+					else
+					{
+						compileGroup.Node("DebugInformationFormat").Value("None");
+					}
 
-				break;
-			}
+					break;
+				}
 			case EPlatformToolset::Default:
-			{
-				// Warning level.
-				switch (matrix.projectFile.Get_Build_WarningLevel())
 				{
-				case EWarningLevel::Default:
+					// Warning level.
+					switch (matrix.projectFile.Get_Build_WarningLevel())
+					{
+					case EWarningLevel::Default:
+						break;
+					case EWarningLevel::None:
+						compileGroup.Node("WarningLevel").Value("TurnOffAllWarnings");
+						break;
+					case EWarningLevel::Low:
+						compileGroup.Node("WarningLevel").Value("Level1");
+						break;
+					case EWarningLevel::Medium:
+						compileGroup.Node("WarningLevel").Value("Level3");
+						break;
+					case EWarningLevel::High:
+						compileGroup.Node("WarningLevel").Value("Level4");
+						break;
+					case EWarningLevel::Verbose:
+						compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
+						break;
+					default:
+						projectFile.ValidateError(
+							"Warning level '%s' is not valid for msbuild C++ projects.",
+							CastToString(matrix.projectFile.Get_Build_WarningLevel()).c_str());
+						return false;
+					}
+
+					// Exception handling.
+					compileGroup
+						.Node("ExceptionHandling")
+						.Value((matrix.projectFile.Get_Flags_Exceptions() ? "Async" : "false"));
+
+					// Debug database.
+					if (matrix.projectFile.Get_Flags_GenerateDebugInformation())
+					{
+						compileGroup.Node("DebugInformationFormat").Value("ProgramDatabase");
+					}
+					else
+					{
+						compileGroup.Node("DebugInformationFormat").Value("None");
+					}
+
 					break;
-				case EWarningLevel::None:
-					compileGroup.Node("WarningLevel").Value("TurnOffAllWarnings");
-					break;
-				case EWarningLevel::Low:
-					compileGroup.Node("WarningLevel").Value("Level1");
-					break;
-				case EWarningLevel::Medium:
-					compileGroup.Node("WarningLevel").Value("Level3");
-					break;
-				case EWarningLevel::High:
-					compileGroup.Node("WarningLevel").Value("Level4");
-					break;
-				case EWarningLevel::Verbose:
-					compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
-					break;
-				default:
-					projectFile.ValidateError(
-						"Warning level '%s' is not valid for msbuild C++ projects.",
-						CastToString(matrix.projectFile.Get_Build_WarningLevel()).c_str());
-					return false;
 				}
-
-				// Exception handling.
-				compileGroup
-					.Node("ExceptionHandling")
-					.Value((matrix.projectFile.Get_Flags_Exceptions() ? "Async" : "false"));
-
-				// Debug database.
-				if (matrix.projectFile.Get_Flags_GenerateDebugInformation())
+			default:
 				{
-					compileGroup.Node("DebugInformationFormat").Value("ProgramDatabase");
+					break;
 				}
-				else
-				{
-					compileGroup.Node("DebugInformationFormat").Value("None");
-				}
-
-				break;
-			}
 			}
 
 			compileGroup.Node("TreatWarningAsError").Value(matrix.projectFile.Get_Flags_CompilerWarningsFatal());

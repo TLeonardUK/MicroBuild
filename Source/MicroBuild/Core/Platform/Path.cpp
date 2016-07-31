@@ -157,7 +157,7 @@ Path Path::ChangeExtension(const std::string& Value) const
 	{
 		return Strings::Format(
 			"%s.%s",
-			m_raw,
+			m_raw.c_str(),
 			Value.c_str()
 		);
 	}
@@ -204,13 +204,13 @@ Path Path::ChangeMount(const std::string& Value) const
 		if (m_raw[0] == Seperator)
 		{
 			return Strings::Format("%s%s",
-				m_raw.substr(1),
+				m_raw.substr(1).c_str(),
 				Value.c_str());
 		}
 		else if (m_raw.size() > 1 && m_raw[1] == ':')
 		{
 			return Strings::Format("%s%s",
-				m_raw.substr(2),
+				m_raw.substr(2).c_str(),
 				Value.c_str());
 		}
 	}
@@ -414,6 +414,91 @@ bool Path::IsImageFile() const
 	return false;
 }
 
+bool Path::IsObjCFile() const
+{
+	static const char* extensions[] = {
+		"mm",
+		"m",
+		"objc",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Path::IsCFile() const
+{
+	static const char* extensions[] = {
+		"c",
+		"cc",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Path::IsCppFile() const
+{
+	static const char* extensions[] = {
+		"cpp",
+		"c++",
+		"cxx",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Path::IsCSharpFile() const
+{
+	static const char* extensions[] = {
+		"cs",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 std::vector<std::string> Path::GetFragments() const
 {
 	return Strings::Split(Seperator, m_raw);
@@ -421,6 +506,8 @@ std::vector<std::string> Path::GetFragments() const
 
 void Path::Normalize()
 {
+	std::string original = m_raw;
+
 	if (m_raw.size() == 0)
 	{
 		return;
@@ -536,6 +623,12 @@ void Path::Normalize()
 					}
 				}
 				fragment = "";
+
+				// If we are the first character, make sure to append the seperator so linux paths work.
+				if (i == 0)
+				{
+					result = chr + result;
+				}
 			}
 			else
 			{
@@ -556,6 +649,8 @@ void Path::Normalize()
 
 		m_raw = result;
 	}
+
+	//printf("original=%s raw=%s\n", original.c_str(), m_raw.c_str());
 }
 
 Path Path::RelativeTo(const Path& Destination) const
@@ -581,7 +676,7 @@ Path Path::RelativeTo(const Path& Destination) const
 
 	// Work out which directories are matching.
 	int matchingDirs = 0;
-	size_t minDirCount = min(fragmentsDirCount, destFragmentsDirCount);
+	size_t minDirCount = Min(fragmentsDirCount, destFragmentsDirCount);
 
 	for (unsigned int i = 0; i < minDirCount; i++)
 	{
@@ -631,7 +726,7 @@ bool Path::GetCommonPath(std::vector<Path>& paths, Path& result)
 	size_t maxOffset = INT_MAX;
 	for (Path& path : paths)
 	{
-		maxOffset = min(maxOffset, path.ToString().size());
+		maxOffset = Min(maxOffset, path.ToString().size());
 	}
 
 	std::string matchPath = "";
@@ -720,6 +815,8 @@ std::vector<Path> MatchFilter_r(
 	std::string seperatorString(1, Path::Seperator);
 
 	std::string matchType = matches[0];
+	
+	Log(LogSeverity::Verbose, "[MatchFilter_r] %s\n", base.ToString().c_str());
 
 	// Nothing to match again? Game over.
 	if (matches.size() == 0)
@@ -746,6 +843,8 @@ std::vector<Path> MatchFilter_r(
 			frag.valid = true;
 			frag.isDirectory = true;
 			potentialMatches.push_back(frag);
+
+			Log(LogSeverity::Verbose, "[Contains] Dir:%s\n", path.c_str());
 		}
 
 		for (std::string& path : files)
@@ -756,6 +855,8 @@ std::vector<Path> MatchFilter_r(
 			frag.valid = true;
 			frag.isDirectory = false;
 			potentialMatches.push_back(frag);
+
+			Log(LogSeverity::Verbose, "[Contains] File:%s\n", path.c_str());
 		}
 		
 		bool bFinished = false;
@@ -1046,6 +1147,12 @@ std::vector<Path> Path::MatchFilter(const Path& path)
 		return result;
 	}
 
+	Log(LogSeverity::Verbose, "=== MatchFilter(%s) ===\n", path.m_raw.c_str());
+	for (auto str : matchStack)
+	{
+		Log(LogSeverity::Verbose, "[Stack] %s\n", str.c_str());
+	}
+
 	// If we only have one split, we are done.
 	if (matchStack.size() == 1)
 	{
@@ -1064,8 +1171,15 @@ std::vector<Path> Path::MatchFilter(const Path& path)
 Path Path::GetWorkingDirectory()
 {
 	char buffer[2048];
-	getcwd(buffer, 2048);
-	return buffer;
+	char* result = getcwd(buffer, 2048);
+	assert(result != nullptr);
+	return result;
+}
+
+void Path::SetWorkingDirectory(const Path& other)
+{
+	int result = chdir(other.m_raw.c_str());
+	assert(result == 0);
 }
 
 bool MatchEatNeedle(const char*& remaining, const char*& match)
