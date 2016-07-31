@@ -69,8 +69,11 @@ std::string GetPlatformID(EPlatform platform)
 			return "CTR";
 		}
 		*/
+		default:
+		{
+			return "";
+		}
 	}
-	return "";
 }
 
 std::string GetPlatformDotNetTarget(EPlatform platform)

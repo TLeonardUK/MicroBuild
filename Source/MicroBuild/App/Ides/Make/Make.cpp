@@ -84,6 +84,8 @@ bool Ide_Make::Build(
 	const std::string& configuration,
 	const std::string& platform) 
 {
+	UNUSED_PARAMETER(bRebuild);
+
 	Platform::Path solutionDirectory =
 		workspaceFile.Get_Workspace_Location();
 
