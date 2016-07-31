@@ -1,2 +1,2 @@
-..\Binaries\Stable\microbuild.exe generate vs2015 Config/Workspace.ini
+..\Binaries\windows_x64\microbuild.exe generate vs2015 Config/Workspace.ini
 

@@ -9,7 +9,7 @@ configuration:
 
 before_build:
   - cd Build
-  - Generate.Windows.sh
+  - Generate.Windows.bat
   - cd ProjectFiles
 
 build:
