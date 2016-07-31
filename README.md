@@ -29,11 +29,11 @@ It aims to  fulfills the following requirements:
 Documentation can be found on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
 
 ## Project file layout
-+ Binaries
++ **Binaries**
 Compiled binaries for quick distribution.
-+ Build
++ **Build**
 Files required to build the project, the bootstrapper folder in it contains the premake files used to compile the project before microbuild can self-host itself.
-+ Source
++ **Source**
 The actual source code for the project.
-+ Tests
++ **Tests**
 Various projects to test the projects functionality.
