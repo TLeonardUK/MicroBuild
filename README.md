@@ -26,4 +26,4 @@ It aims to  fulfills the following requirements:
 + Cross platform - Should be able to generate projects on any support platform for any other platform.
 
 ## Documentation
-Documentation can be found on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
+Extension documentation is available on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
