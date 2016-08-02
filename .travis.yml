@@ -21,6 +21,7 @@ addons:
     - g++-6
     - gcc-6-multilib
     - g++-6-multilib	
+    - linux-libc-dev
   coverity_scan:
     project:
       name: "TLeonardUK/MicroBuild"
@@ -33,9 +34,9 @@ script:
   - cd ./Build/
   - ./Generate.Linux.sh
   - cd ./ProjectFiles
-  - make config=Shipping_x64
-  - make clean
   - make config=Shipping_x86
+  - make clean
+  - make config=Shipping_x64
   - cd ./../../
 after_success: 
   - cp ./Binaries/MicroBuild_Linux_x64_Shipping ./Binaries/linux_x64/microbuild
