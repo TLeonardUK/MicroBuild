@@ -22,7 +22,6 @@ addons:
     - gcc-6-multilib
     - g++-6-multilib	
     - linux-libc-dev
-    - linux-libc-dev:i386 .
   coverity_scan:
     project:
       name: "TLeonardUK/MicroBuild"
@@ -35,6 +34,7 @@ script:
   - cd ./Build/
   - ./Generate.Linux.sh
   - cd ./ProjectFiles
+  - ln -s /usr/include/asm to /usr/include/asm-generic
   - make config=Shipping_x86
   - make clean
   - make config=Shipping_x64
