@@ -22,6 +22,6 @@ on_success:
   - git config --global user.name "Build Server"
   - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/windows_x64/microbuild.exe }
   - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/windows_x86/microbuild.exe }
-  - git checkout $APPVEYOR_REPO_BRANCH
-  - git commit -m "[ci skip] Automated Build (Appveyor build $APPVEYOR_BUILD_NUMBER )."
-  - git push "https://TLeonardUK:$GITHUB_TOKEN@github.com/TLeonardUK/MicroBuild.git" --all --quiet
+  - git checkout %APPVEYOR_REPO_BRANCH%
+  - git commit -m "[ci skip] Automated Build (Appveyor build %APPVEYOR_BUILD_NUMBER% )."
+  - git push "https://TLeonardUK:%GITHUB_TOKEN%@github.com/TLeonardUK/MicroBuild.git" --all --quiet
