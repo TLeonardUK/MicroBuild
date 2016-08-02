@@ -161,9 +161,19 @@ bool ReadFile(const Platform::Path& path, std::string& output)
 	FILE* file = fopen(path.ToString().c_str(), "r");
 	if (file)
 	{
-		fseek(file, 0, SEEK_END);
+		int result = fseek(file, 0, SEEK_END);
+		if (result != 0)
+		{
+			return false;
+		}
+
 		long length = ftell(file);
-		fseek(file, 0, SEEK_SET);
+
+		result = fseek(file, 0, SEEK_SET);
+		if (result != 0)
+		{
+			return false;
+		}
 
 		std::vector<char> data;
 		data.resize(length);
@@ -187,14 +197,10 @@ bool WriteFile(const Platform::Path& path, const std::string& data)
 	if (file)
 	{
 		size_t ret = fwrite(data.c_str(), 1, data.size(), file);
-		if (ret != data.size())
-		{
-			return false;
-		}
 
 		fclose(file);
 
-		return true;
+		return (ret == data.size());
 	}
 
 	return false;
@@ -234,6 +240,8 @@ std::string FormatVa(std::string format, va_list args)
 	{
 		delete[] buffer;
 	}
+
+	va_end(baseArgs);
 
 	return result;
 }

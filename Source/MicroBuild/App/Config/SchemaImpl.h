@@ -141,7 +141,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		if (options.size() > 0) \
 		{ \
 			bResult = bResult && ValidateOptions( \
-									options, values, groupName, keyName); \
+									values, options, groupName, keyName); \
 		} \
 		if (values.size() >= 1) \
 		{ \
@@ -158,7 +158,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		if (options.size() > 0) \
 		{ \
 			bResult = bResult && ValidateOptions( \
-									options, values, groupName, keyName); \
+									values, options, groupName, keyName); \
 		} \
 		for (std::string& result : values) \
 		{ \

@@ -33,6 +33,7 @@ namespace MicroBuild {
 
 BuildCommand::BuildCommand(App* app)
 	: m_app(app)
+	, m_rebuild(false)
 {
 	SetName("build");
 	SetShortName("b");

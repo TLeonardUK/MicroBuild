@@ -34,6 +34,7 @@ namespace MicroBuild {
 
 PackageCommand::PackageCommand(App* app)
 	: m_app(app)
+	, m_rebuild(false)
 {
 	SetName("package");
 	SetShortName("p");

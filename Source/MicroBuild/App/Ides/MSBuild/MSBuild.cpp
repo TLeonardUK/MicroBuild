@@ -46,6 +46,7 @@ namespace MicroBuild {
 
 Ide_MSBuild::Ide_MSBuild()
     : m_msBuildVersion(MSBuildVersion::Version12)
+	, m_defaultToolset(EPlatformToolset::Default)
 {
 }
 

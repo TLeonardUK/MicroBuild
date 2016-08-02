@@ -59,6 +59,9 @@ const char* TokenTypeLiteral[(int)TokenType::COUNT] = {
 };
 
 ConfigTokenizer::ConfigTokenizer()
+	: m_offset(0)
+	, m_column(0)
+	, m_line(0)
 {
 }
 

@@ -207,7 +207,7 @@ bool Path::CreateAsFile() const
 		O_CREAT | O_RDWR,  
 		S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH
 	);
-	if (fd == 0)
+	if (fd <= 0)
 	{
 		return false;
 	}
