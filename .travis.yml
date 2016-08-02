@@ -43,10 +43,10 @@ script:
 after_success: 
   - cp ./Binaries/MicroBuild_Linux_x64_Shipping ./Binaries/linux_x64/microbuild
   - cp ./Binaries/MicroBuild_Linux_x86_Shipping ./Binaries/linux_x86/microbuild
-  - git checkout "https://TLeonardUK:$GITHUB_TOKEN@github.com/TLeonardUK/MicroBuild.git"
   - git config --global user.email "buildserver@programmingbytim.com"
   - git config --global user.name "Build Server"
   - git add ./Binaries/linux_x64/microbuild
   - git add ./Binaries/linux_x86/microbuild
+  - git checkout $TRAVIS_BRANCH
   - git commit -m "Automated Build (Travis build $TRAVIS_BUILD_NUMBER)."
   - git push "https://TLeonardUK:$GITHUB_TOKEN@github.com/TLeonardUK/MicroBuild.git" --all
