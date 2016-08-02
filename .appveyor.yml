@@ -14,3 +14,14 @@ before_build:
 
 build:
   project: Build\ProjectFiles\MicroBuild.sln
+
+on_success: 
+  - cp ./Binaries/MicroBuild_Windows_x64_Shipping.exe ./Binaries/windows_x64/microbuild.exe
+  - cp ./Binaries/MicroBuild_Windows_x86_Shipping.exe ./Binaries/windows_x86/microbuild.exe
+  - git config --global user.email "buildserver@programmingbytim.com"
+  - git config --global user.name "Build Server"
+  - git add ./Binaries/windows_x64/microbuild.exe
+  - git add ./Binaries/windows_x86/microbuild.exe
+  - git checkout $APPVEYOR_REPO_BRANCH
+  - git commit -m "[ci skip] Automated Build (Travis build $APPVEYOR_BUILD_NUMBER )."
+  - git push "https://TLeonardUK:$GITHUB_TOKEN@github.com/TLeonardUK/MicroBuild.git" --all --quiet
