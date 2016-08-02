@@ -22,6 +22,7 @@ addons:
     - gcc-6-multilib
     - g++-6-multilib	
     - linux-libc-dev
+    - linux-libc-dev:i386 .
   coverity_scan:
     project:
       name: "TLeonardUK/MicroBuild"
