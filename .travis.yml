@@ -34,7 +34,6 @@ script:
   - cd ./Build/
   - ./Generate.Linux.sh
   - cd ./ProjectFiles
-  - ln -s /usr/include/asm to /usr/include/asm-generic
   - make config=Shipping_x86
   - make clean
   - make config=Shipping_x64
