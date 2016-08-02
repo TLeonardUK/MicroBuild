@@ -19,6 +19,7 @@ addons:
     packages:
     - gcc-6
     - g++-6
+    - gcc-multilib
   coverity_scan:
     project:
       name: "TLeonardUK/MicroBuild"
