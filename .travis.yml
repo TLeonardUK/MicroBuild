@@ -49,4 +49,4 @@ after_success:
   - git add ./Binaries/linux_x86/microbuild
   - git checkout $TRAVIS_BRANCH
   - git commit -m "Automated Build (Travis build $TRAVIS_BUILD_NUMBER)."
-  - git push "https://TLeonardUK:$GITHUB_TOKEN@github.com/TLeonardUK/MicroBuild.git" --all
+  - git push "https://TLeonardUK:$GITHUB_TOKEN@github.com/TLeonardUK/MicroBuild.git" --all --quiet
