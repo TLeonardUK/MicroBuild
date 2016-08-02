@@ -17,7 +17,7 @@ build:
 
 on_success: 
   - ps: if ($env:PLATFORM -eq "x64")   { cp ./Binaries/MicroBuild_Windows_x64_Shipping.exe ./Binaries/windows_x64/microbuild.exe }
-  - ps: if ($env:PLATFORM -eq "Win32") { if [ "$CXX" = "g++" ]; cp ./Binaries/MicroBuild_Windows_x86_Shipping.exe ./Binaries/windows_x86/microbuild.exe }
+  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Binaries/MicroBuild_Windows_x86_Shipping.exe ./Binaries/windows_x86/microbuild.exe }
   - git config --global user.email "buildserver@programmingbytim.com"
   - git config --global user.name "Build Server"
   - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/windows_x64/microbuild.exe }
