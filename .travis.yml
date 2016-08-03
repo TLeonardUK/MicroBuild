@@ -6,6 +6,9 @@ language: cpp
 os:
   - linux
 #  - osx
+branches:
+  only:
+  - master
 compiler:
   - gcc
 sudo: required
