@@ -26,7 +26,7 @@ It aims to  fulfills the following requirements:
 + __Cross platform__ - Should be able to generate projects on any support platform for any other platform.
 
 ## Documentation
-Extension documentation is available on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
+Extensive documentation is available on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
 
 ## License
 MicroBuild is free software and is distributed under GPL (version 3). If you need distribution under another license, shoot me a message.
