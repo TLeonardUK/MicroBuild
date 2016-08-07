@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
+
 #include "App/App.h"
 #include "App/Commands/Version.h"
 

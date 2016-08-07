@@ -17,15 +17,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
+
 #include "App/App.h"
 #include "App/Ides/IdeType.h"
 #include "App/Commands/Generate.h"
 #include "App/Database/DatabaseFile.h"
+
 #include "Core/Commands/CommandLineParser.h"
 #include "Core/Commands/CommandComboArgument.h"
 #include "Core/Commands/CommandPathArgument.h"
 #include "Core/Commands/CommandFlagArgument.h"
-
 #include "Core/Helpers/Time.h"
 
 namespace MicroBuild {

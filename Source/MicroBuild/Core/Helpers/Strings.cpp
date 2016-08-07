@@ -367,6 +367,30 @@ std::string Guid(const std::vector<std::string>& values)
 	return Strings::Format("{00000000-0000-0000-0000-%s}", result.c_str());
 }
 
+std::string Uuid(int length, const std::vector<std::string>& values)
+{
+	uint64_t hash = 0;
+
+	for (const std::string& res : values)
+	{
+		hash = Hash64(res, hash);
+	}
+
+	char tag[64];
+	sprintf(tag, "%%0%i" PRIu64, length);
+
+	char buffer[64];
+	sprintf(buffer, tag, hash);
+
+	std::string result = buffer;
+	if (result.size() > length)
+	{
+		result.resize(length);
+	}
+
+	return result;	
+}
+
 std::string Escaped(const std::string& input)
 {
 	std::string result;

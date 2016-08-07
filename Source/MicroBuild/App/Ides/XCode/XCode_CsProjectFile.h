@@ -19,34 +19,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "App/Ides/IdeType.h"
-#include "Core/Templates/TemplateEvaluator.h"
 
 namespace MicroBuild {
 
-// Permits generating of xcode workspaces.
-class Ide_XCode
-	: public IdeType
+// Contains the code required to generate a XCode file.
+class XCode_CsProjectFile
 {
 public:
 
-	Ide_XCode();
-	~Ide_XCode();
+	XCode_CsProjectFile();
+	~XCode_CsProjectFile();
 
-	virtual bool Generate(
+	// Generates a basic msbuild solution file that links to the given
+	// project files.
+	bool Generate(
 		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
-		std::vector<ProjectFile>& projectFiles) override;
-
-	virtual bool Clean(
-		WorkspaceFile& workspaceFile) override;
-
-	virtual bool Build(
-		WorkspaceFile& workspaceFile,
-		bool bRebuild,
-		const std::string& configuration,
-		const std::string& platform) override;
-	
-protected:
+		ProjectFile& projectFile,
+		IdeHelper::BuildProjectMatrix& buildMatrix
+	);
 
 private:
 

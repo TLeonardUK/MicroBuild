@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define END_ARRAY_OPTION()
 #define END_KEY_VALUE_ARRAY_OPTION()
 #define START_ENUM(Name) \
-		enum class Name { 
+		enum class Name : unsigned int {
 #define ENUM_KEY(Name) \
 			Name,
 #define END_ENUM() \

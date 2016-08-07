@@ -18,16 +18,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Ides/XCode/XCode.h"
+#include "App/Ides/XCode/XCode_CsProjectFile.h"
+#include "App/Ides/XCode/XCode_CppProjectFile.h"
+#include "App/Ides/XCode/XCode_SolutionFile.h"
 #include "Core/Helpers/TextStream.h"
+#include "Core/Platform/Process.h"
 
 namespace MicroBuild {
 
 Ide_XCode::Ide_XCode()
 {
+	SetShortName("xcode");
 }
 
 Ide_XCode::~Ide_XCode()
 {
+}
+
+bool Ide_XCode::Clean(
+	WorkspaceFile& workspaceFile) 
+{
+	UNUSED_PARAMETER(workspaceFile);
+
+	// TODO
+
+	return false;
+}
+
+bool Ide_XCode::Build(
+	WorkspaceFile& workspaceFile,
+	bool bRebuild,
+	const std::string& configuration,
+	const std::string& platform) 
+{
+	UNUSED_PARAMETER(workspaceFile);
+	UNUSED_PARAMETER(bRebuild);
+	UNUSED_PARAMETER(configuration);
+	UNUSED_PARAMETER(platform);
+
+	// TODO
+
+	return false;
 }
 
 bool Ide_XCode::Generate(
@@ -35,10 +66,70 @@ bool Ide_XCode::Generate(
 	WorkspaceFile& workspaceFile,
 	std::vector<ProjectFile>& projectFiles)
 {
-	UNUSED_PARAMETER(databaseFile);
-	UNUSED_PARAMETER(workspaceFile);
-	UNUSED_PARAMETER(projectFiles);
-	return false;
+	IdeHelper::BuildWorkspaceMatrix matrix;
+	if (!IdeHelper::CreateBuildMatrix(workspaceFile, projectFiles, matrix))
+    {
+		return false;
+	}
+
+	int index = 0;
+	for (ProjectFile& file : projectFiles)
+	{
+		switch (file.Get_Project_Language())
+		{
+		case ELanguage::Cpp:
+			{
+				XCode_CppProjectFile projectFile;
+
+				if (!projectFile.Generate(
+					databaseFile,
+					workspaceFile,
+					file,
+					matrix[index]))
+				{
+					return false;
+				}
+
+				break;
+			}
+		case ELanguage::CSharp:
+			{
+				XCode_CsProjectFile projectFile;
+
+				if (!projectFile.Generate(
+					databaseFile,
+					workspaceFile,
+					file,
+					matrix[index]))
+				{
+					return false;
+				}
+
+				break;
+			}
+		default:
+			{
+				file.ValidateError(
+					"Language '%s' is not valid for make projects.",
+					CastToString(file.Get_Project_Language()).c_str());
+				return false;
+			}
+		}
+
+		index++;
+	}
+
+	XCode_SolutionFile solutionFile;
+
+	if (!solutionFile.Generate(
+		databaseFile,
+		workspaceFile,
+		projectFiles,
+		matrix))
+	{
+		return false;
+	}
+    return true;
 }
 
 }; // namespace MicroBuild

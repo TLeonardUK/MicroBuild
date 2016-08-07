@@ -17,11 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
+
 #include "App/App.h"
 #include "App/Ides/IdeType.h"
 #include "App/Commands/Clean.h"
 #include "App/Commands/Build.h"
 #include "App/Database/DatabaseFile.h"
+
 #include "Core/Commands/CommandLineParser.h"
 #include "Core/Commands/CommandComboArgument.h"
 #include "Core/Commands/CommandPathArgument.h"

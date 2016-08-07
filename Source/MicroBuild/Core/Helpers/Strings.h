@@ -77,6 +77,9 @@ std::vector<std::string> Split(char seperator, const std::string& value);
 // Generates a guid given the key data.
 std::string Guid(const std::vector<std::string>& values);
 
+// Generates a uuid of the given length from the given the key data.
+std::string Uuid(int length, const std::vector<std::string>& values);
+
 // Escapes any quotes in the string.
 std::string Escaped(const std::string& input);
 

@@ -18,37 +18,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "App/Ides/IdeType.h"
-#include "Core/Templates/TemplateEvaluator.h"
+#include "Core/Platform/Path.h"
+
+#include <sstream>
 
 namespace MicroBuild {
 
-// Permits generating of xcode workspaces.
-class Ide_XCode
-	: public IdeType
+// This class wraps an plist node that can be serialized into a string.
+class PlistNode
 {
 public:
+	PlistNode(const PlistNode& node) = delete;
+	PlistNode& operator=(const PlistNode&) = delete;
 
-	Ide_XCode();
-	~Ide_XCode();
+	PlistNode();
+	~PlistNode();
 
-	virtual bool Generate(
-		DatabaseFile& databaseFile,
-		WorkspaceFile& workspaceFile,
-		std::vector<ProjectFile>& projectFiles) override;
+	PlistNode& Node(const char* name, ...);
+	PlistNode& Value(const char* value, ...);
+	PlistNode& Value(bool value);
+	PlistNode& Value(int value);
+	PlistNode& Value(float value);
 
-	virtual bool Clean(
-		WorkspaceFile& workspaceFile) override;
+	std::string ToString(int indentLevel = 0, bool bAppendHeader = true);
 
-	virtual bool Build(
-		WorkspaceFile& workspaceFile,
-		bool bRebuild,
-		const std::string& configuration,
-		const std::string& platform) override;
-	
 protected:
+	bool IsValueNode();
 
 private:
+	std::string m_name;
+	std::string m_value;
+
+	std::vector<PlistNode*> m_children;
 
 };
 

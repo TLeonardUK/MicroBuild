@@ -190,14 +190,14 @@ uint64_t BinaryStream::Length()
 #if defined(MB_PLATFORM_WINDOWS)
 	int result = _fseeki64(m_file, 0, SEEK_END);
 #else
-	int result = fseeko64(m_file, 0, SEEK_END);
+	off_t result = fseeko(m_file, 0, SEEK_END);
 #endif
 	uint64_t length = Offset();
 	
 #if defined(MB_PLATFORM_WINDOWS)
 	result = _fseeki64(m_file, offset, SEEK_SET);
 #else
-	result = fseeko64(m_file, offset, SEEK_SET);
+	result = fseeko(m_file, offset, SEEK_SET);
 #endif
 
 	assert(result == 0);
@@ -210,7 +210,7 @@ uint64_t BinaryStream::Offset()
 #if defined(MB_PLATFORM_WINDOWS)
 	return static_cast<uint64_t>(_ftelli64(m_file));
 #else
-	return static_cast<uint64_t>(ftello64(m_file));
+	return static_cast<uint64_t>(ftello(m_file));
 #endif
 }
 
@@ -219,7 +219,7 @@ void BinaryStream::Seek(uint64_t offset)
 #if defined(MB_PLATFORM_WINDOWS)
 	int result = _fseeki64(m_file, offset, SEEK_SET);
 #else
-	int result = fseeko64(m_file, offset, SEEK_SET);
+	int result = fseeko(m_file, offset, SEEK_SET);
 #endif
 
 	assert(result == 0);

@@ -1,4 +1,4 @@
-/*
+ /*
 MicroBuild
 Copyright (C) 2016 TwinDrills
 
@@ -16,40 +16,36 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include "App/Ides/IdeType.h"
-#include "Core/Templates/TemplateEvaluator.h"
+#include "PCH.h"
+#include "App/Ides/XCode/XCode_CsProjectFile.h"
 
 namespace MicroBuild {
 
-// Permits generating of xcode workspaces.
-class Ide_XCode
-	: public IdeType
+XCode_CsProjectFile::XCode_CsProjectFile()
 {
-public:
 
-	Ide_XCode();
-	~Ide_XCode();
+}
 
-	virtual bool Generate(
-		DatabaseFile& databaseFile,
-		WorkspaceFile& workspaceFile,
-		std::vector<ProjectFile>& projectFiles) override;
+XCode_CsProjectFile::~XCode_CsProjectFile()
+{
 
-	virtual bool Clean(
-		WorkspaceFile& workspaceFile) override;
+}
 
-	virtual bool Build(
-		WorkspaceFile& workspaceFile,
-		bool bRebuild,
-		const std::string& configuration,
-		const std::string& platform) override;
-	
-protected:
+bool XCode_CsProjectFile::Generate(
+	DatabaseFile& databaseFile,
+	WorkspaceFile& workspaceFile,
+	ProjectFile& projectFile,
+	IdeHelper::BuildProjectMatrix& buildMatrix
+)
+{
+	UNUSED_PARAMETER(databaseFile);
+	UNUSED_PARAMETER(workspaceFile);
+	UNUSED_PARAMETER(projectFile);
+	UNUSED_PARAMETER(buildMatrix);
 
-private:
+	// TODO
 
-};
+	return true;
+}
 
 }; // namespace MicroBuild

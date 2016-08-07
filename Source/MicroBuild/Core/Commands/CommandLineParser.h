@@ -28,7 +28,7 @@ class CommandArgumentBase;
 struct PendingCommand
 {
 	Command* command;
-	std::vector<std::pair<CommandArgumentBase*, std::string>> arguments;
+	std::vector<std::pair<CommandArgumentBase*, std::string> > arguments;
 };
 
 // Parses commands passed on the command line, validates their input and

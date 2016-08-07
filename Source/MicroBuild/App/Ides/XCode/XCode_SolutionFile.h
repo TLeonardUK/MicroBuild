@@ -1,4 +1,4 @@
-/*
+ /*
 MicroBuild
 Copyright (C) 2016 TwinDrills
 
@@ -19,36 +19,39 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "App/Ides/IdeType.h"
-#include "Core/Templates/TemplateEvaluator.h"
+#include "Core/Helpers/XmlNode.h"
 
 namespace MicroBuild {
 
-// Permits generating of xcode workspaces.
-class Ide_XCode
-	: public IdeType
+// Contains the code required to generate a XCode file.
+class XCode_SolutionFile
 {
 public:
 
-	Ide_XCode();
-	~Ide_XCode();
+	XCode_SolutionFile();
+	~XCode_SolutionFile();
 
-	virtual bool Generate(
+	// Generates a basic solution file that links to the given
+	// project files.
+	bool Generate(
 		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
-		std::vector<ProjectFile>& projectFiles) override;
-
-	virtual bool Clean(
-		WorkspaceFile& workspaceFile) override;
-
-	virtual bool Build(
-		WorkspaceFile& workspaceFile,
-		bool bRebuild,
-		const std::string& configuration,
-		const std::string& platform) override;
-	
-protected:
+		std::vector<ProjectFile>& projectFiles,
+		IdeHelper::BuildWorkspaceMatrix& buildMatrix
+	);
 
 private:
+
+	// Recursively travels the project tree and creates the 
+	// xml nodes for each project/file.
+	void BuildProjectTree(
+		XmlNode& rootNode,
+		const std::string& rootPath, 
+		std::vector<IdeHelper::ProjectGroupFolder>& folders,
+		std::vector<IdeHelper::VPathPair>& files,
+		Platform::Path& solutionDirectory,
+        std::vector<ProjectFile>& projectFiles
+	);
 
 };
 
