@@ -89,8 +89,6 @@ private:
 		const std::string& id,
 		const std::string& configListId,
 		const std::string& mainGroupId,
-        const std::vector<EPlatform>& platforms,
-        const std::string& projectName,
         std::vector<ProjectFile*>& dependencies
 	);
     

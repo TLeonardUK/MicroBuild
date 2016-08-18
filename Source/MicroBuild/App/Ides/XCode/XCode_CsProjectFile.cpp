@@ -42,6 +42,7 @@ bool XCode_CsProjectFile::Generate(
 	UNUSED_PARAMETER(databaseFile);
 	UNUSED_PARAMETER(workspaceFile);
 	UNUSED_PARAMETER(projectFile);
+	UNUSED_PARAMETER(projectFiles);
 	UNUSED_PARAMETER(buildMatrix);
 
 	// TODO

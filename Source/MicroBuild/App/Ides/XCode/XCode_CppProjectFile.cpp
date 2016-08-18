@@ -417,8 +417,6 @@ void XCode_CppProjectFile::Write_PBXProject(
 	const std::string& id,
 	const std::string& configListId,
 	const std::string& mainGroupId,
-    const std::vector<EPlatform>& platforms,
-    const std::string& projectName,
     std::vector<ProjectFile*>& dependencies
 )
 {
@@ -1109,7 +1107,7 @@ bool XCode_CppProjectFile::Generate(
 	Write_PBXNativeTarget(objectsNode, rootUuid, targetId,  targetConfigListId, projectFile.Get_Project_Name(), projectFile.Get_Project_OutputType(), sourceBuildPhaseId, frameworksPhaseId, resourcesPhaseId, dependencies);
     
     // PBXProject Section
-	Write_PBXProject(objectsNode, rootUuid, projectId, projectConfigListId, rootGroupId, platforms, projectFile.Get_Project_Name(), dependencies);
+	Write_PBXProject(objectsNode, rootUuid, projectId, projectConfigListId, rootGroupId, dependencies);
     
     // PBXReferenceProxy Section
 	Write_PBXReferenceProxy(objectsNode, rootUuid, dependencies);
