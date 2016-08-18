@@ -31,11 +31,22 @@ START_ENUM(EHostPlatform)
 END_ENUM()
 
 START_ENUM(EPlatform)
+
+    // General platforms
 	ENUM_KEY(x86)
 	ENUM_KEY(x64)
 	ENUM_KEY(ARM)
 	ENUM_KEY(ARM64)
+
+    // DotNet Specific
 	ENUM_KEY(AnyCPU)
+
+    // MacOS Specific
+    ENUM_KEY(Native)
+    ENUM_KEY(Universal86)
+    ENUM_KEY(Universal64)
+    ENUM_KEY(Universal)
+
 /*
 	ENUM_KEY(iOS)
 	ENUM_KEY(Android)

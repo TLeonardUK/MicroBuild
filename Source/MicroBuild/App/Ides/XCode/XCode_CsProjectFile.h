@@ -36,6 +36,7 @@ public:
 		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		ProjectFile& projectFile,
+        std::vector<ProjectFile>& projectFiles,
 		IdeHelper::BuildProjectMatrix& buildMatrix
 	);
 

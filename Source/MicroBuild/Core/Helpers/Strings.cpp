@@ -377,7 +377,7 @@ std::string Uuid(int length, const std::vector<std::string>& values)
 	}
 
 	char tag[64];
-	sprintf(tag, "%%0%i" PRIu64, length);
+	sprintf(tag, "%%0%i" PRIX64, length);
 
 	char buffer[64];
 	sprintf(buffer, tag, hash);
@@ -387,8 +387,12 @@ std::string Uuid(int length, const std::vector<std::string>& values)
 	{
 		result.resize(length);
 	}
+    while (result.size() < length)
+    {
+        result = "0" + result;
+    }
 
-	return result;	
+	return result;
 }
 
 std::string Escaped(const std::string& input)

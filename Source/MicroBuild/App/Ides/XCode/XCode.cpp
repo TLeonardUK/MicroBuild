@@ -85,6 +85,7 @@ bool Ide_XCode::Generate(
 					databaseFile,
 					workspaceFile,
 					file,
+                    projectFiles,
 					matrix[index]))
 				{
 					return false;
@@ -100,6 +101,7 @@ bool Ide_XCode::Generate(
 					databaseFile,
 					workspaceFile,
 					file,
+                    projectFiles,
 					matrix[index]))
 				{
 					return false;

@@ -377,7 +377,6 @@ bool Make_CsProjectFile::Generate(
 	// Generate result.
 	if (!databaseFile.StoreFile(
 		workspaceFile,
-		projectDirectory,
 		projectLocation,
 		stream.ToString().c_str()))
 	{

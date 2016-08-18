@@ -34,6 +34,8 @@ public:
 	PlistNode();
 	~PlistNode();
 
+	PlistNode& Dict(const char* name, ...);
+	PlistNode& Array(const char* name, ...);
 	PlistNode& Node(const char* name, ...);
 	PlistNode& Value(const char* value, ...);
 	PlistNode& Value(bool value);
@@ -48,6 +50,11 @@ protected:
 private:
 	std::string m_name;
 	std::string m_value;
+    
+    bool m_valueSet;
+
+    bool m_isArraySet;
+    bool m_isArray;
 
 	std::vector<PlistNode*> m_children;
 

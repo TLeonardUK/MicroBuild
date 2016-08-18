@@ -144,8 +144,8 @@ bool ZipFile::CompressFile(
 
 	deflateEnd(&strm);
 
-	delete bufferIn;
-	delete bufferOut;
+	delete[] bufferIn;
+	delete[] bufferOut;
 
 	// Check output file size. (gzip has not 64bit ones?)
 	outputSize = outputStream.Length();

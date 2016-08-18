@@ -223,7 +223,6 @@ bool Make_SolutionFile::Generate(
 	// Generate result.
 	if (!databaseFile.StoreFile(
 		workspaceFile,
-		solutionDirectory,
 		solutionLocation,
 		stream.ToString().c_str()))
 	{

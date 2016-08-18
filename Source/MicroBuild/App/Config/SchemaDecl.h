@@ -90,7 +90,11 @@ private:
 #undef END_ENUM
 
 public:
-	
+
+    #ifdef SCHEMA_IS_DERIVED
+	virtual bool Validate() override;
+    #else
 	virtual bool Validate();
+    #endif
 
 // ----------------------------------------------------------------------------

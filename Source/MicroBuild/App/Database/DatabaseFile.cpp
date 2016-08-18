@@ -159,7 +159,6 @@ bool DatabaseFile::Clean(
 
 bool DatabaseFile::StoreFile(
 	WorkspaceFile& workspaceFile,
-	Platform::Path& directory,
 	Platform::Path& location,
 	const char* data
 )
@@ -167,12 +166,16 @@ bool DatabaseFile::StoreFile(
 	// Dump evaluation result out to file.
 	TextStream stream;
 	stream.Write("%s", data);
-
+    
+    Platform::Path directory = location.GetDirectory();
+    
 	// Ensure location directory is created.
 	if (!directory.Exists())
 	{
 		// Create each directory incrementally.
 		std::vector<Platform::Path> toCreate;
+        
+        Log(LogSeverity::Info, "Directory doesn't exist: %s\n", directory.ToString().c_str());
 
 		Platform::Path base = directory;
 		while (!base.Exists())
@@ -183,7 +186,8 @@ bool DatabaseFile::StoreFile(
 
 		for (auto iter = toCreate.rbegin(); iter != toCreate.rend(); iter++)
 		{
-			auto directoryPath = *iter;
+            auto directoryPath = *iter;
+            
 			if (!directoryPath.CreateAsDirectory())
 			{
 				workspaceFile.ValidateError(

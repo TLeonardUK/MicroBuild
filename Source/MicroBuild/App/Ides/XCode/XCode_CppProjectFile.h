@@ -38,29 +38,49 @@ public:
 		DatabaseFile& databaseFile,
 		WorkspaceFile& workspaceFile,
 		ProjectFile& projectFile,
+        std::vector<ProjectFile>& projectFiles,
 		IdeHelper::BuildProjectMatrix& buildMatrix
 	);
 
 private:
-	/*
+    
+    std::string FileTypeFromPath(
+    	const Platform::Path& path
+    );
+
+    std::string FileTypeFromOutput(
+        const EOutputType& type
+    );
+    
+    std::string ProductTypeFromOutput(
+        const EOutputType& type
+    );
+    
 	void Write_PBXBuildFile(
 		PlistNode& root,
 		const std::string& rootUuid,
-		const std::vector<Platform::Path>& files
+        const std::map<std::string, std::string>& filterMap
 	);
-
-	void Write_PBXFileReference(
-		PlistNode& root,
-		const std::string& rootUuid,
-		const std::vector<Platform::Path>& files,
-		const Platform::Path& projectLocation
-	);
-
-	std::string Write_PBXGroup(
+    
+    void Write_PBXFileReference(
+        PlistNode& root,
+        const std::string& rootUuid,
+        const std::map<std::string, std::string>& filterMap,
+        const Platform::Path& projectLocation,
+        const std::string& projectName,
+        const EOutputType& outputType,
+        std::vector<ProjectFile*>& dependencies
+    );
+    
+	void Write_PBXGroup(
 		PlistNode& root,
 		const std::string& rootUuid,
 		const std::vector<std::string>& filters,
-		const std::string& rootGroupId
+        const std::map<std::string, std::string>& filterMap,
+		const std::string& rootGroupId,
+        const std::string& rootName,
+        const std::string& projectName,
+        std::vector<ProjectFile*>& dependencies
 	);
 
 	void Write_PBXProject(
@@ -68,50 +88,77 @@ private:
 		const std::string& rootUuid,
 		const std::string& id,
 		const std::string& configListId,
-		const std::string& mainGroupId
+		const std::string& mainGroupId,
+        const std::vector<EPlatform>& platforms,
+        const std::string& projectName,
+        std::vector<ProjectFile*>& dependencies
 	);
-
+    
+	void Write_PBXReferenceProxy(
+		PlistNode& root,
+		const std::string& rootUuid,
+        std::vector<ProjectFile*>& dependencies
+	);
+    
 	void Write_PBXNativeTarget(
 		PlistNode& root,
 		const std::string& rootUuid,
 		const std::string& id,
-		const std::string& configListId
+		const std::string& configListId,
+        const std::string& projectName,
+        const EOutputType& outputType,
+        const std::string& sourcePhaseId,
+        const std::string& frameworksPhaseId,
+        const std::string& resourcesPhaseId,
+        std::vector<ProjectFile*>& dependencies
+	);
+
+	bool Write_XCBuildConfiguration(
+		PlistNode& root,
+		const std::string& rootUuid, 
+		IdeHelper::BuildProjectMatrix& buildMatrix,
+        const Platform::Path& projectBaseDirectory
 	);
 
 	void Write_XCBuildConfigurationList_Project(
 		PlistNode& root,
 		const std::string& rootUuid, 
 		const std::string& id,
-		IdeHelper::BuildProjectMatrix& buildMatrix
+		IdeHelper::BuildProjectMatrix& buildMatrix,
+        const std::vector<EPlatform>& platforms,
+        const std::vector<std::string>& configurations
 	);
 
 	void Write_XCBuildConfigurationList_Target(
 		PlistNode& root,
 		const std::string& rootUuid, 
 		const std::string& id,
-		IdeHelper::BuildProjectMatrix& buildMatrix
-	);
-
-	void Write_XCBuildConfiguration(
-		PlistNode& root,
-		const std::string& rootUuid, 
-		IdeHelper::BuildProjectMatrix& buildMatrix
-	);
-
-	void Write_PBXHeadersBuildPhase(
-		PlistNode& root,
-		const std::string& rootUuid, 
-		const std::string& id,
-		std::vector<Platform::Path>& files,
+		IdeHelper::BuildProjectMatrix& buildMatrix,
+        const std::vector<EPlatform>& platforms,
+        const std::vector<std::string>& configurations
 	);
 
 	void Write_PBXSourcesBuildPhase(
 		PlistNode& root,
 		const std::string& rootUuid, 
 		const std::string& id,
-		std::vector<Platform::Path>& files,
-	);*/
+        const std::map<std::string, std::string>& filterMap
+	);
 
+	void Write_PBXFrameworksBuildPhase(
+		PlistNode& root,
+		const std::string& rootUuid, 
+		const std::string& id,
+        const std::map<std::string, std::string>& filterMap
+	);
+
+	void Write_PBXResourcesBuildPhase(
+		PlistNode& root,
+		const std::string& rootUuid, 
+		const std::string& id,
+        const std::map<std::string, std::string>& filterMap
+	);
+    
 };
 
 }; // namespace MicroBuild

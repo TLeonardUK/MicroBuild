@@ -441,7 +441,6 @@ bool MSBuild_CsProjectFile::Generate(
 		// Generate result.
 		if (!databaseFile.StoreFile(
 			workspaceFile,
-			projectDirectory,
 			projectJsonLocation,
 			jsonRoot.ToString().c_str()))
 		{
@@ -595,7 +594,6 @@ bool MSBuild_CsProjectFile::Generate(
 	// Generate result.
 	if (!databaseFile.StoreFile(
 		workspaceFile,
-		projectDirectory,
 		projectLocation,
 		root.ToString().c_str()))
 	{

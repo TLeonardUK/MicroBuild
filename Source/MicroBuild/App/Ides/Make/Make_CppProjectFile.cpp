@@ -518,7 +518,6 @@ bool Make_CppProjectFile::Generate(
 	// Generate result.
 	if (!databaseFile.StoreFile(
 		workspaceFile,
-		projectDirectory,
 		projectLocation,
 		stream.ToString().c_str()))
 	{

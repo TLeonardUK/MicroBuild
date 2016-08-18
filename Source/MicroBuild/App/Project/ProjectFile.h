@@ -45,7 +45,9 @@ private:
 
 #define SCHEMA_FILE "App/Project/ProjectSchema.inc"
 #define SCHEMA_CLASS ProjectFile
+#define SCHEMA_IS_DERIVED
 #include "App/Config/SchemaDecl.h"
+#undef SCHEMA_IS_DERIVED
 #undef SCHEMA_FILE
 #undef SCHEMA_CLASS
 

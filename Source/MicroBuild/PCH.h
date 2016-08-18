@@ -15,7 +15,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
+
+// Can't use pragma once in PCH's or we get erronous warnings in older versions
+// of llvm/clang (aka xcode), see here - https://reviews.llvm.org/D19815
+#ifndef _MICROBUILD_PCH_
+#define _MICROBUILD_PCH_
 
 #include <stdio.h>
 #include <vector>
@@ -34,3 +38,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Log.h"
 
 #include "App/BuildInfo.h"
+
+#endif

@@ -51,9 +51,11 @@ private:
 
 #define SCHEMA_FILE "App/Workspace/WorkspaceSchema.inc"
 #define SCHEMA_CLASS WorkspaceFile
+#define SCHEMA_IS_DERIVED
 #include "App/Config/SchemaDecl.h"
 #undef SCHEMA_FILE
 #undef SCHEMA_CLASS
+#undef SCHEMA_IS_DERIVED
 
 };
 

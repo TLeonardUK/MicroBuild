@@ -890,7 +890,6 @@ bool MSBuild_VcxProjectFile::Generate(
 	// Generate result.
 	if (!databaseFile.StoreFile(
 		workspaceFile,
-		projectDirectory,
 		projectLocation,
 		root.ToString().c_str()))
 	{

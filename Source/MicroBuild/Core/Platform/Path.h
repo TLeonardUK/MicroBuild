@@ -119,6 +119,9 @@ public:
 	// Returns true if the extension of this path looks like a source file.
 	bool IsSourceFile() const;
 
+	// Returns true if the extension of this path looks like a compiled resource file.
+	bool IsResourceFile() const;
+
 	// Returns true if the extension of this path looks like an include file.
 	bool IsIncludeFile() const;
 

@@ -107,7 +107,7 @@ bool XCode_SolutionFile::Generate(
 	Platform::Path solutionLocation =
 		solutionDirectory
 		.AppendFragment(workspaceFile.Get_Workspace_Name() + ".xcworkspace", true)
-		.AppendFragment("contents.xcworkspace", true);
+		.AppendFragment("contents.xcworkspacedata", true);
 
 	std::vector<Platform::Path> files = workspaceFile.Get_WorkspaceFiles_File();
 
@@ -146,7 +146,6 @@ bool XCode_SolutionFile::Generate(
 	// Generate result.
 	if (!databaseFile.StoreFile(
 		workspaceFile,
-		solutionDirectory,
 		solutionLocation,
 		root.ToString().c_str()))
 	{

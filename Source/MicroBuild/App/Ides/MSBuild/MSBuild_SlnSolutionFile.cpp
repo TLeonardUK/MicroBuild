@@ -304,7 +304,6 @@ bool MSBuild_SlnSolutionFile::Generate(
 	// Generate result.
 	if (!databaseFile.StoreFile(
 		workspaceFile,
-		solutionDirectory,
 		solutionLocation,
 		root.ToString().c_str()))
 	{

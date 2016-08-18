@@ -26,6 +26,8 @@ namespace MicroBuild {
 
 PlistNode::PlistNode()
 	: m_name("")
+    , m_valueSet(false)
+    , m_isArraySet(false)
 {
 }
 
@@ -36,6 +38,38 @@ PlistNode::~PlistNode()
 		delete node;
 	}
 	m_children.clear();
+}
+
+PlistNode& PlistNode::Dict(const char* name, ...)
+{
+	PlistNode* node = new PlistNode();
+	node->m_isArraySet = true;
+	node->m_isArray = false;
+
+	va_list list;
+	va_start(list, name);
+	node->m_name = Strings::FormatVa(name, list);
+	va_end(list);
+
+	m_children.push_back(node);
+
+	return *node;
+}
+
+PlistNode& PlistNode::Array(const char* name, ...)
+{
+	PlistNode* node = new PlistNode();
+	node->m_isArraySet = true;
+	node->m_isArray = true;
+
+	va_list list;
+	va_start(list, name);
+	node->m_name = Strings::FormatVa(name, list);
+	va_end(list);
+
+	m_children.push_back(node);
+
+	return *node;
 }
 
 PlistNode& PlistNode::Node(const char* name, ...)
@@ -58,6 +92,8 @@ PlistNode& PlistNode::Value(const char* value, ...)
 	va_start(list, value);
 	m_value = Strings::FormatVa(value, list);
 	va_end(list);
+
+    m_valueSet = true;
 
 	return *this;
 }
@@ -98,7 +134,7 @@ std::string PlistNode::ToString(int indentLevel, bool bAppendHeader)
 
 	if (IsValueNode())
 	{
-		stream << Strings::Quoted(m_value);
+		stream << m_value;
 	}
 	else
 	{
@@ -117,9 +153,14 @@ std::string PlistNode::ToString(int indentLevel, bool bAppendHeader)
 			}
 		}
 
-		if (!m_value.empty())
+		if (m_isArraySet)
 		{
-			stream << m_value << "\n";
+			bArray = m_isArray;
+		}
+
+		if (m_valueSet)
+		{
+			stream << m_value;
 		}
 		else
 		{
@@ -140,12 +181,16 @@ std::string PlistNode::ToString(int indentLevel, bool bAppendHeader)
 				{
 					PlistNode* node = m_children[i];
 
-					if (!node->m_name.empty())
-					{
-						stream << node->ToString(indentLevel + 1, false);
-					}
+                    stream << node->ToString(indentLevel + 1, false);
 
-					stream << ";\n";
+                    if (bArray)
+                    {
+                        stream << ",\n";
+                    }
+                    else
+                    {
+                        stream << ";\n";
+                    }
 				}			
 
 				if (indentLevel > 0)

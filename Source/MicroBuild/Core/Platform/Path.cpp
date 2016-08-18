@@ -128,7 +128,7 @@ std::string Path::GetFilename() const
 		return m_raw.substr(lastDirOffset + 1);
 	}
 	
-	return "";
+	return m_raw;
 }
 
 Path Path::GetDirectory() const
@@ -303,6 +303,7 @@ bool Path::IsSourceFile() const
 		"cxx",
 		"cs",
 		"asm",
+        "s",
 		"js",
 		"fs",
 		"vb",
@@ -326,6 +327,31 @@ bool Path::IsSourceFile() const
 		"cls",
 		"frm",
 		"rb",
+		nullptr
+	};
+	
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Path::IsResourceFile() const
+{
+	static const char* extensions[] = {
+		"strings",
+		"nib",
+		"xib",
+		"storyboard",
+		"icns",
+		"rc",
 		nullptr
 	};
 	

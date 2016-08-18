@@ -65,7 +65,6 @@ public:
 	// cleaned.
 	bool StoreFile(
 		WorkspaceFile& workspaceFile,
-		Platform::Path& directory,
 		Platform::Path& location,
 		const char* data
 	);
@@ -77,9 +76,11 @@ private:
 
 #define SCHEMA_FILE "App/Database/DatabaseSchema.inc"
 #define SCHEMA_CLASS DatabaseFile
+#define SCHEMA_IS_DERIVED
 #include "App/Config/SchemaDecl.h"
 #undef SCHEMA_FILE
 #undef SCHEMA_CLASS
+#undef SCHEMA_IS_DERIVED
 
 };
 

@@ -124,7 +124,6 @@ bool MSBuild_VcxFiltersFile::Generate(
 	// Generate result.
 	if (!databaseFile.StoreFile(
 		workspaceFile,
-		projectDirectory,
 		projectFiltersLocation,
 		root.ToString().c_str()))
 	{
