@@ -383,11 +383,11 @@ std::string Uuid(int length, const std::vector<std::string>& values)
 	sprintf(buffer, tag, hash);
 
 	std::string result = buffer;
-	if (result.size() > length)
+	if ((int)result.size() > length)
 	{
 		result.resize(length);
 	}
-    while (result.size() < length)
+    while ((int)result.size() < length)
     {
         result = "0" + result;
     }
