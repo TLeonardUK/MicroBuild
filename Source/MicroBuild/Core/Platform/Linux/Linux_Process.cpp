@@ -71,7 +71,7 @@ bool Process::Open(
 	argvBase.insert(argvBase.begin() + 1, arguments.begin(), arguments.end());
 
     char** argv = new char*[argvBase.size() + 1];
-	for (int i = 0; i < argvBase.size(); i++)
+	for (int i = 0; i < (int)argvBase.size(); i++)
 	{
         argv[i] = new char[argvBase[i].size() + 1];
         memcpy(argv[i], argvBase[i].c_str(), argvBase[i].size() + 1);
@@ -99,7 +99,7 @@ bool Process::Open(
 
 	Platform::Path::SetWorkingDirectory(originalWorkingDirectory);
 
-	for (int i = 0; i < argvBase.size(); i++)
+	for (int i = 0; i < (int)argvBase.size(); i++)
 	{
         delete[] argv[i];
     }

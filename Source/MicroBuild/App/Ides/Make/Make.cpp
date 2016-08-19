@@ -88,7 +88,6 @@ bool Ide_Make::Build(
 	const std::string& platform,
     DatabaseFile& databaseFile)
 {
-	UNUSED_PARAMETER(bRebuild);
     UNUSED_PARAMETER(databaseFile);
 
 	Platform::Path solutionDirectory =
@@ -96,6 +95,14 @@ bool Ide_Make::Build(
 
 	Platform::Path solutionLocation =
 		solutionDirectory.AppendFragment("Makefile", true);
+
+    if (bRebuild)
+    {
+        if (!Clean(workspaceFile, databaseFile))
+        {
+            return false;
+        }
+    }
 
 	std::stringstream commandLine;
 	commandLine << "make";
