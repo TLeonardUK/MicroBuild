@@ -17,6 +17,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // ---------------------------------------------------------------------------
+// Workspace
+// ---------------------------------------------------------------------------
+START_ARRAY_OPTION(
+	std::string,
+	Workspace,
+	Project,
+	"List of all projects contained in generated workspace."
+)
+END_ARRAY_OPTION()
+
+START_ARRAY_OPTION(
+	std::string,
+	Workspace,
+	Configuration,
+	"List of all build configurations contained in generated workspace."
+)
+END_ARRAY_OPTION()
+
+START_ARRAY_OPTION(
+	EPlatform,
+	Workspace,
+	Platform,
+	"List of all build platforms contained in generated workspace."
+)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
 // Clean
 // ---------------------------------------------------------------------------
 START_ARRAY_OPTION(

@@ -36,29 +36,116 @@ Ide_XCode::~Ide_XCode()
 }
 
 bool Ide_XCode::Clean(
-	WorkspaceFile& workspaceFile) 
+	WorkspaceFile& workspaceFile,
+    DatabaseFile& databaseFile)
 {
-	UNUSED_PARAMETER(workspaceFile);
+	Platform::Path solutionDirectory =
+		workspaceFile.Get_Workspace_Location();
 
-	// TODO
+    std::string workspaceName =
+        workspaceFile.Get_Workspace_Name() + ".xcworkspace";
 
-	return false;
+	Platform::Path solutionLocation =
+		solutionDirectory
+		.AppendFragment(workspaceName, true);
+
+    // Clean each project contained in the workspace.
+    std::vector<std::string> configurations = databaseFile.Get_Workspace_Configuration();
+    std::vector<EPlatform> platforms = databaseFile.Get_Workspace_Platform();
+    std::vector<std::string> projects = databaseFile.Get_Workspace_Project();
+	for (std::string project : projects)
+	{
+        for (std::string config : configurations)
+        {
+            for (EPlatform platform : platforms)
+            {
+                std::vector<std::string> arguments;
+                arguments.push_back("-workspace");
+                arguments.push_back(solutionLocation.ToString());
+                arguments.push_back("-scheme");
+                arguments.push_back(project);
+                arguments.push_back("-configuration");
+                arguments.push_back(config + "_" + CastToString(platform));
+                arguments.push_back("clean");
+
+                Platform::Process process;
+                if (process.Open("/usr/bin/xcodebuild", solutionDirectory, arguments, false))
+                {
+                    process.Wait();
+
+                    int exitCode = process.GetExitCode();
+                    if (exitCode != 0)
+                    {
+                        Log(LogSeverity::Fatal, "xcodebuild failed with exit code %i.\n", exitCode);
+                        return false;
+                    }
+                }
+                else
+                {
+                    Log(LogSeverity::Fatal, "Failed to start xcodebuild process.\n");
+                    return false;
+                }
+            }
+        }
+    }
+
+	return true;
 }
 
 bool Ide_XCode::Build(
 	WorkspaceFile& workspaceFile,
 	bool bRebuild,
 	const std::string& configuration,
-	const std::string& platform) 
+	const std::string& platform,
+    DatabaseFile& databaseFile)
 {
-	UNUSED_PARAMETER(workspaceFile);
-	UNUSED_PARAMETER(bRebuild);
-	UNUSED_PARAMETER(configuration);
-	UNUSED_PARAMETER(platform);
+	Platform::Path solutionDirectory =
+		workspaceFile.Get_Workspace_Location();
 
-	// TODO
+    std::string workspaceName =
+        workspaceFile.Get_Workspace_Name() + ".xcworkspace";
 
-	return false;
+	Platform::Path solutionLocation =
+		solutionDirectory
+		.AppendFragment(workspaceName, true);
+
+    // Clean each project contained in the workspace.
+    std::vector<std::string> projects = databaseFile.Get_Workspace_Project();
+	for (std::string project : projects)
+	{
+        std::vector<std::string> arguments;
+        arguments.push_back("-workspace");
+        arguments.push_back(solutionLocation.ToString());
+        arguments.push_back("-scheme");
+        arguments.push_back(project);
+        arguments.push_back("-configuration");
+        arguments.push_back(configuration + "_" + platform);
+        if (bRebuild)
+        {
+            arguments.push_back("clean");
+        }
+        arguments.push_back("build");
+
+        Platform::Process process;
+        if (process.Open("/usr/bin/xcodebuild", solutionDirectory, arguments, false))
+        {
+            process.Wait();
+
+            int exitCode = process.GetExitCode();
+            if (exitCode != 0)
+            {
+                Log(LogSeverity::Fatal, "xcodebuild failed with exit code %i.\n", exitCode);
+                return false;
+            }
+        }
+        else
+        {
+            Log(LogSeverity::Fatal, "Failed to start xcodebuild process.\n");
+            return false;
+        }
+    }
+
+	return true;
 }
 
 bool Ide_XCode::Generate(

@@ -48,7 +48,8 @@ public:
 	// Requests that the ide cleans up any intermediate files. This is
 	// an optional implementation as some targets do not support cleaning. 
 	virtual bool Clean(
-		WorkspaceFile& workspaceFile);
+		WorkspaceFile& workspaceFile,
+        DatabaseFile& databaseFile);
 
 	// Rebuilds a workspace file that has previously been generated. This is
 	// an optional implementation as some targets do not support command
@@ -57,7 +58,8 @@ public:
 		WorkspaceFile& workspaceFile,
 		bool bRebuild,
 		const std::string& configuration,
-		const std::string& platform
+		const std::string& platform,
+        DatabaseFile& databaseFile
 	);
 
 protected:

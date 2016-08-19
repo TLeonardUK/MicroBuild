@@ -147,7 +147,8 @@ bool PackageCommand::Invoke(CommandLineParser* parser)
 						m_workspaceFile,
 						m_rebuild,
 						m_configuration,
-						m_platform
+						m_platform,
+                        databaseFile
 					))
 					{
 						Log(LogSeverity::Warning,

@@ -85,7 +85,7 @@ bool DatabaseFile::Clean(
 	}
 	else
 	{
-		if (!type->Clean(workspaceFile))
+		if (!type->Clean(workspaceFile, *this))
 		{
 			// This seems like it shouldn't be an error incase a user takes
 			// an msbuild project file and tries to clean it on mac or something

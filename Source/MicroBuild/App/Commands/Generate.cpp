@@ -156,6 +156,26 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 			m_targetIde.c_str());
 
 		DatabaseFile outputDatabaseFile(databaseFileLocation, m_targetIde);
+        
+        // Store some generic database properties.
+        std::vector<std::string> projectNames;
+        std::vector<std::string> configNames;
+        std::vector<EPlatform> platformNames;
+        for (ProjectFile& file : m_projectFiles)
+        {
+            projectNames.push_back(file.Get_Project_Name());
+        }
+        for (std::string value : m_workspaceFile.Get_Configurations_Configuration())
+        {
+            configNames.push_back(value);
+        }
+        for (EPlatform value : m_workspaceFile.Get_Platforms_Platform())
+        {
+            platformNames.push_back(value);
+        }
+        outputDatabaseFile.Set_Workspace_Project(projectNames);
+        outputDatabaseFile.Set_Workspace_Configuration(configNames);
+        outputDatabaseFile.Set_Workspace_Platform(platformNames);
 
 		if (type->Generate(outputDatabaseFile, m_workspaceFile, m_projectFiles))
 		{

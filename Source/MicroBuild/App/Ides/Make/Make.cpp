@@ -36,8 +36,11 @@ Ide_Make::~Ide_Make()
 }
 
 bool Ide_Make::Clean(
-	WorkspaceFile& workspaceFile) 
+	WorkspaceFile& workspaceFile,
+    DatabaseFile& databaseFile)
 {
+    UNUSED_PARAMETER(databaseFile);
+
 	Platform::Path solutionDirectory =
 		workspaceFile.Get_Workspace_Location();
 
@@ -82,9 +85,11 @@ bool Ide_Make::Build(
 	WorkspaceFile& workspaceFile,
 	bool bRebuild,
 	const std::string& configuration,
-	const std::string& platform) 
+	const std::string& platform,
+    DatabaseFile& databaseFile)
 {
 	UNUSED_PARAMETER(bRebuild);
+    UNUSED_PARAMETER(databaseFile);
 
 	Platform::Path solutionDirectory =
 		workspaceFile.Get_Workspace_Location();

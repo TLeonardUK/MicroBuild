@@ -160,8 +160,12 @@ bool Ide_MSBuild::Generate(
     return true;
 }
 
-bool Ide_MSBuild::Clean(WorkspaceFile& workspaceFile)
+bool Ide_MSBuild::Clean(
+    WorkspaceFile& workspaceFile,
+    DatabaseFile& databaseFile)
 {
+    UNUSED_PARAMETER(databaseFile);
+
 	Platform::Path solutionDirectory =
 		workspaceFile.Get_Workspace_Location();
 
@@ -202,8 +206,11 @@ bool Ide_MSBuild::Build(
 	WorkspaceFile& workspaceFile,
 	bool bRebuild,
 	const std::string& configuration,
-	const std::string& platform)
+	const std::string& platform,
+    DatabaseFile& databaseFile)
 {
+    UNUSED_PARAMETER(databaseFile);
+
 	Platform::Path solutionDirectory =
 		workspaceFile.Get_Workspace_Location();
 

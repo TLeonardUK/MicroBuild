@@ -70,13 +70,13 @@ bool Process::Open(
 	argvBase.push_back(command.ToString());
 	argvBase.insert(argvBase.begin() + 1, arguments.begin(), arguments.end());
 
-	std::vector<char*> argv;
-	for (const std::string& arg : argvBase)
+    char** argv = new char*[argvBase.size() + 1];
+	for (int i = 0; i < argvBase.size(); i++)
 	{
-		// Gross, plz change signature of posix_spawn so this isn't neccessary.
-		argv.push_back(const_cast<char*>(arg.c_str())); 
+        argv[i] = new char[argvBase[i].size() + 1];
+        memcpy(argv[i], argvBase[i].c_str(), argvBase[i].size() + 1);
 	}
-	argv.push_back('\0');
+	argv[argvBase.size()] = nullptr;
 
 	// Store state.
 	data->m_attached = true;
@@ -93,12 +93,18 @@ bool Process::Open(
 		command.ToString().c_str(),
 		nullptr,
 		nullptr,
-		reinterpret_cast<char* const*>(argv.data()),
+		argv,
 		environ
 	);
 
 	Platform::Path::SetWorkingDirectory(originalWorkingDirectory);
 
+	for (int i = 0; i < argvBase.size(); i++)
+	{
+        delete[] argv[i];
+    }
+    delete[] argv;
+    
 	if (result != 0)
 	{
 		Log(LogSeverity::Warning, 

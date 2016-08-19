@@ -56,7 +56,7 @@ public:
 	bool Clean(
 		App* app,
 		WorkspaceFile& workspaceFile, 
-		bool bDeleteProjectFiles = true
+		bool bDeleteProjectFiles = false
 	);
 
 	// Stores the given data in the given file and creates the directory
