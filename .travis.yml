@@ -3,6 +3,7 @@ env:
    # Coverity Key
    - secure: "bHLULty/2eR7VN17nNJaTxHxmxU378mRDUcrWCrPt5Ww3ItPjbUv/sYNShn7NpsnpQQF16zpU2qqLUKyH2M3XieyJ3QJRNqMh7s6MXRKSfLOlrJpGvoL+uaktu46cxaXkdIiCAqYDSlW19UQECJ9x36UP9qI0tCP9OcjTi8DQBQu9xFKv5nfhnNlna7lufGnzzy3WtbA0X0Zq+cI2GBgu1IgGoyahDLW+CKlJ11WN1vCVWRogHdlZJ8FfJBwQ1cIQlXrdSZ6Y+9Kmh2LfiJCJmeFY1+7Z2mf1fHS7UJiL/YD7d1tRMN5Baitpg6+tehnyt+3QHqVv6+mUJD6ic5X95+7jDzle2HyH6X0Yf33tozTQUe8BXXsDTyz03vQCdAPHv8Bjk8BLicsf9VbhGrrjpQ9hvMC3g1Rx/7y8Haf8iees6SUwOh1RW36hNRANx/jnJOn1iVsCp9u5HNImlOrLQluSl2HB0ep+p2woQVZs2c536h66NDTf0qY6Q8Ctz8UPYE0HNcaeXVijVFdTDrt+tfVEAZvbGgZeue95hJfwAnQDcMXQE163ODiaWZvkVTR1tnK8TfOVsBBmlWkbEKcLNfy5JEQIpPDx01mJzt0wb95605rBbW11LBPCObhVB6CfBDr7ZnzTYEcSGy+OjSnf4Ul+NxfG9Ski8RJsijobMs="
 language: cpp
+osx_image: xcode8
 os:
   - linux
   - osx
@@ -37,19 +38,22 @@ addons:
     branch_pattern: coverity_scan    
 script: 
   - cd ./Build/
-  - ./Generate.Linux.sh
-  - cd ./ProjectFiles
-  - make config=Shipping_x86
-  - make clean
-  - make config=Shipping_x64
-  - cd ./../../
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Generate.Linux.sh; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Generate.MacOS.sh; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Build.Linux.sh; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Build.MacOS.sh; fi
+  - cd ./../
 after_success: 
-  - cp ./Binaries/MicroBuild_Linux_x64_Shipping ./Binaries/linux_x64/microbuild
-  - cp ./Binaries/MicroBuild_Linux_x86_Shipping ./Binaries/linux_x86/microbuild
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ./Binaries/MicroBuild_Linux_x64_Shipping ./Binaries/linux_x64/microbuild; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ./Binaries/MicroBuild_Linux_x86_Shipping ./Binaries/linux_x86/microbuild; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ./Binaries/MicroBuild_MacOS_x64_Shipping ./Binaries/macos_x64/microbuild; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ./Binaries/MicroBuild_MacOS_x86_Shipping ./Binaries/macos_x86/microbuild; fi
   - git config --global user.email "buildserver@programmingbytim.com"
   - git config --global user.name "Build Server"
-  - git add ./Binaries/linux_x64/microbuild
-  - git add ./Binaries/linux_x86/microbuild
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/linux_x64/microbuild; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/linux_x86/microbuild; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x64/microbuild; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild; fi
   - git checkout $TRAVIS_BRANCH
   - git commit -m "[ci skip] Automated Build (Travis build $TRAVIS_BUILD_NUMBER)."
   - git push "https://TLeonardUK:$GITHUB_TOKEN@github.com/TLeonardUK/MicroBuild.git" --all --quiet
