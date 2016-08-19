@@ -383,8 +383,7 @@ void XCode_CppProjectFile::Write_PBXGroup(
         // Add files
         for (auto file : filterMap)
 		{
-            if (file.second.find("\\") == std::string::npos &&
-                file.second.find("/") == std::string::npos)
+            if (file.second.empty())
             {
                 std::string fileRefId =
                     Strings::Uuid(24, { rootUuid, file.first, "PBXFileReference" });

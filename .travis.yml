@@ -40,13 +40,12 @@ script:
   - cd ./Build/
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Generate.Linux.sh; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Generate.Macos.sh; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ../Binaries/linux_x64/microbuild clean Config/Workspace.ini; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ../Binaries/linux_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x86; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ./Binaries/MicroBuild_Linux_x86_Shipping ./Binaries/linux_x86/microbuild; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ../Binaries/linux_x64/microbuild clean Config/Workspace.ini; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ../Binaries/linux_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x64; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ./Binaries/MicroBuild_Linux_x64_Shipping ./Binaries/linux_x64/microbuild; fi  
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild clean Config/Workspace.ini; fi
+
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x86; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ./Binaries/MicroBuild_MacOS_x86_Shipping ./Binaries/macos_x86/microbuild; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild clean Config/Workspace.ini; fi
