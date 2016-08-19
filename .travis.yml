@@ -48,7 +48,7 @@ script:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Generate.Macos.sh; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x86; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ../Binaries/MicroBuild_MacOS_x86_Shipping ../Binaries/macos_x86/microbuild; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild clean Config/Workspace.ini || true;; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild clean Config/Workspace.ini || true; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Generate.Macos.sh; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x64; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ../Binaries/MicroBuild_MacOS_x64_Shipping ../Binaries/macos_x64/microbuild; fi
