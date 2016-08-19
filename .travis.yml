@@ -39,9 +39,9 @@ addons:
 script: 
   - cd ./Build/
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Generate.Linux.sh; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Generate.MacOS.sh; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Generate.Macos.sh; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Build.Linux.sh; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Build.MacOS.sh; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Build.Macos.sh; fi
   - cd ./../
 after_success: 
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ./Binaries/MicroBuild_Linux_x64_Shipping ./Binaries/linux_x64/microbuild; fi
