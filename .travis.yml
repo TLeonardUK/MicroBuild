@@ -62,4 +62,5 @@ after_success:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild; fi
   - git checkout $TRAVIS_BRANCH
   - git commit -m "[ci skip] Automated Build (Travis build $TRAVIS_BUILD_NUMBER)."
-  - git push -f "https://TLeonardUK:$GITHUB_TOKEN@github.com/TLeonardUK/MicroBuild.git" --all --quiet 
+  - git pull --no-edit
+  - git push "https://TLeonardUK:$GITHUB_TOKEN@github.com/TLeonardUK/MicroBuild.git" --all --quiet 
