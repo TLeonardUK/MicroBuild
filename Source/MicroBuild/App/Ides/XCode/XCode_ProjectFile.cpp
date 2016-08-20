@@ -17,14 +17,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // todo:
-//  c# projects
 //  other sdk targets (ios etc)
 //  link through framework link not linker args
-//  workspace virtual paths
-//  clean this whole thing up
 
 #include "PCH.h"
-#include "App/Ides/XCode/XCode_CppProjectFile.h"
+#include "App/Ides/XCode/XCode_ProjectFile.h"
+#include "App/Ides/Make/Make_CsProjectFile.h"
 #include "Core/Helpers/TextStream.h"
 #include "Core/Helpers/PlistNode.h"
 #include "Core/Helpers/Strings.h"
@@ -33,17 +31,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-XCode_CppProjectFile::XCode_CppProjectFile()
+XCode_ProjectFile::XCode_ProjectFile()
 {
 
 }
 
-XCode_CppProjectFile::~XCode_CppProjectFile()
+XCode_ProjectFile::~XCode_ProjectFile()
 {
 
 }
     
-std::string XCode_CppProjectFile::FileTypeFromPath(
+std::string XCode_ProjectFile::FileTypeFromPath(
 	const Platform::Path& path
 )
 {
@@ -90,7 +88,7 @@ std::string XCode_CppProjectFile::FileTypeFromPath(
     }
 }
 
-std::string XCode_CppProjectFile::FileTypeFromOutput(
+std::string XCode_ProjectFile::FileTypeFromOutput(
     const EOutputType& type
 )
 {
@@ -109,7 +107,7 @@ std::string XCode_CppProjectFile::FileTypeFromOutput(
     }
 }
 
-std::string XCode_CppProjectFile::ProductTypeFromOutput(
+std::string XCode_ProjectFile::ProductTypeFromOutput(
     const EOutputType& type
 )
 {
@@ -128,7 +126,7 @@ std::string XCode_CppProjectFile::ProductTypeFromOutput(
     }
 }
 
-void XCode_CppProjectFile::Write_PBXBuildFile(
+void XCode_ProjectFile::Write_PBXBuildFile(
 	PlistNode& root,
 	const std::string& rootUuid,
     const std::map<std::string, std::string>& filterMap
@@ -150,7 +148,7 @@ void XCode_CppProjectFile::Write_PBXBuildFile(
 	}
 }
     
-void XCode_CppProjectFile::Write_PBXFileReference(
+void XCode_ProjectFile::Write_PBXFileReference(
 	PlistNode& root,
 	const std::string& rootUuid,
     const std::map<std::string, std::string>& filterMap,
@@ -280,7 +278,7 @@ void XCode_CppProjectFile::Write_PBXFileReference(
 	}
 }
     
-void XCode_CppProjectFile::Write_PBXGroup(
+void XCode_ProjectFile::Write_PBXGroup(
 	PlistNode& root,
 	const std::string& rootUuid,
 	const std::vector<std::string>& filters,
@@ -410,7 +408,7 @@ void XCode_CppProjectFile::Write_PBXGroup(
     }
 }
 
-void XCode_CppProjectFile::Write_PBXProject(
+void XCode_ProjectFile::Write_PBXProject(
 	PlistNode& root,
 	const std::string& rootUuid,
 	const std::string& id,
@@ -460,7 +458,7 @@ void XCode_CppProjectFile::Write_PBXProject(
 	childNode.Node("").Value("%s", targetId.c_str());
 }
 
-void XCode_CppProjectFile::Write_PBXReferenceProxy(
+void XCode_ProjectFile::Write_PBXReferenceProxy(
 	PlistNode& root,
 	const std::string& rootUuid,
     std::vector<ProjectFile*>& dependencies
@@ -486,7 +484,7 @@ void XCode_CppProjectFile::Write_PBXReferenceProxy(
     }
 }
 
-void XCode_CppProjectFile::Write_PBXNativeTarget(
+void XCode_ProjectFile::Write_PBXNativeTarget(
 	PlistNode& root,
 	const std::string& rootUuid,
 	const std::string& id,
@@ -496,7 +494,8 @@ void XCode_CppProjectFile::Write_PBXNativeTarget(
     const std::string& sourcePhaseId,
     const std::string& frameworksPhaseId,
     const std::string& resourcesPhaseId,
-    std::vector<ProjectFile*>& dependencies
+    std::vector<ProjectFile*>& dependencies,
+    const ELanguage& language
 )
 {
     std::string configId =
@@ -505,17 +504,34 @@ void XCode_CppProjectFile::Write_PBXNativeTarget(
 	PlistNode& targetNode = 
 		root.Node("%s", id.c_str());
 
-	targetNode.Node("isa").Value("PBXNativeTarget");
+    if (language == ELanguage::Cpp)
+    {
+        targetNode.Node("isa").Value("PBXNativeTarget");
+    }
+    if (language == ELanguage::CSharp)
+    {
+        targetNode.Node("isa").Value("PBXLegacyTarget");
+        targetNode.Node("buildArgumentsString").Value("\"-f%s.Makefile config=$(CONFIGURATION) $(ACTION)\"", projectName.c_str());
+    }
+    
 	targetNode.Node("buildConfigurationList").Value("%s", configListId.c_str()); 
 	
     PlistNode& buildPhaseNode =
         targetNode.Array("buildPhases");
     
-    buildPhaseNode.Node("").Value("%s", resourcesPhaseId.c_str());
-    buildPhaseNode.Node("").Value("%s", sourcePhaseId.c_str());
-    buildPhaseNode.Node("").Value("%s", frameworksPhaseId.c_str());
+    if (language == ELanguage::Cpp)
+    {
+        buildPhaseNode.Node("").Value("%s", resourcesPhaseId.c_str());
+        buildPhaseNode.Node("").Value("%s", sourcePhaseId.c_str());
+        buildPhaseNode.Node("").Value("%s", frameworksPhaseId.c_str());
     
-	targetNode.Array("buildRules");
+        targetNode.Array("buildRules");
+    }
+    if (language == ELanguage::CSharp)
+    {
+        targetNode.Node("buildToolPath").Value("/usr/bin/make");
+        targetNode.Node("buildWorkingDirectory").Value("\"$(SOURCE_ROOT)\"");
+    }
     
     if (dependencies.size() > 0)
     {
@@ -532,12 +548,22 @@ void XCode_CppProjectFile::Write_PBXNativeTarget(
     }
     
 	targetNode.Node("name").Value("%s", projectName.c_str());
+
+    if (language == ELanguage::CSharp)
+    {
+        targetNode.Node("passBuildSettingsInEnvironment").Value("1");
+    }
+
 	targetNode.Node("productName").Value("%s", projectName.c_str());
-	targetNode.Node("productReference").Value("%s", configId.c_str());
-	targetNode.Node("productType").Value("\"%s\"", ProductTypeFromOutput(outputType).c_str());
+    
+    if (language == ELanguage::Cpp)
+    {
+        targetNode.Node("productReference").Value("%s", configId.c_str());
+        targetNode.Node("productType").Value("\"%s\"", ProductTypeFromOutput(outputType).c_str());
+    }
 }
 
-void XCode_CppProjectFile::Write_XCBuildConfigurationList_Project(
+void XCode_ProjectFile::Write_XCBuildConfigurationList_Project(
 	PlistNode& root,
 	const std::string& rootUuid, 
 	const std::string& id,
@@ -567,7 +593,7 @@ void XCode_CppProjectFile::Write_XCBuildConfigurationList_Project(
     targetNode.Node("defaultConfigurationName").Value("%s_%s", configurations[0].c_str(), CastToString(platforms[0]).c_str()); 
 }
 
-void XCode_CppProjectFile::Write_XCBuildConfigurationList_Target(
+void XCode_ProjectFile::Write_XCBuildConfigurationList_Target(
 	PlistNode& root,
 	const std::string& rootUuid, 
 	const std::string& id,
@@ -596,7 +622,7 @@ void XCode_CppProjectFile::Write_XCBuildConfigurationList_Target(
     targetNode.Node("defaultConfigurationName").Value("%s_%s", configurations[0].c_str(), CastToString(platforms[0]).c_str());
 }
 
-bool XCode_CppProjectFile::Write_XCBuildConfiguration(
+bool XCode_ProjectFile::Write_XCBuildConfiguration(
 	PlistNode& root,
 	const std::string& rootUuid, 
 	IdeHelper::BuildProjectMatrix& buildMatrix,
@@ -686,6 +712,12 @@ bool XCode_CppProjectFile::Write_XCBuildConfiguration(
 
 		std::vector<std::string> includePaths;
 		std::vector<std::string> libraryPaths;
+        
+        // If building C#, insert the mono location into the path variable.
+        if (matrix.projectFile.Get_Project_Language() == ELanguage::CSharp)
+        {
+            settingsNode.Node("PATH").Value("\"/Library/Frameworks/Mono.framework/Versions/Current/Commands:$(inherited)\"");
+        }
 
 		// Output information.
 		settingsNode.Node("SYMROOT").Value("%s", outDirRelative.ToString().c_str());
@@ -921,7 +953,7 @@ bool XCode_CppProjectFile::Write_XCBuildConfiguration(
     return true;
 }
 
-void XCode_CppProjectFile::Write_PBXSourcesBuildPhase(
+void XCode_ProjectFile::Write_PBXSourcesBuildPhase(
 	PlistNode& root,
 	const std::string& rootUuid, 
 	const std::string& id,
@@ -951,7 +983,7 @@ void XCode_CppProjectFile::Write_PBXSourcesBuildPhase(
 	targetNode.Node("runOnlyForDeploymentPostprocessing").Value(0);
 }
 
-void XCode_CppProjectFile::Write_PBXFrameworksBuildPhase(
+void XCode_ProjectFile::Write_PBXFrameworksBuildPhase(
     PlistNode& root,
     const std::string& rootUuid,
     const std::string& id,
@@ -973,7 +1005,7 @@ void XCode_CppProjectFile::Write_PBXFrameworksBuildPhase(
 	targetNode.Node("runOnlyForDeploymentPostprocessing").Value("0");
 }
     
-void XCode_CppProjectFile::Write_PBXResourcesBuildPhase(
+void XCode_ProjectFile::Write_PBXResourcesBuildPhase(
     PlistNode& root,
     const std::string& rootUuid,
     const std::string& id,
@@ -1002,7 +1034,7 @@ void XCode_CppProjectFile::Write_PBXResourcesBuildPhase(
 	targetNode.Node("runOnlyForDeploymentPostprocessing").Value("0");
 }
     
-bool XCode_CppProjectFile::Generate(
+bool XCode_ProjectFile::Generate(
 	DatabaseFile& databaseFile,
 	WorkspaceFile& workspaceFile,
 	ProjectFile& projectFile,
@@ -1103,7 +1135,7 @@ bool XCode_CppProjectFile::Generate(
 	Write_PBXGroup(objectsNode, rootUuid, filters, filterMap, rootGroupId, projectFile.Get_Project_Name(), projectFile.Get_Project_Name(), dependencies);
 
 	// PBXNativeTarget Section
-	Write_PBXNativeTarget(objectsNode, rootUuid, targetId,  targetConfigListId, projectFile.Get_Project_Name(), projectFile.Get_Project_OutputType(), sourceBuildPhaseId, frameworksPhaseId, resourcesPhaseId, dependencies);
+	Write_PBXNativeTarget(objectsNode, rootUuid, targetId,  targetConfigListId, projectFile.Get_Project_Name(), projectFile.Get_Project_OutputType(), sourceBuildPhaseId, frameworksPhaseId, resourcesPhaseId, dependencies, projectFile.Get_Project_Language());
     
     // PBXProject Section
 	Write_PBXProject(objectsNode, rootUuid, projectId, projectConfigListId, rootGroupId, dependencies);
@@ -1133,6 +1165,21 @@ bool XCode_CppProjectFile::Generate(
     
 	// Root object value.
 	root.Node("rootObject").Value("%s", projectId.c_str());
+
+    // If we are a C# project, we also need to generate the makefile which will call mono to compile.
+    if (projectFile.Get_Project_Language() == ELanguage::CSharp)
+    {
+        Make_CsProjectFile makeFile;
+
+        if (!makeFile.Generate(
+            databaseFile,
+            workspaceFile,
+            projectFile,
+            buildMatrix))
+        {
+            return false;
+        }
+    }
 
 	// Generate result.
 	if (!databaseFile.StoreFile(

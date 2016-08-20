@@ -25,12 +25,12 @@ namespace MicroBuild {
 class PlistNode;
 
 // Contains the code required to generate a XCode file.
-class XCode_CppProjectFile
+class XCode_ProjectFile
 {
 public:
 
-	XCode_CppProjectFile();
-	~XCode_CppProjectFile();
+	XCode_ProjectFile();
+	~XCode_ProjectFile();
 
 	// Generates a basic msbuild solution file that links to the given
 	// project files.
@@ -108,7 +108,8 @@ private:
         const std::string& sourcePhaseId,
         const std::string& frameworksPhaseId,
         const std::string& resourcesPhaseId,
-        std::vector<ProjectFile*>& dependencies
+        std::vector<ProjectFile*>& dependencies,
+        const ELanguage& language
 	);
 
 	bool Write_XCBuildConfiguration(

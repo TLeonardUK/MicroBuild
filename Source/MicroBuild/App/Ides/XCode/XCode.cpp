@@ -18,8 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Ides/XCode/XCode.h"
-#include "App/Ides/XCode/XCode_CsProjectFile.h"
-#include "App/Ides/XCode/XCode_CppProjectFile.h"
+#include "App/Ides/XCode/XCode_ProjectFile.h"
 #include "App/Ides/XCode/XCode_SolutionFile.h"
 #include "App/Ides/XCode/XCode_SchemaFile.h"
 #include "Core/Helpers/TextStream.h"
@@ -165,25 +164,10 @@ bool Ide_XCode::Generate(
 	{
 		switch (file.Get_Project_Language())
 		{
-		case ELanguage::Cpp:
-			{
-				XCode_CppProjectFile projectFile;
-
-				if (!projectFile.Generate(
-					databaseFile,
-					workspaceFile,
-					file,
-                    projectFiles,
-					matrix[index]))
-				{
-					return false;
-				}
-
-				break;
-			}
 		case ELanguage::CSharp:
-			{
-				XCode_CsProjectFile projectFile;
+		case ELanguage::Cpp:
+            {
+				XCode_ProjectFile projectFile;
 
 				if (!projectFile.Generate(
 					databaseFile,
@@ -200,7 +184,7 @@ bool Ide_XCode::Generate(
 		default:
 			{
 				file.ValidateError(
-					"Language '%s' is not valid for make projects.",
+					"Language '%s' is not valid for xcode projects.",
 					CastToString(file.Get_Project_Language()).c_str());
 				return false;
 			}
