@@ -448,7 +448,7 @@ bool MSBuild_VcxProjectFile::Generate(
 			if (matrix.projectFile.Get_Defines_Define().size() > 0)
 			{
 				std::vector<std::string> defines = matrix.projectFile.Get_Defines_Define();
-				compileGroup.Node("PreprocessorDefinitions").Value("%s;%(PreprocessorDefinitions)", Strings::Join(defines, ";").c_str());
+				compileGroup.Node("PreprocessorDefinitions").Value("%s;%%(PreprocessorDefinitions)", Strings::Join(defines, ";").c_str());
 			}
 			compileGroup.Node("MinimalRebuild").Value("false");
 			compileGroup.Node("MultiProcessorCompilation").Value("true");
@@ -597,7 +597,7 @@ bool MSBuild_VcxProjectFile::Generate(
 
 			if (disabledWarnings.size() > 0)
 			{
-				compileGroup.Node("DisableSpecificWarnings").Value("%s;%(DisableSpecificWarnings)", Strings::Join(disabledWarnings, ";").c_str());
+				compileGroup.Node("DisableSpecificWarnings").Value("%s;%%(DisableSpecificWarnings)", Strings::Join(disabledWarnings, ";").c_str());
 			}
 
 			// Optimization.
@@ -638,7 +638,7 @@ bool MSBuild_VcxProjectFile::Generate(
 			if (!addtionalOptions.empty())
 			{
 				compileGroup.Node("AdditionalOptions")
-					.Value("%s %(AdditionalOptions)", addtionalOptions.c_str());
+					.Value("%s %%(AdditionalOptions)", addtionalOptions.c_str());
 			}
 
 			if (forcedIncludes.size() > 0)
@@ -691,7 +691,7 @@ bool MSBuild_VcxProjectFile::Generate(
 			// Libraries.
 			if (additionalLibraries.size() > 0)
 			{
-				linkGroup.Node("AdditionalDependencies").Value("%s;%(AdditionalDependencies)", Strings::Join(additionalLibraries, ";").c_str());
+				linkGroup.Node("AdditionalDependencies").Value("%s;%%(AdditionalDependencies)", Strings::Join(additionalLibraries, ";").c_str());
 			}
 
 			// Additional options.
@@ -699,7 +699,7 @@ bool MSBuild_VcxProjectFile::Generate(
 
 			if (!matrix.projectFile.Get_Build_LinkerArguments().empty())
 			{
-				linkGroup.Node("AdditionalOptions").Value("%s %(AdditionalOptions)", matrix.projectFile.Get_Build_LinkerArguments().c_str());
+				linkGroup.Node("AdditionalOptions").Value("%s %%(AdditionalOptions)", matrix.projectFile.Get_Build_LinkerArguments().c_str());
 			}
 		}
 	}
