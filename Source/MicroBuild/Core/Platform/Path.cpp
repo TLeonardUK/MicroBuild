@@ -38,8 +38,9 @@ Path::Path()
 {
 }
 Path::Path(const char* InValue)
-	: Path((std::string)InValue)
+	: m_raw(InValue)
 {	
+	Normalize();
 }
 
 Path::Path(const std::string& InValue)
