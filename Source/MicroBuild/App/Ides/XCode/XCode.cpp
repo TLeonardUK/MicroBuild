@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Ides/XCode/XCode_CsProjectFile.h"
 #include "App/Ides/XCode/XCode_CppProjectFile.h"
 #include "App/Ides/XCode/XCode_SolutionFile.h"
+#include "App/Ides/XCode/XCode_SchemaFile.h"
 #include "Core/Helpers/TextStream.h"
 #include "Core/Platform/Process.h"
 
@@ -205,6 +206,18 @@ bool Ide_XCode::Generate(
 			}
 		}
 
+        XCode_SchemaFile schemaFile;
+
+        if (!schemaFile.Generate(
+            databaseFile,
+            workspaceFile,
+            file,
+            projectFiles,
+            matrix[index]))
+        {
+            return false;
+        }
+
 		index++;
 	}
 
@@ -218,6 +231,7 @@ bool Ide_XCode::Generate(
 	{
 		return false;
 	}
+    
     return true;
 }
 
