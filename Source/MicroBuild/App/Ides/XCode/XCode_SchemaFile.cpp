@@ -41,6 +41,9 @@ bool XCode_SchemaFile::Generate(
     IdeHelper::BuildProjectMatrix& buildMatrix
 )
 {
+    UNUSED_PARAMETER(buildMatrix);
+    UNUSED_PARAMETER(projectFiles);
+
 	Platform::Path projectDirectory =
 		projectFile.Get_Project_Location();
 
