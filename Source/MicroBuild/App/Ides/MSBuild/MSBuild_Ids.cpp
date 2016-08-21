@@ -86,7 +86,7 @@ std::string GetPlatformDotNetTarget(EPlatform platform)
 		}
 		default:
 		{
-			return GetPlatformDotNetTarget(platform);
+			return GetPlatformID(platform);
 		}
 	}
 }
