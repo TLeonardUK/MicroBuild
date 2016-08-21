@@ -305,29 +305,8 @@ bool Path::IsSourceFile() const
 		"cs",
 		"asm",
         "s",
-		"js",
-		"fs",
-		"vb",
-		"py",
-		"lua",
-		"vbs",
-		"r",
-		"d",
-		"php",
-		"cob",
-		"pb",
-		"cbl",
-		"pas",
-		"perl",
-		"tcl",
 		"objc",
 		"cp",
-		"j",
-		"java",
-		"qs",
-		"cls",
-		"frm",
-		"rb",
 		nullptr
 	};
 	
@@ -848,7 +827,10 @@ std::vector<Path> MatchFilter_r(
 	// Nothing to match again? Game over.
 	if (matches.size() == 0)
 	{
-		result.push_back(base);
+		if (!base.IsDirectory())
+		{
+			result.push_back(base);
+		}
 		return result;
 	}
 
@@ -1037,7 +1019,7 @@ std::vector<Path> MatchFilter_r(
 			for (unsigned int i = 0; i < potentialMatches.size(); i++)
 			{
 				PathMatchFragment& frag = potentialMatches[i];
-				if (frag.remaining.empty() && frag.valid)
+				if (frag.remaining.empty() && frag.valid && !frag.isDirectory)
 				{
 					result.push_back(base.AppendFragment(frag.full, true));
 				}

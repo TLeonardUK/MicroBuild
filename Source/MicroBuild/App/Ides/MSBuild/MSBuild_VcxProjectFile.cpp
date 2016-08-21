@@ -815,7 +815,7 @@ bool MSBuild_VcxProjectFile::Generate(
 				.Attribute("Include", "%s", file.c_str());
 
 			MSBuildFile groupFile;
-			groupFile.TypeId = "Include";
+			groupFile.TypeId = "None";
 			groupFile.Path = file;
 			group.Files.push_back(groupFile);
 		}
