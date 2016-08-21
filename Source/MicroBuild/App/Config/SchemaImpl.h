@@ -133,11 +133,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		SetGroupUnmergable(groupName, true);
 
 #define END_OPTION() \
-		if (values.size() > 1) \
-		{ \
-			ValidateError("Multiple values for '%s.%s' defined, expected a single value.", groupName.c_str(), keyName.c_str()); \
-			bResult = false; \
-		}\
 		if (options.size() > 0) \
 		{ \
 			bResult = bResult && ValidateOptions( \

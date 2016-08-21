@@ -303,8 +303,6 @@ bool Path::IsSourceFile() const
 		"m",
 		"cxx",
 		"cs",
-		"asm",
-        "s",
 		"objc",
 		"cp",
 		nullptr

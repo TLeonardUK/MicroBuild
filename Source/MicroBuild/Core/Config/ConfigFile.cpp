@@ -1165,12 +1165,6 @@ void ConfigFile::Merge(const ConfigFile& file)
 
 		for (auto& keyIter : groupIter.second->Keys)
 		{
-			// Do not insert values if they already exist.
-			if (HasValue(groupIter.second->Name, keyIter.second->Name))
-			{
-				continue;
-			}
-
 			for (auto& valueIter : keyIter.second->Values)
 			{
 				std::vector<std::string> values;
