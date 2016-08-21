@@ -80,6 +80,10 @@ std::string GetPlatformDotNetTarget(EPlatform platform)
 {
 	switch (platform)
 	{
+		case EPlatform::x86:
+		{
+			return "x86";
+		}
 		case EPlatform::AnyCPU:
 		{
 			return "AnyCPU";
