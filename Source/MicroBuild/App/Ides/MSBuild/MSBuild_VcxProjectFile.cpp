@@ -358,12 +358,31 @@ bool MSBuild_VcxProjectFile::Generate(
 
 		for (Platform::Path& path : matrix.projectFile.Get_SearchPaths_IncludeDirectory())
 		{
-			includePaths.push_back("$(SolutionDir)\\" + solutionDirectory.RelativeTo(path).ToString() + "\\");
+			Platform::Path relativePath = solutionDirectory.RelativeTo(path).ToString();
+			// if relative to solution dir
+			if (relativePath.IsRelative())
+			{
+				includePaths.push_back("$(SolutionDir)\\" + relativePath.ToString() + "\\");
+			}
+			else
+			{
+				includePaths.push_back(relativePath.ToString());
+			}
 		}
 
 		for (Platform::Path& path : matrix.projectFile.Get_SearchPaths_LibraryDirectory())
 		{
-			libraryPaths.push_back("$(SolutionDir)\\" + solutionDirectory.RelativeTo(path).ToString() + "\\");
+			Platform::Path relativePath = solutionDirectory.RelativeTo(path).ToString();
+
+			// if relative to solution dir
+			if (relativePath.IsRelative())
+			{
+				libraryPaths.push_back("$(SolutionDir)\\" + relativePath.ToString() + "\\");
+			}
+			else
+			{
+				libraryPaths.push_back(relativePath.ToString());
+			}
 		}
 
 		XmlNode& propertyGroup =
@@ -393,7 +412,7 @@ bool MSBuild_VcxProjectFile::Generate(
 		}
 		if (libraryPaths.size() > 0)
 		{
-			propertyGroup.Node("LibraryPath").Value("%s;$(LibraryPath)", Strings::Join(includePaths, ";").c_str());
+			propertyGroup.Node("LibraryPath").Value("%s;$(LibraryPath)", Strings::Join(libraryPaths, ";").c_str());
 		}
 	}
 
