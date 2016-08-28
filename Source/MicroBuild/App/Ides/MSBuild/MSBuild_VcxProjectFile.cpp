@@ -359,7 +359,6 @@ bool MSBuild_VcxProjectFile::Generate(
 		for (Platform::Path& path : matrix.projectFile.Get_SearchPaths_IncludeDirectory())
 		{
 			Platform::Path relativePath = solutionDirectory.RelativeTo(path).ToString();
-			// if relative to solution dir
 			if (relativePath.IsRelative())
 			{
 				includePaths.push_back("$(SolutionDir)\\" + relativePath.ToString() + "\\");
@@ -373,8 +372,6 @@ bool MSBuild_VcxProjectFile::Generate(
 		for (Platform::Path& path : matrix.projectFile.Get_SearchPaths_LibraryDirectory())
 		{
 			Platform::Path relativePath = solutionDirectory.RelativeTo(path).ToString();
-
-			// if relative to solution dir
 			if (relativePath.IsRelative())
 			{
 				libraryPaths.push_back("$(SolutionDir)\\" + relativePath.ToString() + "\\");
@@ -552,6 +549,8 @@ bool MSBuild_VcxProjectFile::Generate(
 					break;
 				}
 			case EPlatformToolset::Default:
+				// Fallthrough
+			default:
 				{
 					// Warning level.
 					switch (matrix.projectFile.Get_Build_WarningLevel())
@@ -595,10 +594,6 @@ bool MSBuild_VcxProjectFile::Generate(
 						compileGroup.Node("DebugInformationFormat").Value("None");
 					}
 
-					break;
-				}
-			default:
-				{
 					break;
 				}
 			}

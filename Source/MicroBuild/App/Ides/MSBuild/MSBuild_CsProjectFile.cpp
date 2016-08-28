@@ -89,6 +89,7 @@ bool MSBuild_CsProjectFile::Generate(
 	std::vector<std::string> miscFiles;
 	std::vector<std::string> xamlFiles;
 	std::vector<std::string> imageFiles;
+	std::vector<std::string> resourceFiles;
 
 	std::string appxManifestFile;
 	std::string packageSigningKey =
@@ -96,6 +97,8 @@ bool MSBuild_CsProjectFile::Generate(
 
 	std::string defaultAppxManifest;
 	std::string defaultPackageSignedKey;
+
+	Platform::Path nugetPackagesSourceFile;
 
 	for (Platform::Path& path : files)
 	{
@@ -123,11 +126,20 @@ bool MSBuild_CsProjectFile::Generate(
 			linkPath = path.GetFilename().c_str();
 		}
 
+		if (linkPath == "packages.config")
+		{
+			nugetPackagesSourceFile = path;
+		}
+
 		fileLinkMap[relativePath] = linkPath;
 
 		if (path.IsSourceFile())
 		{
 			sourceFiles.push_back(relativePath);
+		}
+		else if (path.GetExtension() == "resx")
+		{
+			resourceFiles.push_back(relativePath);
 		}
 		else
 		{
@@ -402,8 +414,19 @@ bool MSBuild_CsProjectFile::Generate(
 		XmlNode& referenceFileGroup = project.Node("ItemGroup");
 		for (auto file : projectFile.Get_References_Reference())
 		{
-			referenceFileGroup.Node("Reference")
-				.Attribute("Include", "%s", file.ToString().c_str());
+			if (file.GetExtension() == "dll")
+			{
+				XmlNode& refNode = referenceFileGroup.Node("Reference")
+					.Attribute("Include", "%s", file.GetBaseName().c_str());
+
+				refNode.Node("HintPath")
+					.Value(projectDirectory.RelativeTo(file).ToString().c_str());
+			}
+			else
+			{
+				referenceFileGroup.Node("Reference")
+					.Attribute("Include", "%s", file.ToString().c_str());
+			}
 		}
 	}
 	else
@@ -507,13 +530,119 @@ bool MSBuild_CsProjectFile::Generate(
 				sourceFileGroup.Node("Compile")
 				.Attribute("Include", "%s", file.c_str());
 
-			if (projectFile.Get_Project_Subsystem() == EPlatformSubSystem::WinRT)
+			Platform::Path dependentPath = file;
+			std::string filename = dependentPath.GetFilename();
+			std::string fullExtension = dependentPath.GetExtension();
+
+			size_t xamlOffset = filename.find(".Designer.");
+			if (xamlOffset == std::string::npos)
 			{
-				size_t xamlOffset = file.find(".xaml.");
-				if (xamlOffset != std::string::npos)
+				xamlOffset = filename.find(".xaml.");
+			}
+
+			size_t periodOffset = filename.find(".");
+			if (periodOffset != std::string::npos)
+			{
+				fullExtension = filename.substr(periodOffset + 1);
+			}
+
+			if (xamlOffset != std::string::npos)
+			{
+				std::vector<std::string> replacementExtensions = {
+					".cs",
+					".resx",
+					".settings"
+				};
+
+				for (auto ext : replacementExtensions)
 				{
-					fileNode.Node("DependentUpon")
-						.Value("%s", fileLinkMap[file.substr(0, xamlOffset + 5)].c_str());
+					dependentPath = dependentPath.ChangeFilename(
+						filename.substr(0, xamlOffset) + ext
+					);
+
+					if (fileLinkMap.find(dependentPath.ToString()) != fileLinkMap.end())
+					{
+						fileNode.Node("DependentUpon")
+							.Value("%s", dependentPath.GetFilename().c_str());
+
+						if (dependentPath.GetExtension() == "resx")
+						{
+							fileNode.Node("AutoGen").Value("True");
+							fileNode.Node("DesignTime").Value("True");
+
+						}
+						else if (dependentPath.GetExtension() == "settings")
+						{
+							fileNode.Node("AutoGen").Value("True");
+							fileNode.Node("DesignTimeSharedInput").Value("True");
+						}
+
+						break;
+					}
+				}
+			}
+
+			// If there is a Name.Designer.cs and Name.resx, we can make a reasonable
+			// assumption that its a form, so mark it as such.
+			if (fullExtension == "cs")
+			{
+				Platform::Path resourceFile = dependentPath.ChangeExtension("resx");
+				Platform::Path designerFile = dependentPath.ChangeExtension("Designer.cs");
+				if (fileLinkMap.find(resourceFile.ToString()) != fileLinkMap.end() &&
+					fileLinkMap.find(designerFile.ToString()) != fileLinkMap.end())
+				{
+					fileNode
+						.Node("SubType")
+						.Value("Form");
+				}
+			}
+
+			fileNode
+				.Node("Link")
+				.Value("%s", fileLinkMap[file.c_str()].c_str());
+		}
+	}
+
+	// Resource files
+	if (resourceFiles.size() > 0)
+	{
+		XmlNode& sourceFileGroup = project.Node("ItemGroup");
+		for (auto file : resourceFiles)
+		{
+			XmlNode& fileNode =
+				sourceFileGroup.Node("EmbeddedResource")
+				.Attribute("Include", "%s", file.c_str());
+
+			Platform::Path dependentPath = file;
+			std::string filename = dependentPath.GetFilename();
+
+			size_t xamlOffset = filename.find(".");
+			if (xamlOffset != std::string::npos)
+			{
+				filename = filename.substr(0, xamlOffset);
+			}
+
+			Platform::Path dependentFilename = 
+				dependentPath.ChangeFilename(filename + ".cs");
+
+			if (fileLinkMap.find(dependentFilename.ToString()) != fileLinkMap.end())
+			{
+				fileNode.Node("DependentUpon")
+					.Value("%s", dependentFilename.GetFilename().c_str());
+			}
+			else
+			{
+				dependentFilename =
+					dependentPath.ChangeFilename(filename + ".Designer.cs");
+
+				if (fileLinkMap.find(dependentFilename.ToString()) != fileLinkMap.end())
+				{
+					fileNode.Node("Generator")
+						.Value("ResXFileCodeGenerator");
+					fileNode.Node("LastGenOutput")
+						.Value("%s", dependentFilename.GetFilename().c_str());
+					fileNode.Node("SubType")
+						.Value("Designer");
 				}
 			}
 
@@ -547,6 +676,9 @@ bool MSBuild_CsProjectFile::Generate(
 					continue;
 				}
 			}
+
+			// todo: embedded resource resx / dependentupon/autogen/designtime
+			// todo: subtype
 
 			XmlNode& fileNode = miscFileGroup.Node("None")
 				.Attribute("Include", "%s", file.c_str());
@@ -591,8 +723,31 @@ bool MSBuild_CsProjectFile::Generate(
 			.Attribute("Project", "$(MSBuildExtensionsPath)\\Microsoft\\WindowsXaml\\v$(VisualStudioVersion)\\Microsoft.Windows.UI.Xaml.CSharp.targets");
 	}
 
+	// If the project contains a package.config nuget file, copy it over
+	// to the project file location.
+	if (!nugetPackagesSourceFile.IsEmpty())
+	{
+		std::string packageInfo = "";
+		if (!Strings::ReadFile(nugetPackagesSourceFile, packageInfo))
+		{
+			return false;
+		}
+
+		Platform::Path nugetOutputLocation = 
+			projectDirectory.AppendFragment("packages.config", true);
+
+		if (!databaseFile.StoreFile(
+			workspaceFile,
+			nugetOutputLocation,
+			packageInfo.c_str()
+		))
+		{
+			return false;
+		}
+	}
+
 	// Generate result.
-	if (!databaseFile.StoreFile(
+ 	if (!databaseFile.StoreFile(
 		workspaceFile,
 		projectLocation,
 		root.ToString().c_str()))
