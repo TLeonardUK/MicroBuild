@@ -431,7 +431,8 @@ std::vector<std::string> SortFiltersByType(
 
 std::string ResolvePlatformName(EPlatform platform)
 {
-	std::string name = CastToString(platform);
+	std::string name = "";
+
 	switch (platform)
 	{
 	case EPlatform::ARM:
@@ -453,6 +454,11 @@ std::string ResolvePlatformName(EPlatform platform)
 #else
 			#error Unimplemented platform.
 #endif
+			break;
+		}
+	default:
+		{
+			name = CastToString(platform);
 			break;
 		}
 	}
