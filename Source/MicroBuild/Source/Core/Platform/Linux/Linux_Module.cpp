@@ -23,6 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef MB_PLATFORM_LINUX
 
+#define _GNU_SOURCE
+#include <dlfcn.h>
+
 namespace MicroBuild {
 namespace Platform {
 
