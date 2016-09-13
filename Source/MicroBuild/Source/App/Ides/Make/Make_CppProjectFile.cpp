@@ -451,7 +451,7 @@ bool Make_CppProjectFile::Generate(
 	}		
 
 	// Postbuild commands.
-	WriteCommands(stream, projectFile.Get_PreBuildCommands_Command());
+	WriteCommands(stream, projectFile.Get_PostBuildCommands_Command());
 
 	stream.WriteLine("");
 
@@ -460,7 +460,7 @@ bool Make_CppProjectFile::Generate(
 	WriteCommands(stream, projectFile.Get_PreBuildCommands_Command());
 	stream.WriteLine("");
 
-	stream.WriteLine("postbuild:");
+	stream.WriteLine("prelink:");
 	WriteCommands(stream, projectFile.Get_PreLinkCommands_Command());
 	stream.WriteLine("");
 

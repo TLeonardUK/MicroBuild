@@ -352,7 +352,7 @@ bool Make_CsProjectFile::Generate(
 	stream.WriteLine("\t$(SILENT) $(CSC) $(ALL_CSFLAGS) -out:\"$@\" $(CS_FILES)");
 
 	// Postbuild commands.
-	WriteCommands(stream, projectFile.Get_PreBuildCommands_Command());
+	WriteCommands(stream, projectFile.Get_PostBuildCommands_Command());
 	stream.WriteLine("");
 
 	// Prebuild/Prelink recipies.
@@ -360,7 +360,7 @@ bool Make_CsProjectFile::Generate(
 	WriteCommands(stream, projectFile.Get_PreBuildCommands_Command());
 	stream.WriteLine("");
 
-	stream.WriteLine("postbuild:");
+	stream.WriteLine("postlink:");
 	WriteCommands(stream, projectFile.Get_PreLinkCommands_Command());
 	stream.WriteLine("");
 
