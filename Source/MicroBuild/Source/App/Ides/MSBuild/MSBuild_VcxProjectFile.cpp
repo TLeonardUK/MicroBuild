@@ -763,7 +763,7 @@ bool MSBuild_VcxProjectFile::Generate(
 				itemDefGroup.Node("PreBuildEvent");
 
 			std::vector<std::string> commands =
-				matrix.projectFile.Get_PreBuildCommand_Command();
+				matrix.projectFile.Get_PreBuildCommands_Command();
 
 			for (auto command : commands)
 			{
@@ -776,7 +776,7 @@ bool MSBuild_VcxProjectFile::Generate(
 				itemDefGroup.Node("PreLinkEvent");
 
 			std::vector<std::string> commands =
-				matrix.projectFile.Get_PreLinkCommand_Command();
+				matrix.projectFile.Get_PreLinkCommands_Command();
 
 			for (auto command : commands)
 			{
@@ -789,7 +789,7 @@ bool MSBuild_VcxProjectFile::Generate(
 				itemDefGroup.Node("PostBuildEvent");
 
 			std::vector<std::string> commands =
-				matrix.projectFile.Get_PostBuildCommand_Command();
+				matrix.projectFile.Get_PostBuildCommands_Command();
 
 			for (auto command : commands)
 			{

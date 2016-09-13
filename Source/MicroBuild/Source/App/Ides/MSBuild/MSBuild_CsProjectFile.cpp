@@ -735,7 +735,7 @@ bool MSBuild_CsProjectFile::Generate(
 
 
 			std::vector<std::string> preBuildCommands =
-				matrix.projectFile.Get_PreBuildCommand_Command();
+				matrix.projectFile.Get_PreBuildCommands_Command();
 
 			for (auto command : preBuildCommands)
 			{
@@ -744,7 +744,7 @@ bool MSBuild_CsProjectFile::Generate(
 
 
 			std::vector<std::string> postBuildCommands =
-				matrix.projectFile.Get_PostBuildCommand_Command();
+				matrix.projectFile.Get_PostBuildCommands_Command();
 
 			for (auto command : postBuildCommands)
 			{

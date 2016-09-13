@@ -17,17 +17,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
-#include "App/Plugin/Plugin.h"
 
-#include "App/Plugin/PluginInterface.h"
-#include "App/Plugin/Interfaces/PluginInterface1.h"
+#include "Core/Plugin/PluginInterface.h"
+#include "Core/Plugin/Interfaces/PluginInterface1.h"
+
+#include "App/Plugin/PluginManager.h"
+#include "App/Plugin/Plugin.h"
 
 namespace MicroBuild {
 
-IPluginInterface* CreatePluginInterface1();
+IPluginInterface* CreatePluginInterface1(PluginManager* manager, Plugin* plugin);
 
-Plugin::Plugin()
+Plugin::Plugin(PluginManager* manager)
 	: m_name("")
+	, m_manager(manager)
 {
 }
 
@@ -44,35 +47,42 @@ std::string Plugin::GetName()
 	return m_name;
 }
 
+void Plugin::RegisterCallback(EPluginEvent Event, PluginCallbackSignature FuncPtr)
+{
+	PluginCallback callback;
+	callback.Event = Event;
+	callback.Callback = FuncPtr;
+	m_callbacks.push_back(callback);
+}
+
+bool Plugin::OnEvent(EPluginEvent Event, PluginEventData* Data)
+{
+	for (PluginCallback& callback : m_callbacks)
+	{
+		if (callback.Event == Event)
+		{
+			if (!callback.Callback(Data))
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 bool Plugin::Load(Platform::Path& path)
 {
 	if (m_module.Open(path))
 	{
 		GetPluginInterfaceVersion = m_module.GetFunction<GetPluginInterfaceVersion_t>("GetPluginInterfaceVersion");
-		GetPluginVersion = m_module.GetFunction<GetPluginVersion_t>("GetPluginVersion");
 		InitializePlugin = m_module.GetFunction<InitializePlugin_t>("InitializePlugin");
 
 		if (GetPluginInterfaceVersion == nullptr ||
-			GetPluginVersion == nullptr ||
 			InitializePlugin == nullptr)
 		{
 			Log(LogSeverity::Warning,
 				"Failed to load plugin, missing symbol exports.\n");
-
-			return false;
-		}
-
-		float minVersion = 0.0f;
-		float maxVersion = 0.0f;
-		GetPluginVersion(&minVersion, &maxVersion);
-
-		if (MB_VERSION < minVersion || MB_VERSION > maxVersion)
-		{
-			Log(LogSeverity::Warning, 
-				"Failed to load plugin, version number is incompatible. Plugin supports minimum of version %.2f and maximum of version %.2f, currently on version %.2f.\n",
-				minVersion,
-				maxVersion,
-				MB_VERSION);
 
 			return false;
 		}
@@ -82,7 +92,7 @@ bool Plugin::Load(Platform::Path& path)
 		{
 			case 1: 
 			{
-				m_pluginInterface = CreatePluginInterface1(); 
+				m_pluginInterface = CreatePluginInterface1(m_manager, this); 
 				break;
 			}
 			default:

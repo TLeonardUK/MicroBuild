@@ -45,8 +45,6 @@ CommandLineParser::~CommandLineParser()
 
 bool CommandLineParser::Parse(int argc, char* argv[])
 {
-	PrintLicense();
-
 	if (argc > 1)
 	{
 		// Parse each command individually.

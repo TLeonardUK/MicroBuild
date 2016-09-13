@@ -17,8 +17,3 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
-#include "App/Plugin/PluginInterface.h"
-
-namespace MicroBuild {
-
-} // namespace MicroBuild

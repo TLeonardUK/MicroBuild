@@ -352,16 +352,16 @@ bool Make_CsProjectFile::Generate(
 	stream.WriteLine("\t$(SILENT) $(CSC) $(ALL_CSFLAGS) -out:\"$@\" $(CS_FILES)");
 
 	// Postbuild commands.
-	WriteCommands(stream, projectFile.Get_PreBuildCommand_Command());
+	WriteCommands(stream, projectFile.Get_PreBuildCommands_Command());
 	stream.WriteLine("");
 
 	// Prebuild/Prelink recipies.
 	stream.WriteLine("prebuild:");
-	WriteCommands(stream, projectFile.Get_PreBuildCommand_Command());
+	WriteCommands(stream, projectFile.Get_PreBuildCommands_Command());
 	stream.WriteLine("");
 
 	stream.WriteLine("postbuild:");
-	WriteCommands(stream, projectFile.Get_PreLinkCommand_Command());
+	WriteCommands(stream, projectFile.Get_PreLinkCommands_Command());
 	stream.WriteLine("");
 
 	// Write out the directory recipies.

@@ -18,25 +18,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "App/Plugin/PluginInterface.h"
+#include "Core/Commands/Command.h"
+#include "Core/Platform/Path.h"
 
 namespace MicroBuild {
 
-// Version 1 of the plugin interfaces.
-class PluginInterface1 : public IPluginInterface
+// Echos out the command line value it is passed.
+class SayCommand : public Command
 {
 public:
-	// Gets or sets the name of the plugin.
-	virtual void SetName(const std::string& value) = 0;
-	virtual std::string GetName() const = 0;
+	SayCommand();
 
-	// Gets or sets the description of the plugin.
-	virtual void SetDescription(const std::string& value) = 0;
-	virtual std::string GetDescription() const = 0;
+protected:
+	virtual bool Invoke(CommandLineParser* parser) override;
 
 private:
-	std::string m_name;
-	std::string m_description;
+	std::string m_value;
 
 };
 

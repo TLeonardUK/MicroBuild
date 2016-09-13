@@ -65,6 +65,7 @@ App::App(int argc, char* argv[])
 	: m_argv(argv)
 	, m_argc(argc)
 	, m_commandLineParser(MB_NAME, MB_DESCRIPTION, MB_COPYRIGHT)
+	, m_pluginManager(this)
 {
 	m_ides.push_back(new Ide_VisualStudio_2015());
 	m_ides.push_back(new Ide_Make());
@@ -84,8 +85,13 @@ App::~App()
 	{
 		delete type;
 	}
-
 	m_ides.clear();
+}
+
+
+void App::RegisterCommand(Command* command)
+{
+	m_commandLineParser.RegisterCommand(command);
 }
 
 std::vector<IdeType*> App::GetIdes() const
@@ -112,6 +118,8 @@ PluginManager* App::GetPluginManager()
 
 int App::Run()
 {
+	m_commandLineParser.PrintLicense();
+
 #if MB_OPT_ENABLE_PLUGIN_SUPPORT
 	if (!m_pluginManager.FindAndLoadAll())
 	{

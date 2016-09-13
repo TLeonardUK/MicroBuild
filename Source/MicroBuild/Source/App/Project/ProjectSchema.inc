@@ -648,7 +648,7 @@ END_KEY_VALUE_ARRAY_OPTION()
 // ---------------------------------------------------------------------------
 START_ARRAY_OPTION(
 	std::string,
-	PreBuildCommand,
+	PreBuildCommands,
 	Command,
 	"Commands to run before building."
 )
@@ -656,7 +656,7 @@ END_ARRAY_OPTION()
 
 START_ARRAY_OPTION(
 	std::string,
-	PreLinkCommand,
+	PreLinkCommands,
 	Command,
 	"Commands to run before linking."
 )
@@ -664,7 +664,7 @@ END_ARRAY_OPTION()
 
 START_ARRAY_OPTION(
 	std::string,
-	PostBuildCommand,
+	PostBuildCommands,
 	Command,
 	"Commands to run after building."
 )

@@ -91,6 +91,13 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 			return false;
 		}
 
+		// Fire plugin events!
+		{
+			PluginPostProcessProjectFileData eventData;
+			eventData.File = &m_workspaceFile;
+			m_app->GetPluginManager()->OnEvent(EPluginEvent::PostProcessWorkspaceFile, &eventData);
+		}
+
 		// Database file to do all file manipulation through.
 		Platform::Path databaseFileLocation =
 			m_workspaceFile.Get_Workspace_Location()
@@ -149,6 +156,13 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 				if (!m_projectFiles[i].Validate())
 				{
 					return false;
+				}
+
+				// Fire plugin events!
+				{
+					PluginPostProcessProjectFileData eventData;
+					eventData.File = &m_projectFiles[i];
+					m_app->GetPluginManager()->OnEvent(EPluginEvent::PostProcessProjectFile, &eventData);
 				}
 			}
 			else

@@ -19,35 +19,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "Core/Plugin/PluginInterface.h"
+#include "Core/Commands/Command.h"
 
 namespace MicroBuild {
 
-class Plugin;
-class App;
-
-// Manager for all plugins.
-class PluginManager
+// Version 1 of the plugin interfaces.
+class PluginInterface1 : public IPluginInterface
 {
 public:
-	PluginManager(App* app);
-	virtual ~PluginManager();
+	// Gets or sets the name of the plugin.
+	virtual void SetName(const std::string& value) = 0;
+	virtual std::string GetName() const = 0;
 
-	// Loads all the plugins it can find, returns false on 
-	// catastophic failure.
-	bool FindAndLoadAll();
+	// Gets or sets the description of the plugin.
+	virtual void SetDescription(const std::string& value) = 0;
+	virtual std::string GetDescription() const = 0;
 
-	// Gets a list of all plugins that are currently loaded.
-	std::vector<Plugin*> GetPlugins();
+	// Registers a new command that can be called from the command line.
+	virtual void RegisterCommand(Command* command) = 0;
 
-	// Fires any registered events of the given type.
-	bool OnEvent(EPluginEvent Event, PluginEventData* Data);
-
-	// Gets the app instance this plugin manager was created for.
-	App* GetApp();
-
-private:
-	std::vector<Plugin*> m_plugins;
-	App* m_app;
+	// Registers all callback for a specific event.
+	virtual void RegisterCallback(EPluginEvent Event, PluginCallbackSignature FuncPtr) = 0;
 
 };
 

@@ -24,12 +24,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-PluginManager::PluginManager()
+PluginManager::PluginManager(App* app)
+	: m_app(app)
 {
 }
 
 PluginManager::~PluginManager()
 {
+	for (Plugin* plugin : m_plugins)
+	{
+		delete plugin;
+	}
+	m_plugins.clear();
 }
 
 bool PluginManager::FindAndLoadAll()
@@ -65,13 +71,22 @@ bool PluginManager::FindAndLoadAll()
 
 	for (auto path : matchingPaths)
 	{
-		Log(LogSeverity::Info, "Loading plugin: %s", path.ToString().c_str());
+		Log(LogSeverity::Info, "Loading plugin: %s\n", path.ToString().c_str());
 		
-		Plugin* plugin = new Plugin();
+		Plugin* plugin = new Plugin(this);
 		if (!plugin->Load(path))
 		{
-			Log(LogSeverity::Info, "\tPlugin load failed.");
+			Log(LogSeverity::Info, "\tPlugin load failed.\n");
 		}
+		else
+		{
+			m_plugins.push_back(plugin);
+		}
+	}
+
+	if (matchingPaths.size() > 0)
+	{
+		Log(LogSeverity::Info, "\n");
 	}
 
 	return true;
@@ -80,6 +95,23 @@ bool PluginManager::FindAndLoadAll()
 std::vector<Plugin*> PluginManager::GetPlugins()
 {
 	return m_plugins;
+}
+
+App* PluginManager::GetApp()
+{
+	return m_app;
+}
+
+bool PluginManager::OnEvent(EPluginEvent Event, PluginEventData* Data)
+{
+	for (Plugin* plugin : m_plugins)
+	{
+		if (!plugin->OnEvent(Event, Data))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 } // namespace MicroBuild

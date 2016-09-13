@@ -17,13 +17,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "PCH.h"
-#include "App/Plugin/Interfaces/PluginInterface1.h"
+#include "App/App.h"
+#include "App/Plugin/Plugin.h"
+#include "App/Plugin/PluginManager.h"
+#include "Core/Plugin/Interfaces/PluginInterface1.h"
 
 namespace MicroBuild {
 
 class PluginInterface1_Impl : public PluginInterface1
 {
 public:
+	PluginInterface1_Impl(PluginManager* manager, Plugin* plugin)
+		: m_manager(manager)
+		, m_plugin(plugin)
+	{
+	}
+
 	virtual void SetName(const std::string& value) override
 	{
 		m_name = value;
@@ -44,15 +53,27 @@ public:
 		return m_description;
 	}
 
+	virtual void RegisterCommand(Command* cmd) override
+	{
+		m_manager->GetApp()->RegisterCommand(cmd);
+	}
+
+	virtual void RegisterCallback(EPluginEvent Event, PluginCallbackSignature FuncPtr)
+	{
+		m_plugin->RegisterCallback(Event, FuncPtr);
+	}
+
 private:
 	std::string m_name;
 	std::string m_description;
+	PluginManager* m_manager;
+	Plugin* m_plugin;
 
 };
 
-IPluginInterface* CreatePluginInterface1()
+IPluginInterface* CreatePluginInterface1(PluginManager* manager, Plugin* plugin)
 {
-	return new PluginInterface1_Impl();
+	return new PluginInterface1_Impl(manager, plugin);
 }
 
 } // namespace MicroBuild

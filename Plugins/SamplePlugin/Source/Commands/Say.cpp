@@ -19,29 +19,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PCH.h"
 
 #include "Commands/Say.h"
-#include "Core/Plugin/PluginInterface.h"
 
-ImplmentMicroBuildPlugin();
+#include "Core/Commands/CommandLineParser.h"
+#include "Core/Commands/CommandStringArgument.h"
 
 namespace MicroBuild {
 
-bool PluginMain(CurrentPluginInterface* pluginInterface)
+SayCommand::SayCommand()
 {
-	pluginInterface->SetName("Sample Plugin");
-	pluginInterface->SetDescription("Sample plugin implementation, registers "
-		"the 'say' command line.");
+	SetName("say");
+	SetShortName("s");
+	SetDescription("Echos out the value passed on the command line.");
 
-	pluginInterface->RegisterCommand(new MicroBuild::SayCommand());
+	CommandStringArgument* valueArg = new CommandStringArgument();
+	valueArg->SetName("Value");
+	valueArg->SetShortName("v");
+	valueArg->SetDescription("Value to echo");
+	valueArg->SetRequired(true );
+	valueArg->SetPositional(true);
+	valueArg->SetDefault("");
+	valueArg->SetOutput(&m_value);
+	RegisterArgument(valueArg);
+}
 
-	pluginInterface->RegisterCallback(EPluginEvent::PostProcessWorkspaceFile, [](PluginEventData* Data) {
-		UNUSED_PARAMETER(Data);
-		return true;
-	});
+bool SayCommand::Invoke(CommandLineParser* parser)
+{
+	UNUSED_PARAMETER(parser);
 
-	pluginInterface->RegisterCallback(EPluginEvent::PostProcessProjectFile, [](PluginEventData* Data) {
-		UNUSED_PARAMETER(Data);
-		return true;
-	});
+	Log(LogSeverity::Info,
+		"Say: %s\n",
+		m_value.c_str());
 
 	return true;
 }

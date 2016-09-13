@@ -16,14 +16,26 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+// Can't use pragma once in PCH's or we get erronous warnings in older versions
+// of llvm/clang (aka xcode), see here - https://reviews.llvm.org/D19815
+#ifndef _MICROBUILD_PCH_
+#define _MICROBUILD_PCH_
 
-#define MB_VERSION		1.0f
-#define MB_NAME			"microbuild"
-#define MB_COPYRIGHT	"Copyright (C) 2016 TwinDrills"
-#define MB_DESCRIPTION	\
-	"Generate and build projects for a variety of platforms and IDE's."
+#include <stdio.h>
+#include <vector>
+#include <string>
+#include <string.h>
+#include <ctime>
+#include <assert.h>
+#include <cassert>
+#include <stdarg.h>
+#include <chrono>
+#include <map>
+#include <algorithm>
+#include <climits>
+#include <functional>
 
-#define MB_COMPILE_DATE	(__DATE__ " " __TIME__)
+#include "Core/Compiler.h"
+#include "Core/Log.h"
 
-#define MB_OPT_ENABLE_PLUGIN_SUPPORT 1
+#endif

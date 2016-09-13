@@ -21,16 +21,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Platform/Path.h"
 #include "Core/Platform/Module.h"
 
+#include "Core/Plugin/PluginInterface.h"
+
 namespace MicroBuild {
 
 class IPluginInterface;
+class PluginManager;
 
 // Base class for all plugins.
 class Plugin
 {
 public:
 
-	Plugin();
+	Plugin(PluginManager* manager);
 	virtual ~Plugin();
 
 	// Gets the name of this plugin.
@@ -39,20 +42,31 @@ public:
 	// Loads the plugin.
 	bool Load(Platform::Path& path);
 
-protected:
+	// Fires any registered events of the given type.
+	bool OnEvent(EPluginEvent Event, PluginEventData* Data);
+
+	// Registers an event callback for the given plugin.
+	void RegisterCallback(EPluginEvent Event, PluginCallbackSignature FuncPtr);
 
 private:
+	struct PluginCallback
+	{
+		EPluginEvent Event;
+		PluginCallbackSignature Callback;
+	};
+
 	typedef int   (*GetPluginInterfaceVersion_t)();
-	typedef void  (*GetPluginVersion_t)(float* minimumVersion, float* maximumVersion);
 	typedef bool  (*InitializePlugin_t)(IPluginInterface* pluginInterface);
 
 	GetPluginInterfaceVersion_t GetPluginInterfaceVersion;
-	GetPluginVersion_t GetPluginVersion;
 	InitializePlugin_t InitializePlugin;
 
+	std::vector<PluginCallback> m_callbacks;
+	
 	std::string m_name;
 	Platform::Module m_module;
 	IPluginInterface* m_pluginInterface;
+	PluginManager* m_manager;
 
 };
 
