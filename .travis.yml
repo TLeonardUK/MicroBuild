@@ -41,21 +41,25 @@ script:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Generate.Linux.sh; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ../Binaries/linux_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x86; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ../Binaries/MicroBuild_Linux_x86_Shipping ../Binaries/linux_x86/microbuild; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ../Binaries/MicroBuild-Core_Linux_x86_Shipping.a ../Binaries/linux_x86/microbuild.a-core; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ../Binaries/MicroBuild-Core_Linux_x86_Shipping.a ../Binaries/linux_x86/microbuild-core.a; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ../Binaries/ZLib_Linux_x86_Shipping.a ../Binaries/linux_x86/microbuild-zlib.a; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ../Binaries/linux_x64/microbuild clean Config/Workspace.ini || true; fi 
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Generate.Linux.sh; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ../Binaries/linux_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x64; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ../Binaries/MicroBuild_Linux_x64_Shipping ../Binaries/linux_x64/microbuild; fi  
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ../Binaries/MicroBuild-Core_Linux_x64_Shipping.a ../Binaries/linux_x64/microbuild-core.a; fi  
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cp ../Binaries/ZLib_Linux_x64_Shipping.a ../Binaries/linux_x64/microbuild-zlib.a; fi  
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Generate.Macos.sh; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x86; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ../Binaries/MicroBuild_MacOS_x86_Shipping ../Binaries/macos_x86/microbuild; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ../Binaries/MicroBuild-Core_MacOS_x86_Shipping.a ../Binaries/macos_x86/microbuild-core.a; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ../Binaries/ZLib_MacOS_x86_Shipping.a ../Binaries/macos_x86/microbuild-zlib.a; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild clean Config/Workspace.ini || true; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Generate.Macos.sh; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x64; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ../Binaries/MicroBuild_MacOS_x64_Shipping ../Binaries/macos_x64/microbuild; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ../Binaries/MicroBuild-Core_MacOS_x64_Shipping.a ../Binaries/macos_x64/microbuild-core.a; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cp ../Binaries/ZLib_MacOS_x64_Shipping.a ../Binaries/macos_x64/microbuild-zlib.a; fi
   - cd ./../
 after_success: 
   - git config --global user.email "buildserver@programmingbytim.com"
@@ -64,10 +68,14 @@ after_success:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/linux_x86/microbuild; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/linux_x64/microbuild-core.a; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/linux_x86/microbuild-core.a; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/linux_x64/microbuild-zlib.a; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/linux_x86/microbuild-zlib.a; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x64/microbuild; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x64/microbuild; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild-core.a; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild-core.a; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild-zlib.a; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild-zlib.a; fi
   - git checkout $TRAVIS_BRANCH
   - git pull --no-edit --no-commit
   - git commit -m "[ci skip] Automated Build (Travis build $TRAVIS_BUILD_NUMBER)."
