@@ -23,7 +23,7 @@ on_success:
   - ps: if ($env:PLATFORM -eq "x64")   { cp ./Binaries/MicroBuild-Core_Windows_x64_Shipping.lib ./Binaries/windows_x64/microbuild-core.lib }
   - ps: if ($env:PLATFORM -eq "x64")   { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x64/Shipping/MicroBuild-Core.pdb ./Binaries/windows_x64/microbuild-core.pdb }
   - ps: if ($env:PLATFORM -eq "Win32") { cp ./Binaries/MicroBuild-Core_Windows_x86_Shipping.lib ./Binaries/windows_x86/microbuild-core.lib }
-  - ps: if ($env:PLATFORM -eq "Win32") { cp ../Build/ProjectFiles/MicroBuild-Core/Obj/x86/Shipping/MicroBuild-Core.pdb ./Binaries/windows_x86/microbuild-core.pdb }
+  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x86/Shipping/MicroBuild-Core.pdb ./Binaries/windows_x86/microbuild-core.pdb }
   - ps: if ($env:PLATFORM -eq "x64")   { cp ./Binaries/ZLib_Windows_x64_Shipping.lib ./Binaries/windows_x64/microbuild-zlib.lib }
   - ps: if ($env:PLATFORM -eq "x64")   { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x64/Shipping/ZLib.pdb ./Binaries/windows_x64/microbuild-zlib.pdb }
   - ps: if ($env:PLATFORM -eq "Win32") { cp ./Binaries/ZLib_Windows_x86_Shipping.lib ./Binaries/windows_x86/microbuild-zlib.lib }
