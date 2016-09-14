@@ -71,10 +71,10 @@ after_success:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/linux_x64/microbuild-zlib.a; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/linux_x86/microbuild-zlib.a; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x64/microbuild; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x64/microbuild; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x64/microbuild-core.a; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild-core.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild-core.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild-zlib.a; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x64/microbuild-zlib.a; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/macos_x86/microbuild-zlib.a; fi
   - git checkout $TRAVIS_BRANCH
   - git pull --no-edit --no-commit
