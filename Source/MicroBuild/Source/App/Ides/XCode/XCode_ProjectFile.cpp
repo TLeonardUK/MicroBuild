@@ -1075,21 +1075,39 @@ void XCode_ProjectFile::Write_PBXShellScriptBuildPhase(
 		std::string buildcfg = Strings::Format("%s_%s", matrix.config.c_str(), CastToString(matrix.platform).c_str());
 		{
 			auto cmds = matrix.projectFile.Get_PreBuildCommands_Command();
-			prebuildCommands.push_back(Strings::Format("if [ \"${CONFIGURATION}\" = \"'%s'\" ]; then ", buildcfg.c_str()));
-			prebuildCommands.insert(prebuildCommands.begin(), cmds.begin(), cmds.end());
-			prebuildCommands.push_back("fi");
+			if (cmds.size() > 0)
+			{
+				prebuildCommands.push_back(Strings::Format("if [ \"${CONFIGURATION}\" = \"'%s'\" ]; then ", buildcfg.c_str()));
+				for (auto cmd : cmds)
+				{
+					prebuildCommands.push_back(Strings::Format("%s; ", cmd.c_str()));
+				}
+				prebuildCommands.push_back("fi");
+			}
 		}
 		{
 			auto cmds = matrix.projectFile.Get_PreLinkCommands_Command();
-			prelinkCommands.push_back(Strings::Format("if [ \"${CONFIGURATION}\" = \"'%s'\" ]; then ", buildcfg.c_str()));
-			prelinkCommands.insert(prelinkCommands.begin(), cmds.begin(), cmds.end());
-			prelinkCommands.push_back("fi");
+			if (cmds.size() > 0)
+			{
+				prelinkCommands.push_back(Strings::Format("if [ \"${CONFIGURATION}\" = \"'%s'\" ]; then ", buildcfg.c_str()));
+				for (auto cmd : cmds)
+				{
+					prelinkCommands.push_back(Strings::Format("%s; ", cmd.c_str()));
+				}
+				prelinkCommands.push_back("fi");
+			}
 		}
 		{
 			auto cmds = matrix.projectFile.Get_PostBuildCommands_Command();
-			postbuildCommands.push_back(Strings::Format("if [ \"${CONFIGURATION}\" = \"'%s'\" ]; then ", buildcfg.c_str()));
-			postbuildCommands.insert(postbuildCommands.begin(), cmds.begin(), cmds.end());
-			postbuildCommands.push_back("fi");
+			if (cmds.size() > 0)
+			{
+				postbuildCommands.push_back(Strings::Format("if [ \"${CONFIGURATION}\" = \"'%s'\" ]; then ", buildcfg.c_str()));
+				for (auto cmd : cmds)
+				{
+					postbuildCommands.push_back(Strings::Format("%s; ", cmd.c_str()));
+				}
+				postbuildCommands.push_back("fi");
+			}
 		}
 	}
 
