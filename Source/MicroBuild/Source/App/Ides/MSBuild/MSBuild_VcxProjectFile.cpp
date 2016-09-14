@@ -387,11 +387,7 @@ bool MSBuild_VcxProjectFile::Generate(
 			.Attribute("Condition", "'$(Configuration)|$(Platform)'=='%s|%s'", matrix.config.c_str(), platformId.c_str());
 
 		// Incremental linking
-		if (matrix.projectFile.Get_Flags_LinkTimeOptimization())
-		{
-			propertyGroup.Node("LinkIncremental").Value("false");
-		}
-		else
+ 		if (!matrix.projectFile.Get_Flags_LinkTimeOptimization())
 		{
 			propertyGroup.Node("LinkIncremental").Value(matrix.projectFile.Get_Build_OptimizationLevel() != EOptimizationLevel::Full);
 		}
