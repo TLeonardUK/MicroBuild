@@ -84,11 +84,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 // min/max macros if they don't already exists.
-#ifndef Min
+#ifndef MB_MIN
 #define MB_MIN(x, y) ((x) < (y) ? (x) : (y))
 #endif
 
-#ifndef Max
+#ifndef MB_MAX
 #define MB_MAX(x, y) ((x) > (y) ? (x) : (y))
 #endif
 
