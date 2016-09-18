@@ -34,12 +34,12 @@ bool PluginMain(CurrentPluginInterface* pluginInterface)
 	pluginInterface->RegisterCommand(new MicroBuild::SayCommand());
 
 	pluginInterface->RegisterCallback(EPluginEvent::PostProcessWorkspaceFile, [](PluginEventData* Data) {
-		UNUSED_PARAMETER(Data);
+		MB_UNUSED_PARAMETER(Data);
 		return true;
 	});
 
 	pluginInterface->RegisterCallback(EPluginEvent::PostProcessProjectFile, [](PluginEventData* Data) {
-		UNUSED_PARAMETER(Data);
+		MB_UNUSED_PARAMETER(Data);
 		return true;
 	});
 

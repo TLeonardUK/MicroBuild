@@ -171,7 +171,7 @@ std::vector<ProjectGroupFolder> GetGroupFolders(
 	std::vector<VPathPair>& vpaths
 )
 {
-	UNUSED_PARAMETER(workspaceFile);
+	MB_UNUSED_PARAMETER(workspaceFile);
 
 	std::vector<ProjectGroupFolder> result;
 

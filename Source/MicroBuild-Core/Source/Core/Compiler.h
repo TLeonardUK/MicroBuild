@@ -24,8 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	!defined(MB_RELEASE_BUILD) && \
 	!defined(MB_DEBUG_BUILD)
 
-#error "No compile configuration defined. One of the following should always" \
-		"be defined: MB_SHIPPING_BUILD, MB_RELEASE_BUILD, MB_DEBUG_BUILD"
+#error "No compile configuration defined. One of the following should always be defined: MB_SHIPPING_BUILD, MB_RELEASE_BUILD, MB_DEBUG_BUILD"
 
 #endif
 
@@ -35,8 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #if !defined(MB_ARCHITECTURE_X86) && \
 	!defined(MB_ARCHITECTURE_X64) 
 
-#error "No compile architecture defined. One of the following should always" \
-		"be defined: MB_ARCHITECTURE_X86, MB_ARCHITECTURE_X64"
+#error "No compile architecture defined. One of the following should always be defined: MB_ARCHITECTURE_X86, MB_ARCHITECTURE_X64"
 
 #endif
 
@@ -87,12 +85,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // min/max macros if they don't already exists.
 #ifndef Min
-#define Min(x, y) ((x) < (y) ? (x) : (y))
+#define MB_MIN(x, y) ((x) < (y) ? (x) : (y))
 #endif
 
 #ifndef Max
-#define Max(x, y) ((x) > (y) ? (x) : (y))
+#define MB_MAX(x, y) ((x) > (y) ? (x) : (y))
 #endif
 
 // Used to explicitly mark parameters as unused so they don't cause warnings.
-#define UNUSED_PARAMETER(x) (void)x;
+#define MB_UNUSED_PARAMETER(x) (void)x;

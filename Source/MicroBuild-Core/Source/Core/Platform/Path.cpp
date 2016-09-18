@@ -680,7 +680,7 @@ Path Path::RelativeTo(const Path& Destination) const
 
 	// Work out which directories are matching.
 	int matchingDirs = 0;
-	size_t minDirCount = Min(fragmentsDirCount, destFragmentsDirCount);
+	size_t minDirCount = MB_MIN(fragmentsDirCount, destFragmentsDirCount);
 
 	for (unsigned int i = 0; i < minDirCount; i++)
 	{
@@ -730,7 +730,7 @@ bool Path::GetCommonPath(std::vector<Path>& paths, Path& result)
 	size_t maxOffset = INT_MAX;
 	for (Path& path : paths)
 	{
-		maxOffset = Min(maxOffset, path.ToString().size());
+		maxOffset = MB_MIN(maxOffset, path.ToString().size());
 	}
 
 	std::string matchPath = "";

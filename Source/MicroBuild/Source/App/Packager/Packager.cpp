@@ -48,7 +48,7 @@ bool Packager::Package(
 	const std::vector<std::string>& commands
 )
 {
-	UNUSED_PARAMETER(commands);
+	MB_UNUSED_PARAMETER(commands);
 
 	m_workingDirectory = workingDirectory;
 
@@ -122,7 +122,7 @@ bool Packager::NativeCommand(const Platform::Path& workingDir, const std::vector
 
 bool Packager::Copy(const Platform::Path& workingDir, const std::vector<std::string>& args)
 {
-	UNUSED_PARAMETER(workingDir);
+	MB_UNUSED_PARAMETER(workingDir);
 
 	Platform::Path src = args[0];
 	Platform::Path dest = args[1];
@@ -177,7 +177,7 @@ bool Packager::Copy(const Platform::Path& workingDir, const std::vector<std::str
 
 bool Packager::Delete(const Platform::Path& workingDir, const std::vector<std::string>& args)
 {
-	UNUSED_PARAMETER(workingDir);
+	MB_UNUSED_PARAMETER(workingDir);
 
 	Platform::Path src = args[0];
 
@@ -198,7 +198,7 @@ bool Packager::Delete(const Platform::Path& workingDir, const std::vector<std::s
 
 bool Packager::Archive(const Platform::Path& workingDir, const std::vector<std::string>& args)
 {
-	UNUSED_PARAMETER(workingDir);
+	MB_UNUSED_PARAMETER(workingDir);
 
 	Platform::Path src = args[0];
 	Platform::Path dest = args[1];

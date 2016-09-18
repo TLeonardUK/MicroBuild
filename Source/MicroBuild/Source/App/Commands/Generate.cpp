@@ -72,7 +72,7 @@ GenerateCommand::GenerateCommand(App* app)
 
 bool GenerateCommand::Invoke(CommandLineParser* parser)
 {
-	UNUSED_PARAMETER(parser);
+	MB_UNUSED_PARAMETER(parser);
 
 	Time::TimedScope timingScope;
 

@@ -54,7 +54,7 @@ CleanCommand::CleanCommand(App* app)
 
 bool CleanCommand::Invoke(CommandLineParser* parser)
 {
-	UNUSED_PARAMETER(parser);
+	MB_UNUSED_PARAMETER(parser);
 
 	Time::TimedScope timingScope;
 

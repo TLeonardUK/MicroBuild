@@ -619,7 +619,7 @@ void ZLIB_INTERNAL gz_error(state, err, msg)
    available) -- we need to do this to cover cases where 2's complement not
    used, since C standard permits 1's complement and sign-bit representations,
    otherwise we could just use ((unsigned)-1) >> 1 */
-unsigned ZLIB_INTERNAL gz_intmax()
+unsigned ZLIB_INTERNAL gz_intMB_MAX()
 {
     unsigned p, q;
 

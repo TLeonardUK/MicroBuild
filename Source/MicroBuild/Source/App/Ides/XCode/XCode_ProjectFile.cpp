@@ -1004,9 +1004,9 @@ void XCode_ProjectFile::Write_PBXFrameworksBuildPhase(
 	PlistNode& filesNode = targetNode.Array("files");
     
     // todo: Do we need to do anything here or can we keep it all in the linker arguments?
-    UNUSED_PARAMETER(filesNode);
-    UNUSED_PARAMETER(filterMap);
-    UNUSED_PARAMETER(rootUuid);
+    MB_UNUSED_PARAMETER(filesNode);
+    MB_UNUSED_PARAMETER(filterMap);
+    MB_UNUSED_PARAMETER(rootUuid);
     
 	targetNode.Node("runOnlyForDeploymentPostprocessing").Value("0");
 }

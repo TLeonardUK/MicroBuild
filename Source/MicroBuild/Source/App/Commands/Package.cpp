@@ -103,7 +103,7 @@ PackageCommand::PackageCommand(App* app)
 
 bool PackageCommand::Invoke(CommandLineParser* parser)
 {
-	UNUSED_PARAMETER(parser);
+	MB_UNUSED_PARAMETER(parser);
 
 	Time::TimedScope timingScope;
 

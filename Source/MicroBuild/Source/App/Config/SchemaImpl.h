@@ -81,7 +81,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	} \
 	void SCHEMA_CLASS::Set_##Group(const std::vector<ConfigFile::KeyValuePair>& value) \
 	{ \
-		UNUSED_PARAMETER(value); \
+		MB_UNUSED_PARAMETER(value); \
 		assert(false); \
 	} \
 	bool SCHEMA_CLASS::Validate_##Group() \

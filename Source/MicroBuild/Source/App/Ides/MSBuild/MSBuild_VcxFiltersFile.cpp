@@ -46,7 +46,7 @@ bool MSBuild_VcxFiltersFile::Generate(
 	std::vector<MSBuildFileGroup>& groups
 )
 {
-	UNUSED_PARAMETER(buildMatrix);
+	MB_UNUSED_PARAMETER(buildMatrix);
 
 	Platform::Path solutionDirectory =
 		workspaceFile.Get_Workspace_Location();

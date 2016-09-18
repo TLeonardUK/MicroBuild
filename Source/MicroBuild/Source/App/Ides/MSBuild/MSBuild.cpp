@@ -164,7 +164,7 @@ bool Ide_MSBuild::Clean(
     WorkspaceFile& workspaceFile,
     DatabaseFile& databaseFile)
 {
-    UNUSED_PARAMETER(databaseFile);
+    MB_UNUSED_PARAMETER(databaseFile);
 
 	Platform::Path solutionDirectory =
 		workspaceFile.Get_Workspace_Location();
@@ -209,7 +209,7 @@ bool Ide_MSBuild::Build(
 	const std::string& platform,
     DatabaseFile& databaseFile)
 {
-    UNUSED_PARAMETER(databaseFile);
+    MB_UNUSED_PARAMETER(databaseFile);
 
 	Platform::Path solutionDirectory =
 		workspaceFile.Get_Workspace_Location();

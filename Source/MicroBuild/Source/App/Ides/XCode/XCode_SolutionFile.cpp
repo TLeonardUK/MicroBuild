@@ -101,7 +101,7 @@ bool XCode_SolutionFile::Generate(
 	IdeHelper::BuildWorkspaceMatrix& buildMatrix
 )
 {
-    UNUSED_PARAMETER(buildMatrix);
+    MB_UNUSED_PARAMETER(buildMatrix);
 
 	Platform::Path solutionDirectory =
 		workspaceFile.Get_Workspace_Location();

@@ -44,7 +44,7 @@ SayCommand::SayCommand()
 
 bool SayCommand::Invoke(CommandLineParser* parser)
 {
-	UNUSED_PARAMETER(parser);
+	MB_UNUSED_PARAMETER(parser);
 
 	Log(LogSeverity::Info,
 		"Say: %s\n",

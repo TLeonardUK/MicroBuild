@@ -44,8 +44,8 @@ void IdeType::SetShortName(const std::string& value)
 bool IdeType::Clean(WorkspaceFile& workspaceFile,
     DatabaseFile& databaseFile)
 {
-	UNUSED_PARAMETER(workspaceFile);
-	UNUSED_PARAMETER(databaseFile);
+	MB_UNUSED_PARAMETER(workspaceFile);
+	MB_UNUSED_PARAMETER(databaseFile);
 
 	// Unimplemented.
 
@@ -60,11 +60,11 @@ bool IdeType::Build(
     DatabaseFile& databaseFile
 )
 {
-	UNUSED_PARAMETER(workspaceFile);
-	UNUSED_PARAMETER(bRebuild);
-	UNUSED_PARAMETER(configuration);
-	UNUSED_PARAMETER(platform);
-	UNUSED_PARAMETER(databaseFile);
+	MB_UNUSED_PARAMETER(workspaceFile);
+	MB_UNUSED_PARAMETER(bRebuild);
+	MB_UNUSED_PARAMETER(configuration);
+	MB_UNUSED_PARAMETER(platform);
+	MB_UNUSED_PARAMETER(databaseFile);
 
 	// Unimplemented.
 

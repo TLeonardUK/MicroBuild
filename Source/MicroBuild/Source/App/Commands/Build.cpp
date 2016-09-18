@@ -90,7 +90,7 @@ BuildCommand::BuildCommand(App* app)
 
 bool BuildCommand::Invoke(CommandLineParser* parser)
 {
-	UNUSED_PARAMETER(parser);
+	MB_UNUSED_PARAMETER(parser);
 
 	Time::TimedScope timingScope;
 
