@@ -90,7 +90,7 @@ public:
 #define DLL_EXPORT
 #endif
 
-#define ImplmentMicroBuildPlugin() \
+#define MicroBuildPlugin() \
 	namespace MicroBuild { \
 		bool PluginMain(CurrentPluginInterface* pluginInterface); \
 	} \

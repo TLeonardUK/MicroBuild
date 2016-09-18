@@ -201,6 +201,28 @@ public:
 		const std::string& group,
 		bool bUnmergable);
 
+	// Gets a config file value and casts it to the given type.
+	template <typename TypeName>
+	TypeName GetCastedValue(
+		const std::string& group,
+		const std::string& key,
+		const TypeName& defValue)
+	{
+		if (!HasValue(group, key))
+		{
+			return defValue;
+		}
+
+		std::string val = GetValue(group, key);
+		TypeName outVal;
+		if (!StringCast<std::string, TypeName>(val, outVal))
+		{
+			return defValue;
+		}
+
+		return outVal;
+	}
+
 protected:
 
 	std::vector<ConfigFileValue*> SetOrAddValue_Internal(

@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Commands/Say.h"
 #include "Core/Plugin/PluginInterface.h"
 
-ImplmentMicroBuildPlugin();
+MicroBuildPlugin();
 
 namespace MicroBuild {
 
