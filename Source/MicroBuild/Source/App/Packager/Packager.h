@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Core/Platform/Path.h"
 #include "Core/Helpers/Strings.h"
-#include "App/Config/BaseConfigFile.h"
+#include "Schemas/Config/BaseConfigFile.h"
 
 #include <functional>
 

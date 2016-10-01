@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Platform/Path.h"
 #include "Core/Platform/Module.h"
 
-#include "Core/Plugin/PluginInterface.h"
+#include "Schemas/Plugin/PluginInterface.h"
 
 namespace MicroBuild {
 
@@ -55,10 +55,8 @@ private:
 		PluginCallbackSignature Callback;
 	};
 
-	typedef int   (*GetPluginInterfaceVersion_t)();
 	typedef bool  (*InitializePlugin_t)(IPluginInterface* pluginInterface);
 
-	GetPluginInterfaceVersion_t GetPluginInterfaceVersion;
 	InitializePlugin_t InitializePlugin;
 
 	std::vector<PluginCallback> m_callbacks;

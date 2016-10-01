@@ -37,6 +37,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Compiler.h"
 #include "Core/Log.h"
 
-#include "Core/Plugin/PluginInterface.h"
+#include "Schemas/Plugin/PluginInterface.h"
 
 #endif

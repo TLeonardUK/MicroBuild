@@ -19,13 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PCH.h"
 
 #include "Commands/Say.h"
-#include "Core/Plugin/PluginInterface.h"
+#include "Schemas/Plugin/PluginInterface.h"
 
 MicroBuildPlugin();
 
 namespace MicroBuild {
 
-bool PluginMain(CurrentPluginInterface* pluginInterface)
+bool PluginMain(IPluginInterface* pluginInterface)
 {
 	pluginInterface->SetName("Sample Plugin");
 	pluginInterface->SetDescription("Sample plugin implementation, registers "

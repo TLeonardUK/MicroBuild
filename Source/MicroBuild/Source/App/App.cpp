@@ -67,6 +67,8 @@ App::App(int argc, char* argv[])
 	, m_commandLineParser(MB_NAME, MB_DESCRIPTION, MB_COPYRIGHT)
 	, m_pluginManager(this)
 {
+	Platform::Path::SetExecutablePath(argv[0]);
+
 	m_ides.push_back(new Ide_VisualStudio_2015());
 	m_ides.push_back(new Ide_Make());
 	m_ides.push_back(new Ide_XCode());
@@ -81,6 +83,8 @@ App::App(int argc, char* argv[])
 
 App::~App()
 {
+	m_commandLineParser.DisposeCommands();
+
 	for (IdeType* type : m_ides)
 	{
 		delete type;
@@ -118,6 +122,11 @@ PluginManager* App::GetPluginManager()
 
 int App::Run()
 {
+	if (!m_commandLineParser.PreParse(m_argc, m_argv))
+	{
+		return 1;
+	}
+
 	m_commandLineParser.PrintLicense();
 
 #if MB_OPT_ENABLE_PLUGIN_SUPPORT

@@ -43,6 +43,12 @@ public:
 
 	~CommandLineParser();
 
+	// Destroys all commands that have been registered. Used to dispose of them before plugins etc are unloaded.
+	void DisposeCommands();
+
+	// First thing called by program, sets up options defined by --verbose --quiet etc.
+	bool PreParse(int argc, char* argv[]);
+
 	// Parses raw input and queues commands to be dispatched with 
 	// DispatchCommands. Returns true if successfully parsed.
 	bool Parse(int argc, char* argv[]);

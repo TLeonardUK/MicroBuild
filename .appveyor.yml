@@ -16,32 +16,30 @@ build:
   project: Build\ProjectFiles\MicroBuild.sln
 
 on_success: 
-  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Binaries/MicroBuild_Windows_x64_Shipping.exe ./Binaries/windows_x64/microbuild.exe }
-  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Binaries/MicroBuild_Windows_x64_Shipping.pdb ./Binaries/windows_x64/microbuild.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Binaries/MicroBuild_Windows_x86_Shipping.exe ./Binaries/windows_x86/microbuild.exe }
-  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Binaries/MicroBuild_Windows_x86_Shipping.pdb ./Binaries/windows_x86/microbuild.pdb }
-  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Binaries/MicroBuild-Core_Windows_x64_Shipping.lib ./Binaries/windows_x64/microbuild-core.lib }
-  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x64/Shipping/MicroBuild-Core.pdb ./Binaries/windows_x64/microbuild-core.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Binaries/MicroBuild-Core_Windows_x86_Shipping.lib ./Binaries/windows_x86/microbuild-core.lib }
-  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x86/Shipping/MicroBuild-Core.pdb ./Binaries/windows_x86/microbuild-core.pdb }
-  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Binaries/ZLib_Windows_x64_Shipping.lib ./Binaries/windows_x64/microbuild-zlib.lib }
-  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Build/ProjectFiles/ZLib/Obj/x64/Shipping/ZLib.pdb ./Binaries/windows_x64/microbuild-zlib.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Binaries/ZLib_Windows_x86_Shipping.lib ./Binaries/windows_x86/microbuild-zlib.lib }
-  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Build/ProjectFiles/ZLib/Obj/x86/Shipping/ZLib.pdb ./Binaries/windows_x86/microbuild-zlib.pdb }
+  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x64/Shipping/MicroBuild-Core.pdb ./Binaries/Windows_x64/MicroBuild-Core.pdb }
+  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x86/Shipping/MicroBuild-Core.pdb ./Binaries/Windows_x86/MicroBuild-Core.pdb }
+  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x64/Shipping/MicroBuild-Schemas.pdb ./Binaries/Windows_x64/MicroBuild-Schemas.pdb }
+  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x86/Shipping/MicroBuild-Schemas.pdb ./Binaries/Windows_x86/MicroBuild-Schemas.pdb }
+  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Build/ProjectFiles/MicroBuild-ZLib/Obj/x64/Shipping/MicroBuild-ZLib.pdb ./Binaries/Windows_x64/MicroBuild-Zlib.pdb }
+  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Build/ProjectFiles/MicroBuild-ZLib/Obj/x86/Shipping/MicroBuild-ZLib.pdb ./Binaries/Windows_x86/MicroBuild-Zlib.pdb }
   - git config --global user.email "buildserver@programmingbytim.com"
   - git config --global user.name "Build Server"
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/windows_x64/microbuild.exe }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/windows_x64/microbuild.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/windows_x86/microbuild.exe }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/windows_x86/microbuild.pdb }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/windows_x64/microbuild-core.lib }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/windows_x64/microbuild-core.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/windows_x86/microbuild-core.lib }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/windows_x86/microbuild-core.pdb }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/windows_x64/microbuild-zlib.lib }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/windows_x64/microbuild-zlib.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/windows_x86/microbuild-zlib.lib }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/windows_x86/microbuild-zlib.pdb }
+  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild.exe }
+  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild.pdb }
+  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild.exe }
+  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild.pdb }
+  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-Core.lib }
+  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-Core.pdb }
+  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-Core.lib }
+  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-Core.pdb }
+  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-Schemas.lib }
+  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-Schemas.pdb }
+  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-Schemas.lib }
+  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-Schemas.pdb }
+  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-ZLib.lib }
+  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-ZLib.pdb }
+  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-ZLib.lib }
+  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-ZLib.pdb }
   - git checkout %APPVEYOR_REPO_BRANCH%
   - git pull --no-edit --no-commit
   - git commit -m "[ci skip] Automated Build (Appveyor build %APPVEYOR_BUILD_NUMBER%)."

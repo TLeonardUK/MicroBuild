@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //		 independent.
 
 #include "PCH.h"
-#include "App/Project/ProjectFile.h"
+#include "Schemas/Project/ProjectFile.h"
 #include "App/Ides/MSBuild/MSBuild.h"
 #include "App/Ides/MSBuild/MSBuild_Ids.h"
 #include "App/Ides/MSBuild/MSBuild_CsProjectFile.h"

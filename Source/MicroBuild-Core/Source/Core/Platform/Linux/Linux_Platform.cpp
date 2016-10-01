@@ -21,12 +21,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef MB_PLATFORM_LINUX
 
+#include <unistd.h>
+
 namespace MicroBuild {
 namespace Platform {
 
 void DebugOutput(const char* output)
 {
 	// Nothing to do here.
+}
+
+void RelaxCpu()
+{
+	__asm volatile ("pause" ::: "memory")
+}
+
+int GetConcurrencyFactor()
+{
+	return (int)sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 }; // namespace Platform

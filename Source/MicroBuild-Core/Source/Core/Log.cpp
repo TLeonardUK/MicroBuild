@@ -25,16 +25,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-bool g_logVerboseOn = false; 
+bool g_logVerboseOn = false;
+bool g_logSilentOn = false;
 
 void LogSetVerbose(bool bVerbose)
 {
 	g_logVerboseOn = bVerbose;
 }
 
+void LogSetSilent(bool bSilent)
+{
+	g_logSilentOn = bSilent;
+}
+
 void Log(LogSeverity severity, const char* format, ...)
 {
 	if (severity == LogSeverity::Verbose && !g_logVerboseOn)
+	{
+		return;
+	}
+	if ((int)severity <= (int)LogSeverity::Info && g_logSilentOn)
 	{
 		return;
 	}

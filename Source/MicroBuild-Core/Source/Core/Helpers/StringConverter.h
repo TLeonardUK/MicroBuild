@@ -94,6 +94,30 @@ struct StringConverter<float, std::string>
 	}
 };
 
+// String->Double
+
+template <>
+struct StringConverter<std::string, double>
+{
+	bool Cast(const std::string& value, double& type)
+	{
+		type = (double)atof(value.c_str());
+		return true;
+	}
+};
+
+template <>
+struct StringConverter<double, std::string>
+{
+	bool Cast(const double& value, std::string& type)
+	{
+		char buffer[128];
+		sprintf(buffer, "%f", value);
+		type = buffer;
+		return true;
+	}
+};
+
 // String->Int
 
 template <>
@@ -113,6 +137,30 @@ struct StringConverter<int, std::string>
 	{
 		char buffer[128];
 		sprintf(buffer, "%i", value);
+		type = buffer;
+		return true;
+	}
+};
+
+// String->uint64_t
+
+template <>
+struct StringConverter<std::string, uint64_t>
+{
+	bool Cast(const std::string& value, uint64_t& type)
+	{
+		type = std::stoull(value.c_str());
+		return true;
+	}
+};
+
+template <>
+struct StringConverter<uint64_t, std::string>
+{
+	bool Cast(const uint64_t& value, std::string& type)
+	{
+		char buffer[128];
+		sprintf(buffer, "%llu", value);
 		type = buffer;
 		return true;
 	}

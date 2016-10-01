@@ -35,6 +35,9 @@ enum class LogSeverity
 // dumped, otherwise they will be omitted.
 void LogSetVerbose(bool bVerbose);
 
+// Toggles silent logging, all but errors will be supressed.
+void LogSetSilent(bool bSilent);
+
 // Writes a log to stdout in the same style as printf. Seveirty determines
 // if it will be printed (based on -verbose flag) and what color it will be
 // printed in.

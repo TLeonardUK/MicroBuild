@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "App/Ides/IdeType.h"
-#include "Core/Templates/TemplateEvaluator.h"
 
 namespace MicroBuild {
 

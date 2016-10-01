@@ -36,11 +36,39 @@ CommandLineParser::CommandLineParser(
 
 CommandLineParser::~CommandLineParser()
 {
+	DisposeCommands();
+}
+
+void CommandLineParser::DisposeCommands()
+{
 	for (Command* cmd : m_commands)
 	{
 		delete cmd;
 	}
 	m_commands.clear();
+}
+
+bool CommandLineParser::PreParse(int argc, char* argv[])
+{
+	// Parse each command individually.
+	for (int i = 1; i < argc; i++)
+	{
+		std::string commandName = argv[i];
+
+		// Hard-coded options, bleh.
+		if (commandName == "-v" ||
+			commandName == "--verbose")
+		{
+			LogSetVerbose(true);
+		}
+		else if (commandName == "-s" ||
+			commandName == "--silent")
+		{
+			LogSetSilent(true);
+		}
+	}
+
+	return true;
 }
 
 bool CommandLineParser::Parse(int argc, char* argv[])
@@ -82,7 +110,9 @@ bool CommandLineParser::Parse(int argc, char* argv[])
 
 				// Hard-coded options, bleh.
 				if (argumentName == "-v" ||
-					argumentName == "--verbose")
+					argumentName == "--verbose" ||
+					argumentName == "-s" ||
+					argumentName == "--silent")
 				{
 					LogSetVerbose(true);
 					i++;
@@ -308,9 +338,16 @@ void CommandLineParser::PrintHelp()
 	{
 		verboseExampleString.push_back(' ');
 	}
-
 	Log(LogSeverity::Info, "\t%s\n",
 		verboseExampleString.c_str());
+
+	std::string silentExampleString = "-s | --silent";
+	while (silentExampleString.size() < CommandArgumentBase::ExampleStringPadding)
+	{
+		silentExampleString.push_back(' ');
+	}
+	Log(LogSeverity::Info, "\t%s\n",
+		silentExampleString.c_str());
 }
 
 }; // namespace MicroBuild

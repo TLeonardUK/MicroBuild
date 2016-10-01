@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Core/Commands/Command.h"
 #include "Core/Platform/Path.h"
-#include "App/Workspace/WorkspaceFile.h"
-#include "App/Project/ProjectFile.h"
+#include "Schemas/Workspace/WorkspaceFile.h"
+#include "Schemas/Project/ProjectFile.h"
 
 namespace MicroBuild {
 

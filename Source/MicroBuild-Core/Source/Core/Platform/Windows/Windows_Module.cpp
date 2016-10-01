@@ -48,7 +48,7 @@ Module::~Module()
 		Close();
 	}
 
-	delete reinterpret_cast<Module*>(m_impl);
+	delete reinterpret_cast<Windows_Module*>(m_impl);
 }
 
 
@@ -80,7 +80,7 @@ void Module::Close()
 	Windows_Module* data = reinterpret_cast<Windows_Module*>(m_impl);
 	assert(IsOpen());
 
-	BOOL result = CloseHandle(data->hModule);
+	BOOL result = FreeLibrary(data->hModule);
 	if (!result)
 	{
 		Log(LogSeverity::Warning,

@@ -18,15 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 
-#include "Core/Plugin/PluginInterface.h"
-#include "Core/Plugin/Interfaces/PluginInterface1.h"
+#include "Schemas/Plugin/PluginInterface.h"
 
 #include "App/Plugin/PluginManager.h"
 #include "App/Plugin/Plugin.h"
 
 namespace MicroBuild {
 
-IPluginInterface* CreatePluginInterface1(PluginManager* manager, Plugin* plugin);
+IPluginInterface* CreatePluginInterface(PluginManager* manager, Plugin* plugin);
 
 Plugin::Plugin(PluginManager* manager)
 	: m_name("")
@@ -36,6 +35,14 @@ Plugin::Plugin(PluginManager* manager)
 
 Plugin::~Plugin()
 {
+	m_callbacks.clear();
+
+	if (m_pluginInterface)
+	{
+		delete m_pluginInterface;
+		m_pluginInterface = nullptr;
+	}
+
 	if (m_module.IsOpen())
 	{
 		m_module.Close();
@@ -75,11 +82,9 @@ bool Plugin::Load(Platform::Path& path)
 {
 	if (m_module.Open(path))
 	{
-		GetPluginInterfaceVersion = m_module.GetFunction<GetPluginInterfaceVersion_t>("GetPluginInterfaceVersion");
 		InitializePlugin = m_module.GetFunction<InitializePlugin_t>("InitializePlugin");
 
-		if (GetPluginInterfaceVersion == nullptr ||
-			InitializePlugin == nullptr)
+		if (InitializePlugin == nullptr)
 		{
 			Log(LogSeverity::Warning,
 				"Failed to load plugin, missing symbol exports.\n");
@@ -87,36 +92,17 @@ bool Plugin::Load(Platform::Path& path)
 			return false;
 		}
 
-		int interfaceVersion = GetPluginInterfaceVersion();
-		switch (interfaceVersion)
-		{
-			case 1: 
-			{
-				m_pluginInterface = CreatePluginInterface1(m_manager, this); 
-				break;
-			}
-			default:
-			{
-				Log(LogSeverity::Warning,
-					"Failed to load plugin, unsupported plugin version %i.\n",
-					interfaceVersion);
-				return false;
-			}
-		}
+		m_pluginInterface = CreatePluginInterface(m_manager, this);
 
 		if (!InitializePlugin(m_pluginInterface))
 		{
 			Log(LogSeverity::Warning,
-				"Failed to initialize plugin.\n",
-				interfaceVersion);
+				"Failed to initialize plugin.\n");
 			return false;
 		}
 
-		PluginInterface1* baseInterface = static_cast<PluginInterface1*>(m_pluginInterface);
-
-		Log(LogSeverity::Info, "\tName: %s\n", baseInterface->GetName().c_str());
-		Log(LogSeverity::Info, "\tDescription: %s\n", baseInterface->GetDescription().c_str());
-
+		Log(LogSeverity::Info, "\tName: %s\n", m_pluginInterface->GetName().c_str());
+		Log(LogSeverity::Info, "\tDescription: %s\n", m_pluginInterface->GetDescription().c_str());
 
 		return true;
 	}

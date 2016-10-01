@@ -31,6 +31,19 @@ void DebugOutput(const char* output)
 	OutputDebugStringA(output);
 }
 
+void RelaxCpu()
+{
+	_mm_pause();
+}
+
+int GetConcurrencyFactor()
+{
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+
+	return sysinfo.dwNumberOfProcessors;
+}
+
 }; // namespace Platform
 }; // namespace MicroBuild
 

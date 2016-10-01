@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Core/Platform/Path.h"
 #include "Core/Config/ConfigTokenizer.h"
+#include "Core/Helpers/StringConverter.h"
 
 namespace MicroBuild {
 

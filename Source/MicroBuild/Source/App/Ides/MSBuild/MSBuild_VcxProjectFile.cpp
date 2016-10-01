@@ -761,10 +761,13 @@ bool MSBuild_VcxProjectFile::Generate(
 			std::vector<std::string> commands =
 				matrix.projectFile.Get_PreBuildCommands_Command();
 
+			std::string result = "";
 			for (auto command : commands)
 			{
-				cmdGroup.Node("Command").Value("%s", command.c_str());
+				result += command + " || EXIT /B 1\n";
 			}
+
+			cmdGroup.Node("Command").Value("%s", result.c_str());
 		}
 
 		{
@@ -774,10 +777,13 @@ bool MSBuild_VcxProjectFile::Generate(
 			std::vector<std::string> commands =
 				matrix.projectFile.Get_PreLinkCommands_Command();
 
+			std::string result = "";
 			for (auto command : commands)
 			{
-				cmdGroup.Node("Command").Value("%s", command.c_str());
+				result += command + " || EXIT /B 1\n";
 			}
+
+			cmdGroup.Node("Command").Value("%s", result.c_str());
 		}
 
 		{
@@ -787,10 +793,13 @@ bool MSBuild_VcxProjectFile::Generate(
 			std::vector<std::string> commands =
 				matrix.projectFile.Get_PostBuildCommands_Command();
 
+			std::string result = "";
 			for (auto command : commands)
 			{
-				cmdGroup.Node("Command").Value("%s", command.c_str());
+				result += command + " || EXIT /B 1\n";
 			}
+
+			cmdGroup.Node("Command").Value("%s", result.c_str());
 		}
 	}
 

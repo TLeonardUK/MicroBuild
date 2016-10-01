@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Ides/IdeType.h"
 #include "App/Commands/Package.h"
 #include "App/Commands/Build.h"
-#include "App/Database/DatabaseFile.h"
+#include "Schemas/Database/DatabaseFile.h"
 #include "App/Packager/Packager.h"
 
 #include "Core/Commands/CommandLineParser.h"

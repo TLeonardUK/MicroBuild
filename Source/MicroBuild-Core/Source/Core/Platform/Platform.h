@@ -27,5 +27,12 @@ void DebugOutput(const char* output);
 // Gets the given environment variable based on its tag.
 std::string GetEnvironmentVariable(const std::string& tag);
 
+// Relaxes the CPU, mainly used for busy-waits.
+void RelaxCpu();
+
+// Gets the ideal number of threads that should be run in parallel to get
+// maximum performance.
+int GetConcurrencyFactor();
+
 }; // namespace Platform
 }; // namespace MicroBuild

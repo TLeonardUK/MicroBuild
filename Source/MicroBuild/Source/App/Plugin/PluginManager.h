@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "Core/Plugin/PluginInterface.h"
+#include "Schemas/Plugin/PluginInterface.h"
 
 namespace MicroBuild {
 

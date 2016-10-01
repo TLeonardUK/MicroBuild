@@ -18,9 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "App/Database/DatabaseFile.h"
-#include "App/Workspace/WorkspaceFile.h"
-#include "App/Project/ProjectFile.h"
+#include "Schemas/Database/DatabaseFile.h"
+#include "Schemas/Workspace/WorkspaceFile.h"
+#include "Schemas/Project/ProjectFile.h"
 #include "Core/Helpers/TextStream.h"
 
 namespace MicroBuild {

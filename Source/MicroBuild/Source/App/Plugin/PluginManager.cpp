@@ -42,6 +42,7 @@ bool PluginManager::FindAndLoadAll()
 {
 	std::string extension = "";
 	std::string architecture = "";
+	std::string configuration = "";
 
 #if defined(MB_PLATFORM_WINDOWS)
 	extension = "dll";
@@ -50,21 +51,31 @@ bool PluginManager::FindAndLoadAll()
 #elif defined(MB_PLATFORM_LINUX)
 	extension = "so";
 #endif
+
 #if defined(MB_ARCHITECTURE_X64)
 	architecture = "x64";
 #elif defined(MB_ARCHITECTURE_X86)
 	architecture = "x86";
 #endif
 
+#if defined(MB_DEBUG_BUILD)
+	configuration = "Debug";
+#elif defined(MB_RELEASE_BUILD)
+	configuration = "Release";
+#elif defined(MB_SHIPPING_BUILD)
+	configuration = "Shipping";
+#endif
+
 	std::string filter = 
 		Strings::Format(
-			"**.plugin.%s.%s",
+			"**.plugin.%s.%s.%s",
 			architecture.c_str(),
+			configuration.c_str(),
 			extension.c_str()
 		);
 
 	Platform::Path pathFilter = 
-		Platform::Path::GetWorkingDirectory().AppendFragment(filter, true);
+		Platform::Path::GetExecutablePath().GetDirectory().AppendFragment(filter, true);
 
 	std::vector<Platform::Path> matchingPaths =
 		Platform::Path::MatchFilter(pathFilter);

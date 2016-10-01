@@ -192,6 +192,12 @@ public:
 	// Sets the current working directory.
 	static void SetWorkingDirectory(const Path& other);	
 
+	// Gets the path of the executable.
+	static Path GetExecutablePath();
+
+	// Sets the current executable directory.
+	static void SetExecutablePath(const Path& other);
+
 	// Returns the part of the path following the common path that is
 	// has been obtained from GetCommonPath.
 	Path GetUncommonPath(Path& commonPath);

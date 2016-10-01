@@ -33,6 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 namespace Platform {
 
+Path g_executablePath;
+
 Path::Path()
 	: m_raw("")
 {
@@ -1195,6 +1197,16 @@ void Path::SetWorkingDirectory(const Path& other)
 {
 	int result = chdir(other.m_raw.c_str());
 	assert(result == 0);
+}
+
+Path Path::GetExecutablePath()
+{
+	return g_executablePath;
+}
+
+void Path::SetExecutablePath(const Path& other)
+{
+	g_executablePath = other;
 }
 
 bool MatchEatNeedle(const char*& remaining, const char*& match)

@@ -218,6 +218,7 @@ bool CreateBuildMatrix(
 				pair.projectFile.Set_Target_Configuration(config);
 				pair.projectFile.Set_Target_Platform(platform);
 				pair.projectFile.Set_Target_PlatformName(IdeHelper::ResolvePlatformName(platform));
+				pair.projectFile.Set_Target_MicroBuildExecutable(Platform::Path::GetExecutablePath());
 
 				pair.config = config;
 				pair.platform = platform;

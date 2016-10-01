@@ -48,7 +48,7 @@ Module::~Module()
 		Close();
 	}
 
-	delete reinterpret_cast<Module*>(m_impl);
+	delete reinterpret_cast<MacOS_Module*>(m_impl);
 }
 
 

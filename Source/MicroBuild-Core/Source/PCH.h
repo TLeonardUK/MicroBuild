@@ -34,6 +34,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <algorithm>
 #include <climits>
 #include <functional>
+#include <thread>
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
+#include <initializer_list>
+#include <utility>
+#include <memory>
 
 #include "Core/Compiler.h"
 #include "Core/Log.h"

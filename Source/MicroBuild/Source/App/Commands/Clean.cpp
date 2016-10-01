@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/App.h"
 #include "App/Ides/IdeType.h"
 #include "App/Commands/Clean.h"
-#include "App/Database/DatabaseFile.h"
+#include "Schemas/Database/DatabaseFile.h"
 
 #include "Core/Commands/CommandLineParser.h"
 #include "Core/Commands/CommandComboArgument.h"
@@ -86,7 +86,7 @@ bool CleanCommand::Invoke(CommandLineParser* parser)
 
 			if (databaseFile.Read())
 			{
-				if (!databaseFile.Clean(m_app, m_workspaceFile))
+				if (!databaseFile.Clean(m_workspaceFile))
 				{
 					Log(LogSeverity::Warning,
 						"Failed to clean workspace, workspace files may be in an indeterminate state.\n",
