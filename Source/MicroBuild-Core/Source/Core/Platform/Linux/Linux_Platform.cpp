@@ -41,6 +41,18 @@ int GetConcurrencyFactor()
 	return (int)sysconf(_SC_NPROCESSORS_ONLN);
 }
 
+bool IsOperatingSystem64Bit()
+{
+	assert(false); // TODO: Fix if this is ever actually used on linux.
+	return true;
+}
+
+void SetEnvironmentVariable(const std::string& tag, const std::string& value)
+{
+	assert(false); // TODO: Fix if this is ever actually used on linux.
+	return true;
+}
+
 }; // namespace Platform
 }; // namespace MicroBuild
 

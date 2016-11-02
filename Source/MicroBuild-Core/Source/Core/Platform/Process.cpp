@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Platform/Process.h"
 
 #include <cstdlib>
+#include <sstream>
 
 namespace MicroBuild {
 namespace Platform {
@@ -35,6 +36,32 @@ std::string GetEnvironmentVariable(const std::string& tag)
 	{
 		return ptr;
 	}
+}
+
+std::string Process::ReadToEnd()
+{
+	std::stringstream stream;
+
+	const int bufferSize = 1024;
+	std::vector<char> buffer;
+	buffer.resize(bufferSize);
+
+	while (!AtEnd())
+	{
+		size_t bytesToRead =  bufferSize - 1;
+		size_t readBytes = Read(buffer.data(), bytesToRead);
+		buffer[readBytes] = '\0';
+		stream << buffer.data();
+
+		if (readBytes == 0)
+		{
+			break;
+		}
+	}
+
+	Wait();
+
+	return stream.str();
 }
 
 }; // namespace Platform

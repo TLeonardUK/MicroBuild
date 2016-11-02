@@ -1088,32 +1088,6 @@ void ConfigFile::Resolve()
 	}
 }
 
-std::vector<std::string> ConfigFile::GetValues(
-	const std::string& group,
-	const std::string& key)
-{
-	std::vector<std::string> result;
-
-	auto iter = m_groups.find(group);
-	if (iter != m_groups.end())
-	{
-		ConfigFileGroup* newGroup = iter->second;
-		auto keyIter = newGroup->Keys.find(key);
-		if (keyIter != newGroup->Keys.end())
-		{
-			for (const ConfigFileValue* value : keyIter->second->Values)
-			{
-				if (value->ConditionResult)
-				{
-					result.push_back(value->ResolvedValue);
-				}
-			}
-		}
-	}
-
-	return result;
-}
-
 std::vector<ConfigFile::KeyValuePair> ConfigFile::GetPairs(
 	const std::string& group)
 {
@@ -1140,6 +1114,32 @@ std::vector<ConfigFile::KeyValuePair> ConfigFile::GetPairs(
 	return result;
 }
 
+std::vector<std::string> ConfigFile::GetValues(
+	const std::string& group,
+	const std::string& key)
+{
+	std::vector<std::string> result;
+
+	auto iter = m_groups.find(group);
+	if (iter != m_groups.end())
+	{
+		ConfigFileGroup* newGroup = iter->second;
+		auto keyIter = newGroup->Keys.find(key);
+		if (keyIter != newGroup->Keys.end())
+		{
+			for (const ConfigFileValue* value : keyIter->second->Values)
+			{
+				if (value->ConditionResult)
+				{
+					result.push_back(value->ResolvedValue);
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
 std::string ConfigFile::GetValue(
 	const std::string& group,
 	const std::string& key)
@@ -1158,6 +1158,57 @@ std::string ConfigFile::GetValue(
 	const std::string& defValue)
 {
 	std::vector<std::string> values = GetValues(group, key);
+	if (values.size() == 0)
+	{
+		return defValue;
+	}
+	return values[0];
+}
+
+std::vector<std::string> ConfigFile::GetUnresolvedValues(
+	const std::string& group,
+	const std::string& key)
+{
+	std::vector<std::string> result;
+
+	auto iter = m_groups.find(group);
+	if (iter != m_groups.end())
+	{
+		ConfigFileGroup* newGroup = iter->second;
+		auto keyIter = newGroup->Keys.find(key);
+		if (keyIter != newGroup->Keys.end())
+		{
+			for (const ConfigFileValue* value : keyIter->second->Values)
+			{
+				if (value->ConditionResult)
+				{
+					result.push_back(value->Value);
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+std::string ConfigFile::GetUnresolvedValue(
+	const std::string& group,
+	const std::string& key)
+{
+	std::vector<std::string> values = GetUnresolvedValues(group, key);
+	if (values.size() == 0)
+	{
+		return "";
+	}
+	return values[0];
+}
+
+std::string ConfigFile::GetUnresolvedValue(
+	const std::string& group,
+	const std::string& key,
+	const std::string& defValue)
+{
+	std::vector<std::string> values = GetUnresolvedValues(group, key);
 	if (values.size() == 0)
 	{
 		return defValue;

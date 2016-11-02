@@ -102,6 +102,8 @@ std::string XCode_ProjectFile::FileTypeFromOutput(
             return "compiled.mach-o.dylib";
         case EOutputType::StaticLib:
             // Fallthrough
+        case EOutputType::Container:
+            // Fallthrough
         default:
             return "archive.ar";
     }
@@ -120,6 +122,8 @@ std::string XCode_ProjectFile::ProductTypeFromOutput(
         case EOutputType::DynamicLib:
             return "com.apple.product-type.library.dynamic";
         case EOutputType::StaticLib:
+            // Fallthrough
+        case EOutputType::Container:
             // Fallthrough
         default:
             return "com.apple.product-type.library.static";

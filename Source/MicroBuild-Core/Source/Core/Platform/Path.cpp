@@ -792,6 +792,10 @@ bool Path::GetCommonPath(std::vector<Path>& paths, Path& result)
 
 Path Path::GetUncommonPath(Path& commonPath)
 {
+	if (commonPath.m_raw.size() + 1 > m_raw.size())
+	{
+		return m_raw;
+	}
 	Path uncommon = m_raw.substr(commonPath.m_raw.size() + 1);
 	return uncommon;
 }
@@ -1206,7 +1210,14 @@ Path Path::GetExecutablePath()
 
 void Path::SetExecutablePath(const Path& other)
 {
-	g_executablePath = other;
+	if (other.IsRelative())
+	{
+		g_executablePath = Path::GetWorkingDirectory() + other;
+	}
+	else
+	{
+		g_executablePath = other;
+	}
 }
 
 bool MatchEatNeedle(const char*& remaining, const char*& match)

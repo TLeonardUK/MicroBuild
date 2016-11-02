@@ -61,7 +61,7 @@ bool Ide_XCode::Clean(
             {
                 std::vector<std::string> arguments;
                 arguments.push_back("-workspace");
-                arguments.push_back(solutionLocation.ToString());
+                arguments.push_back(Strings::Quoted(solutionLocation.ToString()));
                 arguments.push_back("-scheme");
                 arguments.push_back(project);
                 arguments.push_back("-configuration");
@@ -115,7 +115,7 @@ bool Ide_XCode::Build(
 	{
         std::vector<std::string> arguments;
         arguments.push_back("-workspace");
-        arguments.push_back(solutionLocation.ToString());
+        arguments.push_back(Strings::Quoted(solutionLocation.ToString()));
         arguments.push_back("-scheme");
         arguments.push_back(project);
         arguments.push_back("-configuration");

@@ -439,6 +439,8 @@ bool Make_CppProjectFile::Generate(
 		break;
 	case EOutputType::DynamicLib:
 		break;
+	case EOutputType::Container:
+		// Fallthrough
 	case EOutputType::StaticLib:
 		stream.WriteLine("\t@echo \"Archiving %s\"", projectName.c_str());
 		stream.WriteLine("\t$(SILENT) $(AR) rcs \"$@\" $(OBJECTS)");

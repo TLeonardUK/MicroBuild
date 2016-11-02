@@ -185,17 +185,17 @@ public:
 	std::string GetValue(
 		const std::string& group,
 		const std::string& key);
-
-	// Returns true if this config file has the given group/key combo defined.
-	bool HasValue(
-		const std::string& group,
-		const std::string& key);
-
+	
 	// Same as GetValue except returns default if not defined.
 	std::string GetValue(
 		const std::string& group,
 		const std::string& key,
 		const std::string& defValue);
+
+	// Returns true if this config file has the given group/key combo defined.
+	bool HasValue(
+		const std::string& group,
+		const std::string& key);
 
 	// Flags a group as mergable or unmergable.
 	void SetGroupUnmergable(
@@ -223,6 +223,45 @@ public:
 
 		return outVal;
 	}
+	
+	// Gets all the unresolvedvalues of a given key in the given group.
+	std::vector<std::string> GetUnresolvedValues(
+		const std::string& group, 
+		const std::string& key);
+
+	// Same as GetUnresolvedValues except only gets the first value.
+	std::string GetUnresolvedValue(
+		const std::string& group,
+		const std::string& key);
+	
+	// Same as GetUnresolvedValue except returns default if not defined.
+	std::string GetUnresolvedValue(
+		const std::string& group,
+		const std::string& key,
+		const std::string& defValue);
+	
+	// Gets an unresolved config file value and casts it to the given type.
+	template <typename TypeName>
+	TypeName GetUnresolvedCastedValue(
+		const std::string& group,
+		const std::string& key,
+		const TypeName& defValue)
+	{
+		if (!HasValue(group, key))
+		{
+			return defValue;
+		}
+
+		std::string val = GetUnresolvedValue(group, key);
+		TypeName outVal;
+		if (!StringCast<std::string, TypeName>(val, outVal))
+		{
+			return defValue;
+		}
+
+		return outVal;
+	}
+
 
 protected:
 

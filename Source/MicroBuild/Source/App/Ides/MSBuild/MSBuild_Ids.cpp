@@ -95,16 +95,23 @@ std::string GetPlatformDotNetTarget(EPlatform platform)
 	}
 }
 
-std::string GetProjectTypeGuid(ELanguage language)
+std::string GetProjectTypeGuid(ELanguage language, bool bUsingInternalBuildTool)
 {
-	switch (language)
+	if (bUsingInternalBuildTool)
 	{
-	case ELanguage::CSharp:
-		return k_GuidCSharpProject;
-	case ELanguage::Cpp:
 		return k_GuidCppProject;
-	default:
-		return "";
+	}
+	else
+	{
+		switch (language)
+		{
+		case ELanguage::CSharp:
+			return k_GuidCSharpProject;
+		case ELanguage::Cpp:
+			return k_GuidCppProject;
+		default:
+			return "";
+		}
 	}
 }
 

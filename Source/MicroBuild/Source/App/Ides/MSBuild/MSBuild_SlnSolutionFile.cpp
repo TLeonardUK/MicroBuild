@@ -82,30 +82,38 @@ bool MSBuild_SlnSolutionFile::Generate(
 	for (ProjectFile& file : projectFiles)
 	{
 		std::string typeGuid =
-			MSBuild::GetProjectTypeGuid(file.Get_Project_Language());
+			MSBuild::GetProjectTypeGuid(file.Get_Project_Language(), workspaceFile.Get_Workspace_UseInternalBuildTool());
 		std::string name =
 			file.Get_Project_Name();
 
 		Platform::Path projectLocation;
-
-		switch (file.Get_Project_Language())
-		{
-		case ELanguage::Cpp:
+		
+		if (workspaceFile.Get_Workspace_UseInternalBuildTool())
 		{
 			projectLocation = file.Get_Project_Location().
 				AppendFragment(file.Get_Project_Name() + ".vcxproj", true);
-			break;
 		}
-		case ELanguage::CSharp:
+		else
 		{
-			projectLocation = file.Get_Project_Location().
-				AppendFragment(file.Get_Project_Name() + ".csproj", true);
-			break;
-		}
-		default:
-		{
-			assert(false);
-		}
+			switch (file.Get_Project_Language())
+			{
+			case ELanguage::Cpp:
+			{
+				projectLocation = file.Get_Project_Location().
+					AppendFragment(file.Get_Project_Name() + ".vcxproj", true);
+				break;
+			}
+			case ELanguage::CSharp:
+			{
+				projectLocation = file.Get_Project_Location().
+					AppendFragment(file.Get_Project_Name() + ".csproj", true);
+				break;
+			}
+			default:
+			{
+				assert(false);
+			}
+			}
 		}
 
 		std::string relativeLocation =
@@ -198,6 +206,10 @@ bool MSBuild_SlnSolutionFile::Generate(
 		for (EPlatform& platform : platforms)
 		{
 			std::string platformStr = MSBuild::GetPlatformID(platform);
+			if (workspaceFile.Get_Workspace_UseInternalBuildTool())
+			{
+				platformStr = IdeHelper::GetPlatformHumanReadableId(platform);
+			}
 
 			globalConfigPreSolutionNode
 				.Single("%s|%s", config.c_str(), platformStr.c_str())
@@ -221,6 +233,10 @@ bool MSBuild_SlnSolutionFile::Generate(
 			});
 
 			std::string platformStr = MSBuild::GetPlatformID(pair.platform);
+			if (workspaceFile.Get_Workspace_UseInternalBuildTool())
+			{
+				platformStr = IdeHelper::GetPlatformHumanReadableId(pair.platform);
+			}
 
 			globalConfigPostSolutionNode
 				.Single("%s.%s|%s.ActiveCfg", projectGuid.c_str(), pair.config.c_str(), platformStr.c_str())

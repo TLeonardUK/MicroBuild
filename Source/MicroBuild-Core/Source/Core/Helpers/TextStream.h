@@ -36,9 +36,11 @@ public:
 	void Undent();
 
 	void Write(const char* format, ...);
+	void WriteRaw(const char* format, ...);
+	void WriteNewLine();
 	void WriteLine(const char* format, ...);
 
-	bool WriteToFile(Platform::Path& path);
+	bool WriteToFile(Platform::Path& path, bool bOnlyWriteIfDifferent = false);
 
 	std::string ToString();
 

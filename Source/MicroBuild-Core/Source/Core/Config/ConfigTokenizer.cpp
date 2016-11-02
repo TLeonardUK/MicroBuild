@@ -542,7 +542,7 @@ bool ConfigTokenizer::Tokenize(
 		if (!path.Exists())
 		{
 			Log(LogSeverity::Fatal,
-				"Failed to open included file '%s'.",
+				"Failed to open included file '%s'.\n",
 				path.ToString().c_str());
 
 			return false;
@@ -551,7 +551,7 @@ bool ConfigTokenizer::Tokenize(
 		if (!Strings::ReadFile(path, m_data))
 		{
 			Log(LogSeverity::Fatal,
-				"Failed to read file '%s'.",
+				"Failed to read file '%s'.\n",
 				path.ToString().c_str());
 
 			return false;

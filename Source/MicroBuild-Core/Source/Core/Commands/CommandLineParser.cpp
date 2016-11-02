@@ -110,11 +110,16 @@ bool CommandLineParser::Parse(int argc, char* argv[])
 
 				// Hard-coded options, bleh.
 				if (argumentName == "-v" ||
-					argumentName == "--verbose" ||
-					argumentName == "-s" ||
-					argumentName == "--silent")
+					argumentName == "--verbose")
 				{
 					LogSetVerbose(true);
+					i++;
+					continue;
+				}
+				else if (argumentName == "-s" ||
+					argumentName == "--silent")
+				{
+					LogSetSilent(true);
 					i++;
 					continue;
 				}

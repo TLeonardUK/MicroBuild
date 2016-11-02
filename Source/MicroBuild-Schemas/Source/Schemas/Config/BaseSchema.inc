@@ -32,16 +32,19 @@ END_ENUM()
 
 START_ENUM(EPlatform)
 
-    // General platforms
+    // Desktop Platforms
 	ENUM_KEY(x86)
 	ENUM_KEY(x64)
 	ENUM_KEY(ARM)
 	ENUM_KEY(ARM64)
 
+	// Web platforms
+	ENUM_KEY(HTML5)
+
     // DotNet Specific
 	ENUM_KEY(AnyCPU)
 
-    // MacOS Specific
+    // MacOS Bundles
     ENUM_KEY(Native)
     ENUM_KEY(Universal86)
     ENUM_KEY(Universal64)
@@ -50,7 +53,6 @@ START_ENUM(EPlatform)
 /*
 	ENUM_KEY(iOS)
 	ENUM_KEY(Android)
-	ENUM_KEY(Emscripten)
 	
 	ENUM_KEY(PS4)
 	ENUM_KEY(XboxOne)

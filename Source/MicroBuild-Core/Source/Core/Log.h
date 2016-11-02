@@ -26,6 +26,7 @@ enum class LogSeverity
 {
 	Verbose,
 	Info,
+	SilentInfo,
 	Fatal,
 	Warning,
 	Success

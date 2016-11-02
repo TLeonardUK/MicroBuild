@@ -188,6 +188,61 @@ std::vector<ProjectGroupFolder> GetGroupFolders(
 	return result;
 }
 
+bool UpdateAutoLinkDependencies(
+	WorkspaceFile& workspaceFile,
+	std::vector<ProjectFile*>& configProjectFiles)
+{
+	// Resolve dependencies for each one.
+	for (auto project : configProjectFiles)
+	{
+		std::vector<Platform::Path> outputDeps 
+			= project->Get_Libraries_Library();
+
+		std::vector<Platform::Path> newDeps;
+
+		if (project->Get_Dependencies_AutoLink())
+		{
+			std::vector<std::string> dependencies = 
+				project->Get_Dependencies_Dependency();
+
+			for (std::string dependency : dependencies)
+			{
+				ProjectFile* projectDependency = nullptr;
+						
+				if (!IdeHelper::GetProjectDependency(
+					workspaceFile,
+					configProjectFiles,
+					project,
+					projectDependency,
+					dependency))
+				{
+					return false;
+				}
+
+				if ((projectDependency->Get_Project_OutputType() == EOutputType::StaticLib) &&
+					projectDependency->Get_Project_ShouldBuild())
+				{
+					Platform::Path outputPath = projectDependency->Get_Project_OutputDirectory()
+						.AppendFragment(
+							Strings::Format("%s%s", 
+								projectDependency->Get_Project_OutputName().c_str(), 
+								projectDependency->Get_Project_OutputExtension().c_str()
+							),
+							true
+						);
+
+					newDeps.push_back(outputPath);
+				}
+			}
+		}
+
+		outputDeps.insert(outputDeps.begin(), newDeps.begin(), newDeps.end());
+		project->Set_Libraries_Library(outputDeps);
+	}
+
+	return true;
+}
+
 bool CreateBuildMatrix(
 	WorkspaceFile& workspaceFile,
 	std::vector<ProjectFile>& projectFiles,
@@ -256,53 +311,9 @@ bool CreateBuildMatrix(
 				}
 			}
 
-			// Resolve dependencies for each one.
-			for (auto project : configProjectFiles)
+			if (!UpdateAutoLinkDependencies(workspaceFile, configProjectFiles))
 			{
-				std::vector<Platform::Path> outputDeps 
-					= project->Get_Libraries_Library();
-
-				std::vector<Platform::Path> newDeps;
-
-				if (project->Get_Dependencies_AutoLink())
-				{
-					std::vector<std::string> dependencies = 
-						project->Get_Dependencies_Dependency();
-
-					for (std::string dependency : dependencies)
-					{
-						ProjectFile* projectDependency = nullptr;
-						
-						if (!IdeHelper::GetProjectDependency(
-							workspaceFile,
-							configProjectFiles,
-							project,
-							projectDependency,
-							dependency))
-						{
-							return false;
-						}
-
-						if ((projectDependency->Get_Project_OutputType() == EOutputType::DynamicLib ||
-							projectDependency->Get_Project_OutputType() == EOutputType::StaticLib) &&
-							projectDependency->Get_Project_ShouldBuild())
-						{
-							Platform::Path outputPath = projectDependency->Get_Project_OutputDirectory()
-								.AppendFragment(
-									Strings::Format("%s%s", 
-										projectDependency->Get_Project_OutputName().c_str(), 
-										projectDependency->Get_Project_OutputExtension().c_str()
-									),
-									true
-								);
-
-							newDeps.push_back(outputPath);
-						}
-					}
-				}
-
-				outputDeps.insert(outputDeps.begin(), newDeps.begin(), newDeps.end());
-				project->Set_Libraries_Library(outputDeps);
+				return false;
 			}
 		}
 	}
@@ -465,6 +476,23 @@ std::string ResolvePlatformName(EPlatform platform)
 	}
 
 	return name;
+}
+
+std::string GetPlatformHumanReadableId(EPlatform platform)
+{
+	switch (platform)
+	{
+	case EPlatform::ARM:			return "Desktop (ARM 32 bit)";
+	case EPlatform::ARM64:			return "Desktop (ARM 64 bit)";
+	case EPlatform::x86:			return "Desktop (32 Bit)";
+	case EPlatform::x64:			return "Desktop (64 Bit)";
+	case EPlatform::AnyCPU:			return "Desktop (AnyCPU)";
+	case EPlatform::Native:			return "Desktop (Native Bundle)";
+	case EPlatform::Universal86:	return "Desktop (Universal 32 bit Bundle)";
+	case EPlatform::Universal64:	return "Desktop (Universal 64 bit Bundle)";
+	case EPlatform::Universal:		return "Desktop (Universal Bundle)";
+	default:						return CastToString(platform);
+	}
 }
 
 }; // namespace IdeHelper

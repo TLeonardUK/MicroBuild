@@ -66,26 +66,95 @@ bool PluginManager::FindAndLoadAll()
 	configuration = "Shipping";
 #endif
 
-	std::string filter = 
+	std::string recursiveFilter = 
 		Strings::Format(
 			"**.plugin.%s.%s.%s",
 			architecture.c_str(),
 			configuration.c_str(),
 			extension.c_str()
 		);
+	std::string filter = 
+		Strings::Format(
+			"*.plugin.%s.%s.%s",
+			architecture.c_str(),
+			configuration.c_str(),
+			extension.c_str()
+		);
 
-	Platform::Path pathFilter = 
-		Platform::Path::GetExecutablePath().GetDirectory().AppendFragment(filter, true);
+	Platform::Path recursivePathFilter = 
+		Platform::Path::GetExecutablePath().GetDirectory().AppendFragment(recursiveFilter, true);
+
+	Platform::Path pluginDirectory = 
+		Platform::Path::GetExecutablePath().GetDirectory().AppendFragment("Plugins", true);
+
+	Platform::Path pluginPathFilter = 
+		pluginDirectory.AppendFragment(recursiveFilter, true);
+
+	if (!pluginDirectory.Exists())
+	{
+		pluginDirectory.CreateAsDirectory();
+	}
 
 	std::vector<Platform::Path> matchingPaths =
-		Platform::Path::MatchFilter(pathFilter);
+		Platform::Path::MatchFilter(recursivePathFilter);
 
 	for (auto path : matchingPaths)
 	{
-		Log(LogSeverity::Info, "Loading plugin: %s\n", path.ToString().c_str());
-		
+		Platform::Path loadPath = path;
+
+		// If plugin is in plugin directory, load as normal. Otherwise
+		// check timestamp if its more recent than the one in the plugin directory copy it
+		// in and load that one. This allows us to rebuild plugins using microbuild itself without
+		// having the issue of trying to write to files that are in use.
+		if (path.GetDirectory() != pluginDirectory)
+		{
+			loadPath = pluginDirectory.AppendFragment(path.GetFilename(), true);
+			
+			Platform::Path pdbPath = path.ChangeExtension("pdb");
+
+			bool bCopy = false;
+			if (!loadPath.Exists())
+			{
+				bCopy = true;			
+			}
+			else
+			{
+				if (path.GetModifiedTime() >  loadPath.GetModifiedTime())
+				{
+					bCopy = true;
+				}
+			}
+
+			if (bCopy)
+			{
+				Log(LogSeverity::Info, "Plugin is new or updated, copying to plugin directory: %s\n", path.GetFilename().c_str());				
+				path.Copy(loadPath);
+
+				if (pdbPath.Exists())
+				{
+					pdbPath.Copy(loadPath.ChangeExtension("pdb"));
+				}
+			}
+
+/*			path.Delete();
+			if (pdbPath.Exists())
+			{
+				pdbPath.Delete();
+			} */
+		}
+	}
+	
+	matchingPaths =
+		Platform::Path::MatchFilter(pluginPathFilter);
+	
+	for (auto path : matchingPaths)
+	{
+		Platform::Path loadPath = path;
+	
+		Log(LogSeverity::Info, "Loading plugin: %s\n", path.GetFilename().c_str());	
+			
 		Plugin* plugin = new Plugin(this);
-		if (!plugin->Load(path))
+		if (!plugin->Load(loadPath))
 		{
 			Log(LogSeverity::Info, "\tPlugin load failed.\n");
 		}

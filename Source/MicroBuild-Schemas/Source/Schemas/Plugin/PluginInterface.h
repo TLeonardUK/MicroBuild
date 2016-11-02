@@ -39,6 +39,11 @@ enum EPluginEvent
 	// Invoked when a project file is loaded in, allows the plugin
 	// to make any manipulations required before its used.
 	PostProcessProjectFile,
+	
+	// Invoked when the internal build tool is gathering files that
+	// may need compiling into the end project. Can be used to add
+	// extra files if required.
+	IbtPopulateCompileFiles,
 };
 
 // Contains plugin data specific to individual events. Get the event specific
@@ -63,6 +68,13 @@ struct PluginPostProcessWorkspaceFileData : public PluginEventData
 struct PluginPostProcessProjectFileData : public PluginEventData
 {
 	ProjectFile* File;
+};
+
+// Plugin data for the event IbtPopulateCompileFiles
+struct PluginIbtPopulateCompileFilesData : public PluginEventData
+{
+	ProjectFile* File;
+	std::vector<Platform::Path>* SourceFiles;
 };
 
 // Function type for event callbacks.
@@ -99,6 +111,7 @@ public:
 	virtual ~IWorkspace() { };
 
 	virtual std::shared_ptr<IProject> GetProject(const std::string& projectName) = 0;
+	virtual std::vector<std::shared_ptr<IProject>> GetProjects() = 0;
 	virtual WorkspaceFile& GetConfigFile() = 0;
 
 };

@@ -44,6 +44,46 @@ int GetConcurrencyFactor()
 	return sysinfo.dwNumberOfProcessors;
 }
 
+bool IsOperatingSystem64Bit()
+{
+#if defined(MB_ARCHITECTURE_X64)
+	return true;
+#else
+	typedef BOOL(WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
+	static LPFN_ISWOW64PROCESS Function_IsWow64Process;
+	static bool bCachedResult = false;
+	static BOOL bResult = false;
+
+	if (!bCachedResult)
+	{
+		Function_IsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(
+			GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+
+		if (Function_IsWow64Process)
+		{
+			if (!Function_IsWow64Process(GetCurrentProcess(), &bResult))
+			{
+				bResult = false;
+			}
+		}
+		else
+		{
+			bResult = false;
+		}
+
+		bCachedResult = true;
+	}
+
+	return !!bResult;
+#endif
+}
+
+#undef SetEnvironmentVariable
+void SetEnvironmentVariable(const std::string& tag, const std::string& value)
+{
+	::SetEnvironmentVariableA(tag.c_str(), value.c_str());
+}
+
 }; // namespace Platform
 }; // namespace MicroBuild
 

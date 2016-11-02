@@ -101,8 +101,8 @@ bool Plugin::Load(Platform::Path& path)
 			return false;
 		}
 
-		Log(LogSeverity::Info, "\tName: %s\n", m_pluginInterface->GetName().c_str());
-		Log(LogSeverity::Info, "\tDescription: %s\n", m_pluginInterface->GetDescription().c_str());
+		//Log(LogSeverity::Info, "\tName: %s\n", m_pluginInterface->GetName().c_str());
+		//Log(LogSeverity::Info, "\tDescription: %s\n", m_pluginInterface->GetDescription().c_str());
 
 		return true;
 	}

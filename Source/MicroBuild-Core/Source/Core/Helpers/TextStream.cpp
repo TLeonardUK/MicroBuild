@@ -90,9 +90,38 @@ void TextStream::WriteLine(const char* format, ...)
 	m_stream << "\n";
 }
 
-bool TextStream::WriteToFile(Platform::Path& path)
+void TextStream::WriteRaw(const char* format, ...)
+{
+	va_list list;
+	va_start(list, format);
+	m_stream << Strings::FormatVa(format, list);
+	va_end(list);
+}
+
+void TextStream::WriteNewLine()
+{
+	m_stream << "\n";
+}
+
+bool TextStream::WriteToFile(Platform::Path& path, bool bOnlyWriteIfDifferent)
 {
 	std::string result = m_stream.str();
+
+	if (bOnlyWriteIfDifferent)
+	{
+		if (path.Exists())
+		{
+			std::string existingValue = "";
+			if (Strings::ReadFile(path, existingValue))
+			{
+				if (result == existingValue)
+				{
+					return true;
+				}
+			}
+		}
+	}
+
 	return Strings::WriteFile(path, result);
 }
 

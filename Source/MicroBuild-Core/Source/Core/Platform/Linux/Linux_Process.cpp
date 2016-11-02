@@ -171,18 +171,18 @@ int Process::GetExitCode()
 	return WEXITSTATUS(resultCode);
 }
 
-bool Process::Write(void* buffer, uint64_t bufferLength)
+size_t Process::Write(void* buffer, uint64_t bufferLength)
 {	
 	// Not currently implemented on this platform.
 	assert(false);
-	return false;
+	return 0;
 }
 
-bool Process::Read(void* Bbffer, uint64_t bufferLength)
+size_t Process::Read(void* Bbffer, uint64_t bufferLength)
 {
 	// Not currently implemented on this platform.
 	assert(false);
-	return false;
+	return 0;
 }
 
 bool Process::AtEnd()

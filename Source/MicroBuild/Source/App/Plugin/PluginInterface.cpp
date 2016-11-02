@@ -171,6 +171,11 @@ public:
 		return nullptr;
 	}
 
+	virtual std::vector<std::shared_ptr<IProject>> GetProjects() override
+	{
+		return m_projects;
+	}
+
 	virtual WorkspaceFile& GetConfigFile() override
 	{
 		return m_file;

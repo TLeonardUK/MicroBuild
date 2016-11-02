@@ -85,15 +85,7 @@ bool Process::Open(
 	for (const std::string& arg : arguments)
 	{
 		commandLine += " ";
-
-		if (arg.find(' ') != std::string::npos)
-		{
-			commandLine += Strings::Quoted(arg);
-		}
-		else
-		{
-			commandLine += arg;
-		}
+		commandLine += arg;
 	}
 
 	if (bRedirectStdInOut)
@@ -120,7 +112,7 @@ bool Process::Open(
 		}
 
 		Result = SetHandleInformation(
-			&data->m_stdOutRead, 
+			data->m_stdOutRead, 
 			HANDLE_FLAG_INHERIT, 
 			0
 		);
@@ -145,7 +137,7 @@ bool Process::Open(
 		}
 
 		Result = SetHandleInformation(
-			&data->m_stdInWrite, 
+			data->m_stdInWrite, 
 			HANDLE_FLAG_INHERIT, 
 			0
 		);
@@ -205,6 +197,20 @@ bool Process::Open(
 
 		Detach();
 		return false;
+	}
+
+	// We do not need the childs write handles anymore, so close them up, if we don't do
+	// this we can end up in some wierd hanging situations with the syncronous IO API as the child
+	// will not be able to close the pipes when they exit.
+	if (data->m_stdOutWrite != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle(data->m_stdOutWrite);
+		data->m_stdOutWrite = INVALID_HANDLE_VALUE;
+	}
+	if (data->m_stdInRead != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle(data->m_stdInRead);
+		data->m_stdInRead = INVALID_HANDLE_VALUE;
 	}
 
 	return true;
@@ -321,7 +327,7 @@ int Process::GetExitCode()
 	return exitCode;
 }
 
-bool Process::Write(void* buffer, uint64_t bufferLength)
+size_t Process::Write(void* buffer, uint64_t bufferLength)
 {
 	Windows_Process* data = reinterpret_cast<Windows_Process*>(m_impl);
 
@@ -336,17 +342,17 @@ bool Process::Write(void* buffer, uint64_t bufferLength)
 		&bytesOutput, 
 		nullptr
 	);
-	if (!result || bytesOutput != bufferLength)
+	if (!result)
 	{
-		Log(LogSeverity::Warning, 
-			"WriteFile failed with 0x%08x.\n", GetLastError());
-		return false;
+		//Log(LogSeverity::Warning, 
+		//	"WriteFile failed with 0x%08x.\n", GetLastError());
+		return 0;
 	}
 
-	return true;
+	return bytesOutput;
 }
 
-bool Process::Read(void* buffer, uint64_t bufferLength)
+size_t Process::Read(void* buffer, uint64_t bufferLength)
 {
 	Windows_Process* data = reinterpret_cast<Windows_Process*>(m_impl);
 
@@ -361,14 +367,14 @@ bool Process::Read(void* buffer, uint64_t bufferLength)
 		&bytesOutput, 
 		nullptr
 	);
-	if (!result || bytesOutput != bufferLength)
+	if (!result)
 	{
-		Log(LogSeverity::Warning, 
-			"ReadFile failed with 0x%08x.\n", GetLastError());
-		return false;
+		//Log(LogSeverity::Warning, 
+		//	"ReadFile failed with 0x%08x.\n", GetLastError());
+		return 0;
 	}
 
-	return true;
+	return bytesOutput;
 }
 
 bool Process::AtEnd()
@@ -405,8 +411,8 @@ uint64_t Process::BytesLeft()
 	);
 	if (!result)
 	{
-		Log(LogSeverity::Warning, 
-			"PeekNamedPipe failed with 0x%08x.\n", GetLastError());
+		//Log(LogSeverity::Warning, 
+		//	"PeekNamedPipe failed with 0x%08x.\n", GetLastError());
 		return 0;
 	}
 

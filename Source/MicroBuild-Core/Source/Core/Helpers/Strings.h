@@ -36,7 +36,7 @@ std::string Join(const std::vector<std::string>& needles, std::string glue);
 
 // Cracks the given string into multiple values. This works like the command 
 // line syntax - eg, you can quote values to prevent them being cracked.
-std::vector<std::string> Crack(std::string value, char seperator = ' ');
+std::vector<std::string> Crack(std::string value, char seperator = ' ', bool bKeepQuotes = false);
 
 // Splits a string into a left and right fragment at the given character 
 // position.
@@ -81,17 +81,23 @@ std::string Guid(const std::vector<std::string>& values);
 std::string Uuid(int length, const std::vector<std::string>& values);
 
 // Escapes any quotes in the string.
-std::string Escaped(const std::string& input);
+std::string Escaped(const std::string& input, bool bEscapeSequences = false);
 
 // Escapes any quotes in the string and then surrounds with quotes.
-std::string Quoted(const std::string& input);
+std::string Quoted(const std::string& input, bool bEscapeSequences = false);
 
 // Escapes any quotes in the string.
 std::string SpacesEscaped(const std::string& input);
 
+// Resmoves quote at start and end of string if it contains them.
+std::string StripQuotes(const std::string& input);
+
 // Checks if a string matches the given pattern that can contain several
 // wildcards.
 bool IsMatch(const std::string& input, const std::string& pattern);
+
+// Replaces a string withing a string.
+std::string Replace(const std::string& context, const std::string& from, const std::string& to);
 
 }; // namespace StringHelper
 }; // namespace MicroBuild

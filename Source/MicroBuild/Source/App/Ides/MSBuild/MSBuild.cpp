@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Ides/MSBuild/MSBuild_SlnSolutionFile.h"
 #include "App/Ides/MSBuild/MSBuild_VcxFiltersFile.h"
 #include "App/Ides/MSBuild/MSBuild_VcxProjectFile.h"
+#include "App/Ides/MSBuild/MSBuild_IbtProjectFile.h"
 #include "App/Ides/MSBuild/Versions/VisualStudio_2015.h"
 #include "Core/Helpers/TextStream.h"
 #include "Core/Helpers/XmlNode.h"
@@ -91,56 +92,75 @@ bool Ide_MSBuild::Generate(
 	}
 
 	int index = 0;
-    	for (ProjectFile& file : projectFiles)
-    	{
-		switch (file.Get_Project_Language())
+    for (ProjectFile& file : projectFiles)
+    {
+		if (workspaceFile.Get_Workspace_UseInternalBuildTool())
 		{
-		case ELanguage::Cpp:
+			MSBuild_IbtProjectFile ibtFile(
+				m_defaultToolset,
+				m_defaultToolsetString
+			);
+
+			if (!ibtFile.Generate(
+				databaseFile,
+				workspaceFile,
+				file,
+				matrix[index]))
 			{
-				MSBuild_VcxProjectFile vcxFile(
-					m_defaultToolset, 
-					m_defaultToolsetString
-				);
-
-				if (!vcxFile.Generate(
-					databaseFile,
-					workspaceFile,
-					file,
-					matrix[index]))
-				{
-					return false;
-				}
-
-				break;
-			}
-		case ELanguage::CSharp:
-			{
-				MSBuild_CsProjectFile csFile(
-					m_defaultToolsetString
-				);
-
-				if (!csFile.Generate(
-					databaseFile,
-					workspaceFile,
-					file,
-					matrix[index]))
-				{
-					return false;
-				}
-
-				break;
-			}
-		default:
-			{
-				file.ValidateError(
-					"Language '%s' is not valid for msbuild projects.",
-					CastToString(file.Get_Project_Language()).c_str());
 				return false;
+			}
+		}
+		else
+		{
+			switch (file.Get_Project_Language())
+			{
+				case ELanguage::Cpp:
+				{
+					MSBuild_VcxProjectFile vcxFile(
+						m_defaultToolset,
+						m_defaultToolsetString
+					);
+
+					if (!vcxFile.Generate(
+						databaseFile,
+						workspaceFile,
+						file,
+						matrix[index]))
+					{
+						return false;
+					}
+
+					break;
+				}
+				case ELanguage::CSharp:
+				{
+					MSBuild_CsProjectFile csFile(
+						m_defaultToolsetString
+					);
+
+					if (!csFile.Generate(
+						databaseFile,
+						workspaceFile,
+						file,
+						matrix[index]))
+					{
+						return false;
+					}
+
+					break;
+				}
+				default:
+				{
+					file.ValidateError(
+						"Language '%s' is not valid for msbuild projects.",
+						CastToString(file.Get_Project_Language()).c_str());
+					return false;
+				}
 			}
 		}
 
 		index++;
-    	}
+    }
 
 	MSBuild_SlnSolutionFile slnFile(
 		m_headerVersion, 
@@ -174,7 +194,7 @@ bool Ide_MSBuild::Clean(
 			workspaceFile.Get_Workspace_Name() + ".sln", true);
 
 	std::vector<std::string> arguments;
-	arguments.push_back(solutionLocation.ToString());
+	arguments.push_back(Strings::Quoted(solutionLocation.ToString()));
 	arguments.push_back("/t:Clean");
 
 	Platform::Process process;
@@ -219,7 +239,7 @@ bool Ide_MSBuild::Build(
 			workspaceFile.Get_Workspace_Name() + ".sln", true);
 
 	std::vector<std::string> arguments;
-	arguments.push_back(solutionLocation.ToString());
+	arguments.push_back(Strings::Quoted(solutionLocation.ToString()));
 
 	EPlatform platformId = CastFromString<EPlatform>(platform);
 

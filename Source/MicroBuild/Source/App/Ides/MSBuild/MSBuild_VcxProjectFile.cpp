@@ -224,6 +224,8 @@ bool MSBuild_VcxProjectFile::Generate(
 		case EOutputType::DynamicLib:
 			propertyGroup.Node("ConfigurationType").Value("DynamicLibrary");
 			break;
+		case EOutputType::Container:
+			// Fallthrough
 		case EOutputType::StaticLib:
 			propertyGroup.Node("ConfigurationType").Value("StaticLibrary");
 			break;
@@ -272,12 +274,6 @@ bool MSBuild_VcxProjectFile::Generate(
 		case EPlatformToolset::v140:
 			propertyGroup.Node("PlatformToolset").Value("v140");
 			break;
-		case EPlatformToolset::v140_xp:
-			propertyGroup.Node("PlatformToolset").Value("v140_xp");
-			break;
-		case EPlatformToolset::v140_clang_3_7:
-			propertyGroup.Node("PlatformToolset").Value("v140_clang_3_7");
-			break;
 		default:
 			projectFile.ValidateError(
 				"Platform toolset '%s' is not valid for msbuild C++ projects.",
@@ -286,14 +282,15 @@ bool MSBuild_VcxProjectFile::Generate(
 		}
 
 		// LTO
-		if (matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::None ||
-			matrix.projectFile.Get_Build_OptimizationLevel() == EOptimizationLevel::Debug)
+		if (matrix.projectFile.Get_Flags_LinkTimeOptimization())
 		{
-			propertyGroup.Node("WholeProgramOptimization").Value("false");
+			//linkGroup.Node("LinkTimeCodeGeneration").Value("UseLinkTimeCodeGeneration");
+			propertyGroup.Node("WholeProgramOptimization").Value("true");
 		}
 		else
 		{
-			propertyGroup.Node("WholeProgramOptimization").Value("true");
+			//linkGroup.Node("LinkTimeCodeGeneration").Value("UseLinkTimeCodeGeneration");
+			propertyGroup.Node("WholeProgramOptimization").Value("false");
 		}
 
 		// WinRT support.
@@ -389,7 +386,10 @@ bool MSBuild_VcxProjectFile::Generate(
 		// Incremental linking
  		if (!matrix.projectFile.Get_Flags_LinkTimeOptimization())
 		{
-			propertyGroup.Node("LinkIncremental").Value(matrix.projectFile.Get_Build_OptimizationLevel() != EOptimizationLevel::Full);
+			if (matrix.projectFile.Get_Build_OptimizationLevel() != EOptimizationLevel::Full)
+			{
+				propertyGroup.Node("LinkIncremental").Value(true);
+			}
 		}
 
 		// Output information.
@@ -498,52 +498,6 @@ bool MSBuild_VcxProjectFile::Generate(
 			// Toolchain specific values.
 			switch (matrix.projectFile.Get_Build_PlatformToolset())
 			{
-			case EPlatformToolset::v140_clang_3_7:
-				{
-					// Warning level.
-					switch (matrix.projectFile.Get_Build_WarningLevel())
-					{
-					case EWarningLevel::Default:
-						break;
-					case EWarningLevel::None:
-						compileGroup.Node("WarningLevel").Value("TurnOffAllWarnings");
-						break;
-					case EWarningLevel::Low:
-						compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
-						break;
-					case EWarningLevel::Medium:
-						compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
-						break;
-					case EWarningLevel::High:
-						compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
-						break;
-					case EWarningLevel::Verbose:
-						compileGroup.Node("WarningLevel").Value("EnableAllWarnings");
-						break;
-					default:
-						projectFile.ValidateError(
-							"Warning level '%s' is not valid for msbuild C++ projects.",
-							CastToString(matrix.projectFile.Get_Build_WarningLevel()).c_str());
-						return false;
-					}
-
-					// Exception handling.
-					compileGroup
-						.Node("ExceptionHandling")
-						.Value((matrix.projectFile.Get_Flags_Exceptions() ? "Disabled" : "Enabled"));
-
-					// Debug database.
-					if (matrix.projectFile.Get_Flags_GenerateDebugInformation())
-					{
-						compileGroup.Node("DebugInformationFormat").Value("FullDebug");
-					}
-					else
-					{
-						compileGroup.Node("DebugInformationFormat").Value("None");
-					}
-
-					break;
-				}
 			case EPlatformToolset::Default:
 				// Fallthrough
 			default:
@@ -667,11 +621,12 @@ bool MSBuild_VcxProjectFile::Generate(
 			// Optimization.
 			if (matrix.projectFile.Get_Flags_LinkTimeOptimization())
 			{
-				linkGroup.Node("LinkTimeCodeGeneration").Value("UseLinkTimeCodeGeneration");
+				//linkGroup.Node("LinkTimeCodeGeneration").Value("UseLinkTimeCodeGeneration");
 				linkGroup.Node("WholeProgramOptimization").Value("true");
 			}
 			else
 			{
+				//linkGroup.Node("LinkTimeCodeGeneration").Value("UseLinkTimeCodeGeneration");
 				linkGroup.Node("WholeProgramOptimization").Value("false");
 			}
 
@@ -687,6 +642,8 @@ bool MSBuild_VcxProjectFile::Generate(
 				linkGroup.Node("EntryPointSymbol").Value("mainCRTStartup");
 				break;
 			case EOutputType::DynamicLib:
+				// Fallthrough
+			case EOutputType::Container:
 				// Fallthrough
 			case EOutputType::StaticLib:
 				linkGroup.Node("SubSystem").Value("Console");
@@ -725,7 +682,8 @@ bool MSBuild_VcxProjectFile::Generate(
 		}
 
 		if (matrix.projectFile.Get_Project_OutputType() == EOutputType::StaticLib ||
-			matrix.projectFile.Get_Project_OutputType() == EOutputType::DynamicLib)
+			matrix.projectFile.Get_Project_OutputType() == EOutputType::DynamicLib ||
+			matrix.projectFile.Get_Project_OutputType() == EOutputType::Container)
 		{
 			XmlNode& linkGroup =
 				itemDefGroup.Node("Lib");

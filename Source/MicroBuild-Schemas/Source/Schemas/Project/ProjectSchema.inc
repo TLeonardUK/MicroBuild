@@ -24,6 +24,7 @@ START_ENUM(EOutputType)
 	ENUM_KEY(Executable)
 	ENUM_KEY(StaticLib)
 	ENUM_KEY(DynamicLib)
+	ENUM_KEY(Container)
 END_ENUM()
 
 START_ENUM(EOptimizationLevel)
@@ -46,8 +47,6 @@ START_ENUM(EPlatformToolset)
 
 	// MSBuild
 	ENUM_KEY(v140)
-	ENUM_KEY(v140_xp)
-	ENUM_KEY(v140_clang_3_7)
 
 	// DotNet
 	ENUM_KEY(DotNet_2_0)

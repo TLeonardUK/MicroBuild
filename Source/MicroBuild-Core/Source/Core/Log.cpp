@@ -56,6 +56,10 @@ void Log(LogSeverity severity, const char* format, ...)
 
 	printf("%s", result.c_str());
 	Platform::DebugOutput(result.c_str());
+
+	// I'm assuming here we won't be doing this much, and we won't be logging 
+	// incrementally, so this should be fine.
+	fflush(stdout);
 }
 
 }; // namespace MicroBuild

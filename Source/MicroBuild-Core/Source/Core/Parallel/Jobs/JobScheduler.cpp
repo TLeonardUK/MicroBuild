@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+thread_local int g_jobSchedulerthreadId = -1;
+
 JobScheduler::JobScheduler(int ThreadCount)
 	: m_Aborting(false)
 {
@@ -40,7 +42,8 @@ JobScheduler::JobScheduler(int ThreadCount)
 	{
 		std::string ThreadName = Strings::Format("Job Pool Thread %i", i);
 		
-		m_Threads.push_back(new std::thread([this]() {
+		m_Threads.push_back(new std::thread([this, i]() {
+			g_jobSchedulerthreadId = i + 1;
 			ThreadEntryPoint();
 		}));
 	}
@@ -224,6 +227,11 @@ void JobScheduler::ThreadEntryPoint()
 			RunJob(JobIndex);
 		}
 	}
+}
+
+int JobScheduler::GetThreadId()
+{
+	return g_jobSchedulerthreadId;
 }
 
 }; // namespace Ludo

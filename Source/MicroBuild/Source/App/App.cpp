@@ -26,6 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Commands/Help.h"
 #include "App/Commands/Version.h"
 
+#include "App/Commands/IbtBuild.h"
+#include "App/Commands/IbtClean.h"
+
 #include "App/Ides/IdeType.h"
 
 #include "App/Ides/MSBuild/Versions/VisualStudio_2015.h"
@@ -79,6 +82,8 @@ App::App(int argc, char* argv[])
 	m_commandLineParser.RegisterCommand(new CleanCommand(this));
 	m_commandLineParser.RegisterCommand(new HelpCommand(this));
 	m_commandLineParser.RegisterCommand(new VersionCommand(this));
+	m_commandLineParser.RegisterCommand(new IbtBuildCommand(this));
+	m_commandLineParser.RegisterCommand(new IbtCleanCommand(this));
 }
 
 App::~App()

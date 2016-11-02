@@ -91,7 +91,19 @@ std::string Join(const std::vector<std::string>& needles, std::string glue)
 	return result;
 }
 
-std::vector<std::string> Crack(std::string value, char seperator)
+std::string StripQuotes(const std::string& input)
+{
+	if (input.size() >= 2 && input[0] == '\"' && input[input.size() - 1] == '\"')
+	{
+		return input.substr(1, input.size() - 2);
+	}
+	else
+	{
+		return input;
+	}
+}
+
+std::vector<std::string> Crack(std::string value, char seperator, bool bKeepQuotes)
 {
 	std::vector<std::string> result;
 	std::string segment = "";
@@ -116,7 +128,10 @@ std::vector<std::string> Crack(std::string value, char seperator)
 		else if (chr == '"')
 		{
 			inQuotes = !inQuotes;
-			continue;
+			if (!bKeepQuotes)
+			{
+				continue;
+			}
 		}
 		
 		// Quote escape.
@@ -395,13 +410,13 @@ std::string Uuid(int length, const std::vector<std::string>& values)
 	return result;
 }
 
-std::string Escaped(const std::string& input)
+std::string Escaped(const std::string& input, bool bEscapeSequences)
 {
 	std::string result;
 	result.reserve(input.size());
 	for (char chr : input)
 	{
-		if (chr == '"')
+		if (chr == '"' || (chr == '\\' && bEscapeSequences))
 		{
 			result.push_back('\\');
 		}
@@ -410,9 +425,9 @@ std::string Escaped(const std::string& input)
 	return result;
 }
 
-std::string Quoted(const std::string& input)
+std::string Quoted(const std::string& input, bool bEscapeSequences)
 {
-	return Strings::Format("\"%s\"", Escaped(input).c_str());
+	return Strings::Format("\"%s\"", Escaped(input, bEscapeSequences).c_str());
 }
 
 std::string SpacesEscaped(const std::string& input)
@@ -490,6 +505,25 @@ starCheck:
 
 	value++;
 	goto loopStart;
+}
+
+std::string Replace(const std::string& context, const std::string& from, const std::string& to)
+{
+	std::string value = context;
+	size_t from_size = from.size();
+	while (true)
+	{
+		size_t offset = value.find(from);
+		if (offset != std::string::npos)
+		{
+			value = value.replace(offset, from_size, to.c_str(), to.size());
+		}
+		else
+		{
+			break;
+		}
+	}
+	return value;
 }
 
 }; // namespace Strings

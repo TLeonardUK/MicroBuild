@@ -256,6 +256,8 @@ bool MSBuild_CsProjectFile::Generate(
 			configPropertyGroup.Node("OutputType").Value("Exe");
 		}
 		break;
+	case EOutputType::Container:
+		// Fallthrough
 	case EOutputType::DynamicLib:
 		configPropertyGroup.Node("OutputType").Value("Library");
 		break;

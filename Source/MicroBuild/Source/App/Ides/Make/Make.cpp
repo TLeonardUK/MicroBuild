@@ -49,7 +49,7 @@ bool Ide_Make::Clean(
 
 	std::stringstream commandLine;
 	commandLine << "make";
-	commandLine << " -f" << solutionLocation.GetFilename().c_str();
+	commandLine << " -f" << Strings::Quoted(solutionLocation.GetFilename()).c_str();
 	commandLine << " clean";
 
 	std::vector<std::string> arguments;
@@ -106,7 +106,7 @@ bool Ide_Make::Build(
 
 	std::stringstream commandLine;
 	commandLine << "make";
-	commandLine << " -f" << solutionLocation.GetFilename().c_str();
+	commandLine << " -f" << Strings::Quoted(solutionLocation.GetFilename()).c_str();
 	commandLine << " config=" << configuration.c_str() << "_" << platform.c_str();
 
 	std::vector<std::string> arguments;

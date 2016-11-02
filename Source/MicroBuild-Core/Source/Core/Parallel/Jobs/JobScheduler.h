@@ -111,6 +111,10 @@ public:
 	// Returns the current completion state of the given job.
 	bool IsComplete(JobHandle Handle);
 
+	// Gets the thread-id the calling task is executing on, will return negative 
+	// values if called from non-job thread.
+	int GetThreadId();
+
 };
 
 };

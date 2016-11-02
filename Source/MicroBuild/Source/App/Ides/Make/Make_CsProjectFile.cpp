@@ -207,12 +207,14 @@ bool Make_CsProjectFile::Generate(
 		case EOutputType::ConsoleApp:
 			csflags.push_back("-target:exe");
 			break;
+		case EOutputType::Container:
+			// Fallthrough
 		case EOutputType::DynamicLib:
 			csflags.push_back("-target:library");
 			break;
 		default:
 			projectFile.ValidateError(
-				"Output type '%s' is not valid for make C++ projects.",
+				"Output type '%s' is not valid for make C# projects.",
 				CastToString(projectFile.Get_Project_OutputType()).c_str());
 			return false;
 		}		

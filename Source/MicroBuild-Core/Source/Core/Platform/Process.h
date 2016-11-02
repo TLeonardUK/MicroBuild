@@ -70,11 +70,11 @@ public:
 
 	// Does a blocking write from the process's stdint, blocks until entire
 	// buffer has been confumed or the process ends
-	bool Write(void* buffer, uint64_t bufferLength);
+	size_t Write(void* buffer, uint64_t bufferLength);
 
 	// Does a blocking read from the process's stdout, blocks until entire
 	// buffer has been read or process ends.
-	bool Read(void* buffer, uint64_t bufferLength);
+	size_t Read(void* buffer, uint64_t bufferLength);
 
 	// Returns true if we are at the end of the process's stdout.
 	bool AtEnd();
@@ -84,6 +84,9 @@ public:
 
 	// Returns the number of bytes left that can be read.
 	uint64_t BytesLeft();
+
+	// Reads all stdout out until the process ends and then returns it.
+	std::string ReadToEnd();
 
 };
 

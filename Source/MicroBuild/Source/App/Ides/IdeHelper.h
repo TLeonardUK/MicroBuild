@@ -88,6 +88,12 @@ std::vector<ProjectGroupFolder> GetGroupFolders(
 	std::vector<VPathPair>& vpaths
 );
 
+// Takes a list of projects and automatically adds all libraries to link based 
+// on the auto-link flags.
+bool UpdateAutoLinkDependencies(
+	WorkspaceFile& workspaceFile,
+	std::vector<ProjectFile*>& configProjectFiles);
+
 // Creates a build matrix that stores the configuration state of each
 // project file in each configuration/platform combination defined in
 // the workspace file.
@@ -120,6 +126,9 @@ std::vector<std::string> SortFiltersByType(
 // in all cases apart from desktop platforms (x86/x64/etc), in which case the 
 // platform name resolves to the host platform.
 std::string ResolvePlatformName(EPlatform platform);
+
+// Gets a human-readable version of the platform name, eg x86 gets truned into "Desktop (x86)".
+std::string GetPlatformHumanReadableId(EPlatform platform);
 
 }; // namespace IdeHelper
 }; // namespace MicroBuild

@@ -37,6 +37,8 @@ std::vector<std::string> Path::GetFiles() const
 
 	std::string Pattern = m_raw + Seperator + "*";
 
+	//Log(LogSeverity::Fatal, "GetFiles: %s\n", Pattern.c_str());
+
 	Handle = FindFirstFileA(Pattern.c_str(), &Data);
 	if (Handle != INVALID_HANDLE_VALUE)
 	{
@@ -66,6 +68,12 @@ std::vector<std::string> Path::GetDirectories() const
 	HANDLE Handle;
 
 	std::string Pattern = m_raw + Seperator + "*";
+	
+	//Log(LogSeverity::Fatal, "GetDirectories: %s\n", Pattern.c_str());
+	//if (Pattern.find("clang") != std::string::npos)
+	//{
+	//	Log(LogSeverity::Fatal, "InClang, shit\n");	
+	//}
 
 	Handle = FindFirstFileA(Pattern.c_str(), &Data);
 	if (Handle != INVALID_HANDLE_VALUE)
