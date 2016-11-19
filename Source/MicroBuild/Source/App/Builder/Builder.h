@@ -33,15 +33,15 @@ public:
 	~Builder();
 
 	// Cleans all intermediate files generate by previous builds of the project.
-	bool Clean(ProjectFile& project);
+	bool Clean(WorkspaceFile& workspaceFile, ProjectFile& project);
 
 	// Builds the project in the configuration the project file defines.
-	bool Build(ProjectFile& project, bool bRebuild);
+	bool Build(WorkspaceFile& workspaceFile, ProjectFile& project, bool bRebuild);
 
 protected:
 
 	// Gets the toolchain required to build the project.
-	Toolchain* GetToolchain(ProjectFile& project);
+	Toolchain* GetToolchain(ProjectFile& project, uint64_t configurationHash);
 
 	// Queues the task with the given scheduler and parent job and sets
 	// a given flag on failure.
@@ -55,7 +55,6 @@ protected:
 		std::atomic<int>* currentJobIndex);
 
 private:
-	ProjectFile* m_project;
 	bool m_bRebuild;
 	App* m_app;
 

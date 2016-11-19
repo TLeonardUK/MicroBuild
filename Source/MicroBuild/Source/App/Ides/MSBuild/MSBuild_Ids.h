@@ -42,7 +42,7 @@ std::string GetPlatformID(EPlatform platform);
 std::string GetPlatformDotNetTarget(EPlatform platform);
 
 // Finds the correct project type guid based on language.
-std::string GetProjectTypeGuid(ELanguage language, bool bUsingInternalBuildTool = false);
+std::string GetProjectTypeGuid(ELanguage language);
 
 }; // namespace MSBuild
 }; // namespace MicroBuild

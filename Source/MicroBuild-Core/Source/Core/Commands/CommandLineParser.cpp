@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Commands/Command.h"
 #include "Core/Helpers/Strings.h"
 
+#include "FreeImage.h"
+
 namespace MicroBuild {
 
 CommandLineParser::CommandLineParser(
@@ -300,6 +302,11 @@ void CommandLineParser::PrintLicense()
 	Log(LogSeverity::Info, "This program comes with ABSOLUTELY NO WARRANTY.\n");
 	Log(LogSeverity::Info, "This is free software, and you are welcome to redistribute it\n");
 	Log(LogSeverity::Info, "under certain conditions; read LICENSE file for details.\n");
+	Log(LogSeverity::Info, "\n");
+
+	// Library copyrights here.
+	Log(LogSeverity::Info, "%s\n", FreeImage_GetCopyrightMessage());
+
 	Log(LogSeverity::Info, "\n");
 }
 

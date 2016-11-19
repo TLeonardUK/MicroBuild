@@ -480,17 +480,55 @@ std::string ResolvePlatformName(EPlatform platform)
 
 std::string GetPlatformHumanReadableId(EPlatform platform)
 {
+#if defined(MB_PLATFORM_WINDOWS)
+	#define PLATFORM_NAME "Windows"
+#elif defined(MB_PLATFORM_LINUX)
+	#define PLATFORM_NAME "Linux";
+#elif defined(MB_PLATFORM_MACOS)
+	#define PLATFORM_NAME "MacOS";
+#else
+		#error Unimplemented platform.
+#endif
+
 	switch (platform)
 	{
-	case EPlatform::ARM:			return "Desktop (ARM 32 bit)";
-	case EPlatform::ARM64:			return "Desktop (ARM 64 bit)";
-	case EPlatform::x86:			return "Desktop (32 Bit)";
-	case EPlatform::x64:			return "Desktop (64 Bit)";
-	case EPlatform::AnyCPU:			return "Desktop (AnyCPU)";
-	case EPlatform::Native:			return "Desktop (Native Bundle)";
-	case EPlatform::Universal86:	return "Desktop (Universal 32 bit Bundle)";
-	case EPlatform::Universal64:	return "Desktop (Universal 64 bit Bundle)";
-	case EPlatform::Universal:		return "Desktop (Universal Bundle)";
+	
+    // Desktop Platforms
+	case EPlatform::ARM:			return PLATFORM_NAME " (ARM 32 bit)";
+	case EPlatform::ARM64:			return PLATFORM_NAME " (ARM 64 bit)";
+	case EPlatform::x86:			return PLATFORM_NAME " (32 Bit)";
+	case EPlatform::x64:			return PLATFORM_NAME " (64 Bit)";
+
+	case EPlatform::WinRT_ARM:		return PLATFORM_NAME " RT (ARM 32 bit)";
+	case EPlatform::WinRT_ARM64:	return PLATFORM_NAME " RT (ARM 64 bit)";
+	case EPlatform::WinRT_x86:		return PLATFORM_NAME " RT (32 Bit)";
+	case EPlatform::WinRT_x64:		return PLATFORM_NAME " RT (64 Bit)";
+	
+	// Web platforms
+	case EPlatform::HTML5:			return "HTML5";
+
+	// Mobile platforms
+	case EPlatform::iOS:			return "iOS";
+	case EPlatform::Android:		return "Android";
+		
+	// Console
+	case EPlatform::PS3:			return "Playstation 3";
+	case EPlatform::PS4:			return "Playstation 4";
+	case EPlatform::PSVita:			return "Playstation Vita";
+	case EPlatform::Xbox360:		return "Xbox 360";
+	case EPlatform::XboxOne:		return "Xbox One";
+	case EPlatform::NintendoWiiU:	return "Nintendo WiiU";
+	case EPlatform::Nintendo3DS:	return "Nintendo 3DS";
+
+	// DotNET Specific
+	case EPlatform::AnyCPU:			return PLATFORM_NAME " (AnyCPU)";
+
+	// MacOS Bundles
+	case EPlatform::Native:			return PLATFORM_NAME " (Native Bundle)";
+	case EPlatform::Universal86:	return PLATFORM_NAME " (Universal 32 bit Bundle)";
+	case EPlatform::Universal64:	return PLATFORM_NAME " (Universal 64 bit Bundle)";
+	case EPlatform::Universal:		return PLATFORM_NAME " (Universal Bundle)";
+
 	default:						return CastToString(platform);
 	}
 }

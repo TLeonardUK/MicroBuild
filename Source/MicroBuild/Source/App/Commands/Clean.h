@@ -26,7 +26,7 @@ namespace MicroBuild {
 
 class App;
 
-// Cleans all temporary intermediate files that have been previously generated.
+// Cleans all temporary intermediate files using the internal build tool.
 class CleanCommand : public Command
 {
 public:
@@ -41,6 +41,10 @@ private:
 	WorkspaceFile m_workspaceFile;
 	Platform::Path m_workspaceFilePath;
 
+	std::string m_projectName;
+
+	std::string m_configuration;
+	std::string m_platform;
 };
 
 }; // namespace MicroBuild

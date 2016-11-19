@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Ides/XCode/XCode_ProjectFile.h"
-#include "App/Ides/Make/Make_CsProjectFile.h"
+#include "App/Ides/Make/Make_ProjectFile.h"
 #include "Core/Helpers/TextStream.h"
 #include "Core/Helpers/PlistNode.h"
 #include "Core/Helpers/Strings.h"
@@ -505,43 +505,33 @@ void XCode_ProjectFile::Write_PBXNativeTarget(
     const ELanguage& language
 )
 {
+	MB_UNUSED_PARAMETER(language);
+	MB_UNUSED_PARAMETER(postbuildPhaseId);
+	MB_UNUSED_PARAMETER(prelinkPhaseId);
+	MB_UNUSED_PARAMETER(prebuildPhaseId);
+	MB_UNUSED_PARAMETER(resourcesPhaseId);
+	MB_UNUSED_PARAMETER(frameworksPhaseId);
+	MB_UNUSED_PARAMETER(sourcePhaseId);
+	MB_UNUSED_PARAMETER(outputType);
+
     std::string configId =
         Strings::Uuid(24, { rootUuid, "PBXFileReference", "BuildTarget", projectName });
     
 	PlistNode& targetNode = 
 		root.Node("%s", id.c_str());
 
-    if (language == ELanguage::Cpp)
-    {
-        targetNode.Node("isa").Value("PBXNativeTarget");
-    }
-    if (language == ELanguage::CSharp)
-    {
-        targetNode.Node("isa").Value("PBXLegacyTarget");
-        targetNode.Node("buildArgumentsString").Value("\"-f%s.Makefile config=$(CONFIGURATION) $(ACTION)\"", projectName.c_str());
-    }
+    targetNode.Node("isa").Value("PBXLegacyTarget");
+    targetNode.Node("buildArgumentsString").Value("\"-f%s.Makefile config=$(CONFIGURATION) $(ACTION)\"", projectName.c_str());
     
 	targetNode.Node("buildConfigurationList").Value("%s", configListId.c_str()); 
 	
     PlistNode& buildPhaseNode =
         targetNode.Array("buildPhases");
     
-    if (language == ELanguage::Cpp)
-    {
-		buildPhaseNode.Node("").Value("%s", prebuildPhaseId.c_str());
-        buildPhaseNode.Node("").Value("%s", resourcesPhaseId.c_str());
-        buildPhaseNode.Node("").Value("%s", sourcePhaseId.c_str());
-		buildPhaseNode.Node("").Value("%s", prelinkPhaseId.c_str());
-        buildPhaseNode.Node("").Value("%s", frameworksPhaseId.c_str());
-		buildPhaseNode.Node("").Value("%s", postbuildPhaseId.c_str());
-    
-        targetNode.Array("buildRules");
-    }
-    if (language == ELanguage::CSharp)
-    {
-        targetNode.Node("buildToolPath").Value("/usr/bin/make");
-        targetNode.Node("buildWorkingDirectory").Value("\"$(SOURCE_ROOT)\"");
-    }
+	MB_UNUSED_PARAMETER(buildPhaseNode);
+
+    targetNode.Node("buildToolPath").Value("/usr/bin/make");
+    targetNode.Node("buildWorkingDirectory").Value("\"$(SOURCE_ROOT)\"");
     
     if (dependencies.size() > 0)
     {
@@ -559,18 +549,9 @@ void XCode_ProjectFile::Write_PBXNativeTarget(
     
 	targetNode.Node("name").Value("%s", projectName.c_str());
 
-    if (language == ELanguage::CSharp)
-    {
-        targetNode.Node("passBuildSettingsInEnvironment").Value("1");
-    }
+    targetNode.Node("passBuildSettingsInEnvironment").Value("1");
 
 	targetNode.Node("productName").Value("%s", projectName.c_str());
-    
-    if (language == ELanguage::Cpp)
-    {
-        targetNode.Node("productReference").Value("%s", configId.c_str());
-        targetNode.Node("productType").Value("\"%s\"", ProductTypeFromOutput(outputType).c_str());
-    }
 }
 
 void XCode_ProjectFile::Write_XCBuildConfigurationList_Project(
@@ -1264,18 +1245,15 @@ bool XCode_ProjectFile::Generate(
 	root.Node("rootObject").Value("%s", projectId.c_str());
 
     // If we are a C# project, we also need to generate the makefile which will call mono to compile.
-    if (projectFile.Get_Project_Language() == ELanguage::CSharp)
-    {
-        Make_CsProjectFile makeFile;
+    Make_ProjectFile makeFile;
 
-        if (!makeFile.Generate(
-            databaseFile,
-            workspaceFile,
-            projectFile,
-            buildMatrix))
-        {
-            return false;
-        }
+    if (!makeFile.Generate(
+        databaseFile,
+        workspaceFile,
+        projectFile,
+        buildMatrix))
+    {
+        return false;
     }
 
 	// Generate result.

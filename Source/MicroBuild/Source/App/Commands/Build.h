@@ -26,7 +26,7 @@ namespace MicroBuild {
 
 class App;
 
-// Builds the project files that have previously been generated.
+// Invokes the internal build tool to build the given project in a workspace.
 class BuildCommand : public Command
 {
 public:
@@ -40,6 +40,8 @@ private:
 
 	WorkspaceFile m_workspaceFile;
 	Platform::Path m_workspaceFilePath;
+
+	std::string m_projectName;
 
 	std::string m_configuration;
 	std::string m_platform;

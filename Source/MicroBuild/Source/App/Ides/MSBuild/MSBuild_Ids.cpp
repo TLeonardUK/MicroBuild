@@ -51,6 +51,10 @@ std::string GetPlatformID(EPlatform platform)
 		{
 			return "ARM64";
 		}
+		case EPlatform::HTML5:
+		{
+			return "HTML5";
+		}
 		/*
 		case EPlatform::PS4:
 		{
@@ -95,12 +99,14 @@ std::string GetPlatformDotNetTarget(EPlatform platform)
 	}
 }
 
-std::string GetProjectTypeGuid(ELanguage language, bool bUsingInternalBuildTool)
+std::string GetProjectTypeGuid(ELanguage languag)
 {
-	if (bUsingInternalBuildTool)
-	{
+	MB_UNUSED_PARAMETER(languag);
+
+	/*if (bUsingInternalBuildTool)
+	{*/
 		return k_GuidCppProject;
-	}
+	/*}
 	else
 	{
 		switch (language)
@@ -112,7 +118,7 @@ std::string GetProjectTypeGuid(ELanguage language, bool bUsingInternalBuildTool)
 		default:
 			return "";
 		}
-	}
+	}*/
 }
 
 }; // namespace MSBuild

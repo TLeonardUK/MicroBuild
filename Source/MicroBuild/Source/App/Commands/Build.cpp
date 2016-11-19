@@ -20,9 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "App/App.h"
 #include "App/Ides/IdeType.h"
+#include "App/Ides/IdeHelper.h"
 #include "App/Commands/Clean.h"
 #include "App/Commands/Build.h"
 #include "Schemas/Database/DatabaseFile.h"
+
+#include "App/Builder/Builder.h"
 
 #include "Core/Commands/CommandLineParser.h"
 #include "Core/Commands/CommandComboArgument.h"
@@ -39,8 +42,8 @@ BuildCommand::BuildCommand(App* app)
 {
 	SetName("build");
 	SetShortName("b");
-	SetDescription("Builds the project files that have previously been "
-				   "generated.");
+	SetDescription("Builds the given project that has been generated "
+				   "using the internal build tool.");
 
 	CommandPathArgument* workspaceFile = new CommandPathArgument();
 	workspaceFile->SetName("WorkspaceFile");
@@ -53,6 +56,15 @@ BuildCommand::BuildCommand(App* app)
 	workspaceFile->SetPositional(true);
 	workspaceFile->SetOutput(&m_workspaceFilePath);
 	RegisterArgument(workspaceFile);
+
+	CommandStringArgument* projectFile = new CommandStringArgument();
+	projectFile->SetName("ProjectFile");
+	projectFile->SetShortName("j");
+	projectFile->SetDescription("The name of the project to build.");
+	projectFile->SetRequired(true);
+	projectFile->SetPositional(true);
+	projectFile->SetOutput(&m_projectName);
+	RegisterArgument(projectFile);
 
 	CommandFlagArgument* rebuild = new CommandFlagArgument();
 	rebuild->SetName("Rebuild");
@@ -94,6 +106,8 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 
 	Time::TimedScope timingScope;
 
+	EPlatform platformId = CastFromString<EPlatform>(m_platform);
+
 	// Load the workspace.
 	std::vector<Platform::Path> includePaths;
 	includePaths.push_back(m_workspaceFilePath.GetDirectory());
@@ -101,12 +115,25 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 	if (m_workspaceFile.Parse(m_workspaceFilePath, includePaths))
 	{
 		m_workspaceFile.Resolve();
-
 		if (!m_workspaceFile.Validate())
 		{
 			return false;
 		}
+		
+		// Fire plugin events!
+		{
+			PluginPostProcessWorkspaceFileData eventData;
+			eventData.File = &m_workspaceFile;
+			m_app->GetPluginManager()->OnEvent(EPluginEvent::PostProcessWorkspaceFile, &eventData);
 
+			// Reresolve in case it was changed.
+			m_workspaceFile.Resolve();
+			if (!m_workspaceFile.Validate())
+			{
+				return false;
+			}
+		}
+	
 		if (!m_workspaceFile.IsConfigurationValid(m_configuration, m_platform))
 		{
 			Log(LogSeverity::Fatal,
@@ -122,46 +149,92 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 			m_workspaceFile.Get_Workspace_Location()
 			.AppendFragment("workspace.mb", true);
 
-		// If database already exists then clean the workspace.
+		// If database already exists then build the workspace.
 		if (databaseFileLocation.Exists())
 		{
 			DatabaseFile databaseFile(databaseFileLocation, "");
 
 			if (databaseFile.Read())
 			{
-				// Ask IDE we originally tided up to clean up any build artifacts.
-				IdeType* type = m_app->GetIdeByShortName(databaseFile.Get_Target_IDE());
-				if (type == nullptr)
-				{
-					Log(LogSeverity::Fatal,
-						"Could not find original target ide for workspace '%s'.\n",
-						databaseFile.Get_Target_IDE().c_str());
+				// Load all projects.
+				std::vector<Platform::Path> projectPaths =
+					m_workspaceFile.Get_Projects_Project();
 
-					return false;
+				std::vector<ProjectFile> projectFiles;
+				projectFiles.resize(projectPaths.size());
+
+				ProjectFile* buildProjectFile = nullptr;
+
+				for (unsigned int i = 0; i < projectPaths.size(); i++)
+				{
+					std::vector<Platform::Path> subIncludePaths;
+					subIncludePaths.push_back(projectPaths[i].GetDirectory());
+					subIncludePaths.insert(
+						subIncludePaths.end(),
+						includePaths.begin(), includePaths.end()
+					);
+
+					if (projectFiles[i].Parse(projectPaths[i], subIncludePaths))
+					{
+						projectFiles[i].Merge(m_workspaceFile);
+						projectFiles[i].Set_Target_Configuration(m_configuration);
+						projectFiles[i].Set_Target_Platform(platformId);
+						projectFiles[i].Set_Target_PlatformName(IdeHelper::ResolvePlatformName(platformId));
+						projectFiles[i].Set_Target_MicroBuildExecutable(Platform::Path::GetExecutablePath());
+						projectFiles[i].Set_Target_IDE(databaseFile.Get_Target_IDE());
+						projectFiles[i].Resolve();
+
+						if (!projectFiles[i].Validate())
+						{
+							return false;
+						}
+					
+						// Fire plugin events!
+						{
+							PluginPostProcessProjectFileData eventData;
+							eventData.File = &projectFiles[i];
+							m_app->GetPluginManager()->OnEvent(EPluginEvent::PostProcessProjectFile, &eventData);
+
+							// Reresolve in case it was changed.
+							projectFiles[i].Resolve();
+							if (!projectFiles[i].Validate())
+							{
+								return false;
+							}
+						}
+
+						if (projectFiles[i].Get_Project_Name() == m_projectName)
+						{
+							buildProjectFile = &projectFiles[i];
+						}
+					}
+				}
+
+				if (buildProjectFile != nullptr)
+				{					
+					std::vector<ProjectFile*> configProjectFiles;	
+					for (unsigned int i = 0; i < projectFiles.size(); i++)
+					{
+						configProjectFiles.push_back(&projectFiles[i]);
+					}
+
+					if (!IdeHelper::UpdateAutoLinkDependencies(m_workspaceFile, configProjectFiles))
+					{
+						return false;
+					}
+
+					Builder builder(m_app);
+					if (builder.Build(m_workspaceFile, *buildProjectFile, m_rebuild))
+					{
+						return true;
+					}
 				}
 				else
 				{
-					if (!type->Build(
-						m_workspaceFile,
-						m_rebuild,
-						m_configuration,
-						m_platform,
-                        databaseFile
-					))
-					{
-						Log(LogSeverity::Warning,
-							"Failed to build workspace.\n",
-							databaseFileLocation.ToString().c_str());
-
-						return false;
-					}
-					else
-					{
-						Log(LogSeverity::Info, "Finished building in %.2f ms.\n",
-							timingScope.GetElapsed());
-
-						return true;
-					}
+					Log(LogSeverity::Fatal,
+						"Failed to find project '%s' in workspace.",
+						m_projectName.c_str());
+					return false;
 				}
 			}
 			else
@@ -176,7 +249,7 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 		else
 		{
 			Log(LogSeverity::Info,
-				"Workspace database does not exist, nothing to build.\n",
+				"Workspace database does not exist, nothing to clean.\n",
 				databaseFileLocation.ToString().c_str());
 
 			return true;

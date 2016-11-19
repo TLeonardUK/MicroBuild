@@ -32,10 +32,10 @@ private:
 	ProjectFile& m_projectFile;
 	Toolchain* m_toolchain;
 	BuilderFileInfo& m_file;
-	BuilderFileInfo& m_pchFile;
+	BuilderFileInfo m_pchFile;
 
 public:
-	CompileTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& file, BuilderFileInfo& pchFile);
+	CompileTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& file, BuilderFileInfo pchFile);
 
 	virtual bool Execute() override;
 

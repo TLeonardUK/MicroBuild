@@ -24,7 +24,51 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Parallel/Jobs/JobScheduler.h"
 
 namespace MicroBuild {
+
+// Stage of the build process where a given task is executed. Each stage
+// is executed sequentially, tasks within each stage can run in parallel.
+enum class BuildStage
+{
+	// Run before all else, executes any toolchain commands that need
+	// to be executed before the build gets started.
+	PreBuild,
+
+	// Same as PreBuild, but runs commands the user has defined in the
+	// project configuration.
+	PreBuildUser,
+
+	// Precompiled headers are generated during this stage.
+	PchCompile,
+
+	// Massively parallel stage, during this stage all source files
+	// are converted to object files.
+	Compile,
+
+	// Run before the link, executes any toolchain commands that need
+	// to be executed before the link gets started.
+	PreLink,
 	
+	// Same as PreLink, but runs commands the user has defined in the
+	// project configuration.
+	PreLinkUser,
+	
+	// During this stage object files generated during the compile phase 
+	// are linked together into a final output file.
+	Link,
+	
+	// Same as PostBuild, but runs commands the user has defined in the
+	// project configuration.
+	PostBuildUser,
+	
+	// Run before the link, executes any toolchain commands that need
+	// to be executed after the build finishes.
+	PostBuild,
+
+	COUNT
+};	
+
+//MicrosoftGenerateManifestTask
+
 // Base task for all internal builder tasks.
 class BuildTask
 {
@@ -33,7 +77,19 @@ private:
 	int m_jobIndex;
 	int m_totalJobs;
 
+	BuildStage m_stage;
+	bool m_bCanRunInParallel;
+
 public:
+	BuildTask(BuildStage stage, bool bCanRunInParallel);
+
+	// Gets the state during which this task is executed.
+	BuildStage GetBuildState();
+
+	// If true this task can be run in parallel during its build state. If false, 
+	// it will get queued up with all other synchronous tasks and executed one
+	// at a time at the end of the phase.
+	bool CanRunInParallel();
 
 	// Entrey point for the task, returns true on success, false on failure.
 	virtual bool Execute() = 0;

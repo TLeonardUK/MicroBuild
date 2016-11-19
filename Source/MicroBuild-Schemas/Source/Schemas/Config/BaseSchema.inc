@@ -38,8 +38,26 @@ START_ENUM(EPlatform)
 	ENUM_KEY(ARM)
 	ENUM_KEY(ARM64)
 
+	ENUM_KEY(WinRT_x86)
+	ENUM_KEY(WinRT_x64)
+	ENUM_KEY(WinRT_ARM)
+	ENUM_KEY(WinRT_ARM64)
+
 	// Web platforms
 	ENUM_KEY(HTML5)
+
+	// Mobile platforms
+	ENUM_KEY(iOS)
+	ENUM_KEY(Android)
+
+	// Console platforms
+	ENUM_KEY(PS3)
+	ENUM_KEY(PS4)
+	ENUM_KEY(PSVita)
+	ENUM_KEY(Xbox360)	
+	ENUM_KEY(XboxOne)	
+	ENUM_KEY(NintendoWiiU)
+	ENUM_KEY(Nintendo3DS)
 
     // DotNet Specific
 	ENUM_KEY(AnyCPU)
@@ -50,23 +68,6 @@ START_ENUM(EPlatform)
     ENUM_KEY(Universal64)
     ENUM_KEY(Universal)
 
-/*
-	ENUM_KEY(iOS)
-	ENUM_KEY(Android)
-	
-	ENUM_KEY(PS4)
-	ENUM_KEY(XboxOne)
-	
-	ENUM_KEY(WiiU)
-	ENUM_KEY(Nintendo3DS)
-*/
-END_ENUM()
-
-// Super not sure if this is the best way to handle this? Might be a better
-// idea to have this as a part of one of the other enums (x86_WinRT?).
-START_ENUM(EPlatformSubSystem)
-	ENUM_KEY(Native)
-	ENUM_KEY(WinRT)
 END_ENUM()
 
 START_ENUM(ELanguage)
@@ -157,6 +158,32 @@ START_OPTION(
 	Target,
 	Configuration,
 	"Automatically defined to the configuration of project file currently being generated."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	Target,
+	ExeExtension,
+	"Automatically defined to the default executable extension of the target platform."
+)
+END_OPTION()
+
+START_OPTION(
+	std::string,
+	Target,
+	StaticLibExtension,
+	"Automatically defined to the default static library extension of target platform."
+)
+END_OPTION()
+
+START_OPTION(
+	std::string,
+	Target,
+	DynamicLibExtension,
+	"Automatically defined to the default dynamic library extension of target platform."
 )
 END_OPTION()
 

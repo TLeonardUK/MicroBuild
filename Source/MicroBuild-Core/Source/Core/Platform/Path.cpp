@@ -1462,5 +1462,58 @@ bool Path::Matches(const Path& other, Path* matched)
 	return true;
 }
 
+bool Path::FindFile(const std::string& filename, Platform::Path& result)
+{
+	std::vector<Platform::Path> dirs;
+	return FindFile(filename, result, dirs);
+}
+
+bool Path::FindFile(const std::string& filename, Platform::Path& result, std::vector<Platform::Path> additionalDirs)
+{
+	std::string pathEnv = Platform::GetEnvironmentVariable("PATH");
+	
+#if defined(MB_PLATFORM_WINDOWS)
+	std::vector<std::string> pathDirs = Strings::Split(';', pathEnv);
+#else
+	std::vector<std::string> pathDirs = Strings::Split(':', pathEnv);
+#endif
+
+	for (Platform::Path& path : additionalDirs)
+	{
+		pathDirs.insert(pathDirs.begin(), path.ToString());
+	}
+
+	// Look for explicit match
+	for (Platform::Path path : pathDirs)
+	{
+		Platform::Path location = path.AppendFragment(filename, true);
+		if (location.Exists())
+		{
+			result = location;
+			return true;
+		}
+	}
+
+	// If no extension given, try and match any file with the same basename.
+	if (filename.find('.') == std::string::npos)
+	{
+		for (Platform::Path path : pathDirs)
+		{
+			for (std::string& file : path.GetFiles())
+			{
+				Platform::Path location = path.AppendFragment(file, true);
+				if (location.Exists() & location.GetBaseName() == filename)
+				{
+					result = location;
+					return true;
+				}
+
+			}
+		}
+	}
+
+	return false;
+}
+
 }; // namespace Platform
 }; // namespace MicroBuild

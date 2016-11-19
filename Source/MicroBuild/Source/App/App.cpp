@@ -26,9 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Commands/Help.h"
 #include "App/Commands/Version.h"
 
-#include "App/Commands/IbtBuild.h"
-#include "App/Commands/IbtClean.h"
-
 #include "App/Ides/IdeType.h"
 
 #include "App/Ides/MSBuild/Versions/VisualStudio_2015.h"
@@ -38,6 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Config/ConfigFile.h"
 #include "Core/Helpers/Time.h"
 #include "Core/Helpers/Strings.h"
+#include "Core/Helpers/Image.h"
+
+#include "FreeImage.h"
 
 // x86
 // x64
@@ -72,6 +72,8 @@ App::App(int argc, char* argv[])
 {
 	Platform::Path::SetExecutablePath(argv[0]);
 
+	FreeImage_Initialise(false);
+
 	m_ides.push_back(new Ide_VisualStudio_2015());
 	m_ides.push_back(new Ide_Make());
 	m_ides.push_back(new Ide_XCode());
@@ -82,8 +84,6 @@ App::App(int argc, char* argv[])
 	m_commandLineParser.RegisterCommand(new CleanCommand(this));
 	m_commandLineParser.RegisterCommand(new HelpCommand(this));
 	m_commandLineParser.RegisterCommand(new VersionCommand(this));
-	m_commandLineParser.RegisterCommand(new IbtBuildCommand(this));
-	m_commandLineParser.RegisterCommand(new IbtCleanCommand(this));
 }
 
 App::~App()
@@ -95,6 +95,8 @@ App::~App()
 		delete type;
 	}
 	m_ides.clear();
+	
+	FreeImage_DeInitialise();
 }
 
 

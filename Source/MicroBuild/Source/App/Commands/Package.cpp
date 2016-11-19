@@ -134,34 +134,6 @@ bool PackageCommand::Invoke(CommandLineParser* parser)
 			{
 				EPlatform platformId = CastFromString<EPlatform>(m_platform);
 
-				// Ask IDE we originally tided up to clean up any build artifacts.
-				IdeType* type = m_app->GetIdeByShortName(databaseFile.Get_Target_IDE());
-				if (type == nullptr)
-				{
-					Log(LogSeverity::Fatal,
-						"Could not find original target ide for workspace '%s'.\n",
-						databaseFile.Get_Target_IDE().c_str());
-
-					return false;
-				}
-				else
-				{
-					if (!type->Build(
-						m_workspaceFile,
-						m_rebuild,
-						m_configuration,
-						m_platform,
-                        databaseFile
-					))
-					{
-						Log(LogSeverity::Warning,
-							"Failed to build workspace.\n",
-							databaseFileLocation.ToString().c_str());
-
-						return false;
-					}
-				}
-
 				// Base configuration.
 				m_workspaceFile.Set_Target_IDE(databaseFile.Get_Target_IDE());
 				m_workspaceFile.Set_Target_Configuration(m_configuration);

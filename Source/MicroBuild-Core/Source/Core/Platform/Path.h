@@ -198,6 +198,11 @@ public:
 	// Sets the current executable directory.
 	static void SetExecutablePath(const Path& other);
 
+	// Finds the first file with the given filename in the environment path variable and any
+	// additional directories given.
+	static bool FindFile(const std::string& filename, Path& result);
+	static bool FindFile(const std::string& filename, Path& result, std::vector<Platform::Path> additionalDirs);
+
 	// Returns the part of the path following the common path that is
 	// has been obtained from GetCommonPath.
 	Path GetUncommonPath(Path& commonPath);

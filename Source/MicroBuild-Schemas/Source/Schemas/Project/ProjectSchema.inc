@@ -46,7 +46,10 @@ START_ENUM(EPlatformToolset)
 	ENUM_KEY(Default)
 
 	// MSBuild
-	ENUM_KEY(v140)
+	ENUM_KEY(MSBuild_v140)
+
+	// XCode	
+	ENUM_KEY(XCode)
 
 	// DotNet
 	ENUM_KEY(DotNet_2_0)
@@ -214,19 +217,6 @@ START_OPTION(
 )
 OPTION_RULE_DEFAULT(ELanguageVersion::Default)
 END_OPTION()
-
-// ---------------------------------------------------------------------------
-
-START_OPTION(
-	EPlatformSubSystem,
-	Project,
-	Subsystem,
-	"Determines what platform subsystem should be compiled against "
-	"(winrt/native/etc)."
-)
-OPTION_RULE_DEFAULT(EPlatformSubSystem::Native)
-END_OPTION()
-
 
 // ---------------------------------------------------------------------------
 
@@ -576,62 +566,6 @@ END_OPTION()
 
 
 // ---------------------------------------------------------------------------
-// WinRT
-// ---------------------------------------------------------------------------
-
-START_OPTION(
-	std::string,
-	WinRT,
-	Locale,
-	"Determines the default locale of the project (used for app packaging)."
-)
-OPTION_RULE_DEFAULT(std::string("en-US"))
-END_OPTION()
-
-// ---------------------------------------------------------------------------
-
-START_OPTION(
-	std::string,
-	WinRT,
-	PlatformVersion,
-	"Version of the platform to compile for. Mainly used for WinRT."
-)
-OPTION_RULE_DEFAULT(std::string("10.0.10586.0"))
-END_OPTION()
-
-// ---------------------------------------------------------------------------
-
-START_OPTION(
-	std::string,
-	WinRT,
-	PlatformMinimumVersion,
-	"Minimum version of the platform this project should compile for. "
-	"Mainly used for WinRT."
-)
-OPTION_RULE_DEFAULT(std::string("10.0.10240.0"))
-END_OPTION()
-
-// ---------------------------------------------------------------------------
-
-START_OPTION(
-	Platform::Path,
-	WinRT,
-	PackageSigningKey,
-	"Path to signing key to use when build app packages."
-)
-END_OPTION()
-
-// ---------------------------------------------------------------------------
-
-START_OPTION(
-	Platform::Path,
-	WinRT,
-	Manifest,
-	"Path to the package manifest file."
-)
-END_OPTION()
-
-// ---------------------------------------------------------------------------
 // Package References
 // ---------------------------------------------------------------------------
 START_KEY_VALUE_ARRAY_OPTION(
@@ -668,3 +602,86 @@ START_ARRAY_OPTION(
 	"Commands to run after building."
 )
 END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+// Product Info
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	ProductInfo,
+	Domain,
+	"Domain name for the company producing the product in the format Domain.TLD, "
+	"this is used to generate bundle identifiers on platforms that require them."
+)
+OPTION_RULE_DEFAULT(std::string("Unknown.com"))
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	ProductInfo,
+	Company,
+	"Name of company that makes this product."
+)
+OPTION_RULE_DEFAULT(std::string(""))
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	ProductInfo,
+	Description,
+	"Short description of this product."
+)
+OPTION_RULE_DEFAULT(std::string(""))
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	ProductInfo,
+	Name,
+	"Short name of this product."
+)
+OPTION_RULE_DEFAULT(std::string(""))
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	ProductInfo,
+	Version,
+	"Version number of this product. It's suggested to use semantic versioning."
+)
+OPTION_RULE_DEFAULT(std::string("1.0.0.0"))
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	std::string,
+	ProductInfo,
+	Copyright,
+	"Copyright string used for executable information."
+)
+OPTION_RULE_DEFAULT(std::string(""))
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_ARRAY_OPTION(
+	Platform::Path,
+	ProductInfo,
+	Icon,
+	"Path to an icon for the product, in as high a resolution as possible. This "
+	"icon will be downsampled and converted into whatever format the platlform requires. Multiple "
+	"icons can be provided if you want different ones for specific sizes."
+)
+END_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------

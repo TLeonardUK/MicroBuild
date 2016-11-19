@@ -31,10 +31,10 @@ class CompilePchTask
 private:
 	ProjectFile& m_projectFile;
 	Toolchain* m_toolchain;
-	BuilderFileInfo& m_file;
+	BuilderFileInfo m_file;
 
 public:
-	CompilePchTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& file);
+	CompilePchTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file);
 
 	virtual bool Execute() override;
 

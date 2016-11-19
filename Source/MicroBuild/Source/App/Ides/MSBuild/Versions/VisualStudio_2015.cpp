@@ -26,7 +26,7 @@ Ide_VisualStudio_2015::Ide_VisualStudio_2015()
 	SetShortName("vs2015");
 	SetHeaderShortName("Visual Studio 2015");
 	SetHeaderVersion("12.0");
-	SetDefaultToolset(EPlatformToolset::v140);
+	SetDefaultToolset(EPlatformToolset::MSBuild_v140);
 	SetDefaultToolsetString("14.0");
 	SetMSBuildVersion(MSBuildVersion::Version12);
 }

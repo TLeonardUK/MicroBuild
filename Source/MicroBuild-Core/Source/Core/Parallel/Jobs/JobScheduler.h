@@ -31,7 +31,20 @@ namespace MicroBuild {
 // in the job scheduler.
 struct JobHandle
 {
+public:
+	JobHandle()
+		: Index(-1)
+		, Version(-1)
+	{
+	}
+
+	bool IsValid()
+	{
+		return Index >= 0 && Version >= 0;
+	}
+
 private:
+
 	friend class JobScheduler;
 
 	int Index;

@@ -75,19 +75,6 @@ START_OPTION(
 )
 END_OPTION()
 
-START_OPTION(
-	bool,
-	Workspace,
-	UseInternalBuildTool,
-	"If true all projects will invoke the internal build tool in microbuild "
-	"rather than the built-in build tool the target IDE uses. This is mainly used "
-	"by plugins that need extra control over how the project is built. "
-)
-OPTION_RULE_DEFAULT(false)
-END_OPTION()
-
-// ---------------------------------------------------------------------------
-
 // ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------

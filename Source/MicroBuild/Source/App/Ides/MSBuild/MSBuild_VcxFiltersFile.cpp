@@ -20,7 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Ides/MSBuild/MSBuild_VcxFiltersFile.h"
 #include "App/Ides/MSBuild/MSBuild.h"
 #include "App/Ides/MSBuild/MSBuild_Ids.h"
-#include "App/Ides/MSBuild/MSBuild_VcxProjectFile.h"
 #include "Core/Helpers/TextStream.h"
 #include "Core/Helpers/XmlNode.h"
 #include "Core/Helpers/JsonNode.h"

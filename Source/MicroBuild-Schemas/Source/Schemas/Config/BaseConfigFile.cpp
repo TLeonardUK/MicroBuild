@@ -56,6 +56,62 @@ void BaseConfigFile::Resolve()
 
 #endif
 
+	// Target settings.
+	switch (Get_Target_Platform())
+	{
+	// Web platforms
+	case EPlatform::HTML5:
+	{
+		Set_Target_ExeExtension(".js");
+		Set_Target_StaticLibExtension(".bc");
+		Set_Target_DynamicLibExtension(".bc");
+		break;
+	}
+	
+    // Desktop Platforms
+	case EPlatform::x86:
+	case EPlatform::x64:
+	case EPlatform::ARM:
+	case EPlatform::ARM64:
+	case EPlatform::WinRT_x86:
+	case EPlatform::WinRT_x64:
+	case EPlatform::WinRT_ARM:
+	case EPlatform::WinRT_ARM64:
+		// Fallthrough
+
+	// Mobile platforms
+	case EPlatform::iOS:
+	case EPlatform::Android:
+		// Fallthrough
+
+	// Console platforms
+	case EPlatform::PS3:
+	case EPlatform::PS4:
+	case EPlatform::PSVita:
+	case EPlatform::Xbox360:	
+	case EPlatform::XboxOne:
+	case EPlatform::NintendoWiiU:
+	case EPlatform::Nintendo3DS:
+		// Fallthrough
+
+    // DotNet Specific
+	case EPlatform::AnyCPU:
+		// Fallthrough
+
+    // MacOS Bundles
+    case EPlatform::Native:
+    case EPlatform::Universal86:
+    case EPlatform::Universal64:
+	case EPlatform::Universal:
+	default:		
+		{
+			Set_Target_ExeExtension(Get_Host_ExeExtension());
+			Set_Target_StaticLibExtension(Get_Host_StaticLibExtension());
+			Set_Target_DynamicLibExtension(Get_Host_DynamicLibExtension());
+			break;
+		}
+	}
+
 	// Store and use a base timestamp.
 	static time_t s_baseTime;
 	static bool s_timeSet = false;

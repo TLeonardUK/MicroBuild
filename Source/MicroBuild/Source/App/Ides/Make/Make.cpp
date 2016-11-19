@@ -18,8 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Ides/Make/Make.h"
-#include "App/Ides/Make/Make_CsProjectFile.h"
-#include "App/Ides/Make/Make_CppProjectFile.h"
+#include "App/Ides/Make/Make_ProjectFile.h"
 #include "App/Ides/Make/Make_SolutionFile.h"
 #include "Core/Helpers/TextStream.h"
 #include "Core/Platform/Process.h"
@@ -33,109 +32,6 @@ Ide_Make::Ide_Make()
 
 Ide_Make::~Ide_Make()
 {
-}
-
-bool Ide_Make::Clean(
-	WorkspaceFile& workspaceFile,
-    DatabaseFile& databaseFile)
-{
-    MB_UNUSED_PARAMETER(databaseFile);
-
-	Platform::Path solutionDirectory =
-		workspaceFile.Get_Workspace_Location();
-
-	Platform::Path solutionLocation =
-		solutionDirectory.AppendFragment("Makefile", true);
-
-	std::stringstream commandLine;
-	commandLine << "make";
-	commandLine << " -f" << Strings::Quoted(solutionLocation.GetFilename()).c_str();
-	commandLine << " clean";
-
-	std::vector<std::string> arguments;
-	arguments.push_back("-c");
-	arguments.push_back(commandLine.str());
-
-	Platform::Process process;
-	if (process.Open("/bin/sh", solutionDirectory, arguments, false))
-	{
-		process.Wait();
-
-		int exitCode = process.GetExitCode();
-		if (exitCode == 0)
-		{
-			return true;
-		}
-		else
-		{
-			Log(LogSeverity::Fatal, "make failed with exit code %i.\n", exitCode);
-			return false;
-		}
-	}
-	else
-	{
-		Log(LogSeverity::Fatal, "Failed to start msbuild process.\n");
-		return false;
-	}
-
-	return false;
-}
-
-bool Ide_Make::Build(
-	WorkspaceFile& workspaceFile,
-	bool bRebuild,
-	const std::string& configuration,
-	const std::string& platform,
-    DatabaseFile& databaseFile)
-{
-    MB_UNUSED_PARAMETER(databaseFile);
-
-	Platform::Path solutionDirectory =
-		workspaceFile.Get_Workspace_Location();
-
-	Platform::Path solutionLocation =
-		solutionDirectory.AppendFragment("Makefile", true);
-
-    if (bRebuild)
-    {
-        if (!Clean(workspaceFile, databaseFile))
-        {
-            return false;
-        }
-    }
-
-	std::stringstream commandLine;
-	commandLine << "make";
-	commandLine << " -f" << Strings::Quoted(solutionLocation.GetFilename()).c_str();
-	commandLine << " config=" << configuration.c_str() << "_" << platform.c_str();
-
-	std::vector<std::string> arguments;
-	arguments.push_back("-c");
-	arguments.push_back(commandLine.str());
-
-	Platform::Process process;
-	if (process.Open("/bin/sh", solutionDirectory, arguments, false))
-	{
-		process.Wait();
-
-		int exitCode = process.GetExitCode();
-		if (exitCode == 0)
-		{
-			return true;
-		}
-		else
-		{
-			Log(LogSeverity::Fatal, "make failed with exit code %i.\n", exitCode);
-			return false;
-		}
-	}
-	else
-	{
-		Log(LogSeverity::Fatal, "Failed to start msbuild process.\n");
-		return false;
-	}
-
-	return false;
 }
 
 bool Ide_Make::Generate(
@@ -152,45 +48,15 @@ bool Ide_Make::Generate(
 	int index = 0;
 	for (ProjectFile& file : projectFiles)
 	{
-		switch (file.Get_Project_Language())
+		Make_ProjectFile projectFile;
+
+		if (!projectFile.Generate(
+			databaseFile,
+			workspaceFile,
+			file,
+			matrix[index]))
 		{
-		case ELanguage::Cpp:
-			{
-				Make_CppProjectFile projectFile;
-
-				if (!projectFile.Generate(
-					databaseFile,
-					workspaceFile,
-					file,
-					matrix[index]))
-				{
-					return false;
-				}
-
-				break;
-			}
-		case ELanguage::CSharp:
-			{
-				Make_CsProjectFile projectFile;
-
-				if (!projectFile.Generate(
-					databaseFile,
-					workspaceFile,
-					file,
-					matrix[index]))
-				{
-					return false;
-				}
-
-				break;
-			}
-		default:
-			{
-				file.ValidateError(
-					"Language '%s' is not valid for make projects.",
-					CastToString(file.Get_Project_Language()).c_str());
-				return false;
-			}
+			return false;
 		}
 
 		index++;

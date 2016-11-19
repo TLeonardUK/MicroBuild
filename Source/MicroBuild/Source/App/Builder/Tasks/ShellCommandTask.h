@@ -32,7 +32,7 @@ private:
 	std::string m_command;
 
 public:
-	ShellCommandTask(const std::string& command);
+	ShellCommandTask(BuildStage stage, const std::string& command);
 
 	virtual bool Execute() override;
 

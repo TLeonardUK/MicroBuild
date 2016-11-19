@@ -24,6 +24,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+BuilderFileInfo::BuilderFileInfo()
+	: Hash(0)
+	, bOutOfDate(false)
+{
+}
+
 bool BuilderFileInfo::LoadManifest()
 {
 	ConfigFile file;
@@ -70,20 +76,18 @@ bool BuilderFileInfo::StoreManifest()
 	return file.Serialize(ManifestPath);
 }
 
-uint64_t BuilderFileInfo::CalculateFileHash(const Platform::Path& path)
+uint64_t BuilderFileInfo::CalculateFileHash(const Platform::Path& path, uint64_t configurationHash)
 {
-	uint64_t hash = 0;
-
-	hash = path.GetModifiedTime();
-	hash = Strings::Hash64(path.ToString(), hash);
-	
-	return hash;
+	configurationHash = Strings::Hash64(Strings::Format("%llu", path.GetModifiedTime()), configurationHash);
+	configurationHash = Strings::Hash64(path.ToString(), configurationHash);	
+	return configurationHash;
 }
 
-bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info)
+bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info, uint64_t configurationHash, bool bNoIntermediateFiles)
 {
-	if (!info.ManifestPath.Exists() ||
-		!info.OutputPath.Exists())
+	if (!bNoIntermediateFiles && 
+		(!info.ManifestPath.Exists() ||
+		 !info.OutputPath.Exists()))
 	{
 		info.bOutOfDate = true;
 	}
@@ -91,7 +95,7 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info)
 	{
 		uint64_t currentHash = info.Hash;
 
-		if (!info.LoadManifest())
+		if (!bNoIntermediateFiles && !info.LoadManifest())
 		{
 			info.bOutOfDate = true;
 		}
@@ -104,7 +108,7 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info)
 		{
 			for (const BuilderDependencyInfo& dependencyInfo : info.Dependencies)
 			{
-				uint64_t dependencyHash = CalculateFileHash(dependencyInfo.SourcePath);
+				uint64_t dependencyHash = CalculateFileHash(dependencyInfo.SourcePath, configurationHash);
 
 				if (!dependencyInfo.SourcePath.Exists() ||
 					 dependencyInfo.Hash != dependencyHash)
@@ -122,7 +126,9 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info)
 std::vector<BuilderFileInfo> BuilderFileInfo::GetMultipleFileInfos(
 	const std::vector<Platform::Path>& paths,
 	Platform::Path rootDirectory,
-	Platform::Path outputDirectory
+	Platform::Path outputDirectory,
+	uint64_t configurationHash,
+	bool bNoIntermediateFiles
 )
 {
 	std::vector<BuilderFileInfo> result;
@@ -135,10 +141,10 @@ std::vector<BuilderFileInfo> BuilderFileInfo::GetMultipleFileInfos(
 		Platform::Path relativePath = rootDirectory.RelativeTo(path);
 		assert(relativePath.IsRelative());
 
-		info.OutputPath				= outputDirectory.AppendFragment(path.ChangeExtension("o").GetFilename(), true);
+		info.OutputPath			= outputDirectory.AppendFragment(path.ChangeExtension("o").GetFilename(), true);
 		info.ManifestPath			= info.OutputPath.ChangeExtension("build.manifest");
 		info.bOutOfDate				= false;
-		info.Hash					= CalculateFileHash(info.SourcePath);
+		info.Hash					= CalculateFileHash(info.SourcePath, configurationHash);
 
 		Platform::Path baseDirectory = info.OutputPath.GetDirectory();
 		if (!baseDirectory.Exists())
@@ -146,7 +152,7 @@ std::vector<BuilderFileInfo> BuilderFileInfo::GetMultipleFileInfos(
 			baseDirectory.CreateAsDirectory();
 		}
 
-		info.bOutOfDate = CheckOutOfDate(info);
+		info.bOutOfDate = CheckOutOfDate(info, configurationHash, bNoIntermediateFiles);
 
 		result.push_back(info);
 	}

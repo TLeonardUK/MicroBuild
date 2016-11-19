@@ -39,6 +39,8 @@ struct BuilderFileInfo
 {
 public:
 
+	BuilderFileInfo();
+
 	// Source file of header the metadata is generated from.
 	Platform::Path						SourcePath;
 
@@ -67,18 +69,20 @@ public:
 
 	// Calculates the state-hash for a given file. Used to figure
 	// out of a file is stale and needs regenerating.
-	static uint64_t CalculateFileHash(const Platform::Path& path);
+	static uint64_t CalculateFileHash(const Platform::Path& path, uint64_t configurationHash);
 
 	// Goes through a list of source files an generates an array of FileInfo
 	// structures for them using the given properties.
 	static std::vector<BuilderFileInfo> GetMultipleFileInfos(
 		const std::vector<Platform::Path>& paths,
 		Platform::Path rootDirectory,
-		Platform::Path outputDirectory
+		Platform::Path outputDirectory,
+		uint64_t configurationHash,
+		bool bNoIntermediateFiles
 	);
 
 	// Checks if a given file info is out of date.
-	static bool CheckOutOfDate(BuilderFileInfo& file);
+	static bool CheckOutOfDate(BuilderFileInfo& file, uint64_t configurationHash, bool bNoIntermediateFiles);
 };
 
 }; // namespace MicroBuild

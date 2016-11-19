@@ -23,8 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-CompileTask::CompileTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& file, BuilderFileInfo& pchFile)
-	: m_projectFile(project)
+CompileTask::CompileTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& file, BuilderFileInfo pchFile)
+	: BuildTask(BuildStage::Compile, true)
+	, m_projectFile(project)
 	, m_file(file)
 	, m_pchFile(pchFile)
 	, m_toolchain(toolchain)

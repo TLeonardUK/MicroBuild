@@ -21,7 +21,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Builder/Tasks/BuildTask.h"
 
 namespace MicroBuild {
+	
+BuildTask::BuildTask(BuildStage stage, bool bCanRunInParallel)
+	: m_stage(stage)
+	, m_bCanRunInParallel(bCanRunInParallel)
+{
+}
 
+BuildStage BuildTask::GetBuildState()
+{
+	return m_stage;
+}
+
+bool BuildTask::CanRunInParallel()
+{
+	return m_bCanRunInParallel;
+}
+	
 int BuildTask::GetTaskThreadId()
 {
 	return m_threadId;
@@ -51,12 +67,20 @@ void BuildTask::TaskLog(LogSeverity Severity, const char* format, ...)
 	std::string message = Strings::FormatVa(format, list);
 	va_end(list);
 
+	/*
 	Log(Severity, "[%i] (%4i/%4i) %s", 
 		GetTaskThreadId(), 
 		m_jobIndex,
 		m_totalJobs,
 		message.c_str()
-	);	
+	);
+	*/
+	
+	Log(Severity, "(%4i/%4i) %s", 
+		m_jobIndex,
+		m_totalJobs,
+		message.c_str()
+	);
 }
 
 }; // namespace MicroBuild

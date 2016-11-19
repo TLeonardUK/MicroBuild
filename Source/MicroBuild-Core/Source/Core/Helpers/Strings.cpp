@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Helpers/Strings.h"
 
 #include <algorithm>
+#include <cctype>
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
@@ -309,7 +310,7 @@ std::string Trim(const std::string& input)
 	size_t startIndex = 0;
 	while (startIndex < input.size())
 	{
-		if (input[startIndex] == ' ' || input[startIndex] == '\t')
+		if (std::isspace(input[startIndex]))//input[startIndex] == ' ' || input[startIndex] == '\t')
 		{
 			startIndex++;
 		}
@@ -322,7 +323,7 @@ std::string Trim(const std::string& input)
 	size_t endIndex = input.size() - 1;
 	while (endIndex >= startIndex)
 	{
-		if (input[endIndex] == ' ' || input[endIndex] == '\t')
+		if (std::isspace(input[endIndex]))// input[endIndex] == ' ' || input[endIndex] == '\t')
 		{
 			endIndex--;
 		}

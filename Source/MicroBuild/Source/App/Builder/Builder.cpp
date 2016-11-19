@@ -22,13 +22,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Builder/BuilderFileInfo.h"
 
 #include "App/Builder/Toolchains/Toolchain.h"
-#include "App/Builder/Toolchains/Toolchain_Clang.h"
-#include "App/Builder/Toolchains/Toolchain_DotNet.h"
-#include "App/Builder/Toolchains/Toolchain_Gcc.h"
-#include "App/Builder/Toolchains/Toolchain_Mono.h"
-#include "App/Builder/Toolchains/Toolchain_Microsoft.h"
-#include "App/Builder/Toolchains/Toolchain_XCode.h"
-#include "App/Builder/Toolchains/Toolchain_Emscripten.h"
+#include "App/Builder/Toolchains/Cpp/Clang/Toolchain_Clang.h"
+#include "App/Builder/Toolchains/Cpp/Gcc/Toolchain_Gcc.h"
+#include "App/Builder/Toolchains/Cpp/Microsoft/Toolchain_Microsoft.h"
+#include "App/Builder/Toolchains/Cpp/XCode/Toolchain_XCode.h"
+#include "App/Builder/Toolchains/Cpp/Emscripten/Toolchain_Emscripten.h"
+#include "App/Builder/Toolchains/Cpp/AndroidNdk/Toolchain_AndroidNdk.h"
+#include "App/Builder/Toolchains/Cpp/Playstation3/Toolchain_Playstation3.h"
+#include "App/Builder/Toolchains/Cpp/Playstation4/Toolchain_Playstation4.h"
+#include "App/Builder/Toolchains/Cpp/PlaystationVita/Toolchain_PlaystationVita.h"
+#include "App/Builder/Toolchains/Cpp/Xbox360/Toolchain_Xbox360.h"
+#include "App/Builder/Toolchains/Cpp/XboxOne/Toolchain_XboxOne.h"
+#include "App/Builder/Toolchains/Cpp/Nintendo3ds/Toolchain_Nintendo3ds.h"
+#include "App/Builder/Toolchains/Cpp/NintendoWiiU/Toolchain_NintendoWiiU.h"
+
+#include "App/Builder/Toolchains/CSharp/DotNet/Toolchain_DotNet.h"
+#include "App/Builder/Toolchains/CSharp/Mono/Toolchain_Mono.h"
 
 #include "App/Builder/Tasks/ArchiveTask.h"
 #include "App/Builder/Tasks/CompileTask.h"
@@ -44,8 +53,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 Builder::Builder(App* app)
-	: m_project(nullptr)
-	, m_bRebuild(false)
+	: m_bRebuild(false)
 	, m_app(app)
 {
 }
@@ -54,8 +62,9 @@ Builder::~Builder()
 {
 }
 
-bool Builder::Clean(ProjectFile& project)
+bool Builder::Clean(WorkspaceFile& workspaceFile, ProjectFile& project)
 {
+	MB_UNUSED_PARAMETER(workspaceFile);
 	MB_UNUSED_PARAMETER(project);
 
 	Log(LogSeverity::SilentInfo, "Cleaning: %s (%s_%s)\n", 
@@ -134,11 +143,11 @@ JobHandle Builder::QueueTask(
 	return handle;
 }
 
-bool Builder::Build(ProjectFile& project, bool bRebuild)
+bool Builder::Build(WorkspaceFile& workspaceFile, ProjectFile& project, bool bRebuild)
 {	
 	if (bRebuild)
 	{
-		if (!Clean(project))
+		if (!Clean(workspaceFile, project))
 		{
 			return false;
 		}
@@ -152,6 +161,15 @@ bool Builder::Build(ProjectFile& project, bool bRebuild)
 		CastToString(project.Get_Target_Platform()).c_str(),
 		Platform::GetConcurrencyFactor()
 	);
+
+	// The configuration hash is used to figure out if configuration changes should
+	// require file rebuilds.
+	uint64_t configurationHash = 0;
+	configurationHash = Strings::Hash64(project.Get_Target_Configuration(), configurationHash);
+	configurationHash = Strings::Hash64(CastToString(project.Get_Target_Platform()), configurationHash);
+	configurationHash = Strings::Hash64(project.Get_Project_Location().ToString(), configurationHash);
+	configurationHash = Strings::Hash64(Strings::Format("%llu", project.Get_Project_File().GetModifiedTime()), configurationHash);
+	configurationHash = Strings::Hash64(Strings::Format("%llu", workspaceFile.Get_Workspace_File().GetModifiedTime()), configurationHash);
 
 	// Make sure output directories exists.
 	Platform::Path outDir = project.Get_Project_OutputDirectory();
@@ -196,15 +214,16 @@ bool Builder::Build(ProjectFile& project, bool bRebuild)
 	}
 
 	// Find the toolchain we need to build.
-	Toolchain* toolchain = GetToolchain(project);
+	Toolchain* toolchain = GetToolchain(project, configurationHash);
 	if (!toolchain)
 	{
 		Log(LogSeverity::Fatal, "No toolchain available to compile '%s'.\n", project.Get_Project_Name().c_str());
 		return false;
 	}
-	if (!toolchain->IsAvailable())
+
+	if (!toolchain->Init())
 	{
-		Log(LogSeverity::Fatal, "Toolchain not available to compile '%s', are you sure its installed?\n", project.Get_Project_Name().c_str());
+		Log(LogSeverity::Fatal, "Toolchain not available to compile '%s', are you sure its installed?\nIf it is installed and in a non-default dictionary, please make sure its findable through the PATH environment variable.", project.Get_Project_Name().c_str());
 		return false;
 	}
 
@@ -213,19 +232,13 @@ bool Builder::Build(ProjectFile& project, bool bRebuild)
 
 	// Setup scheduler and create main task to parent all build tasks to.
 	JobScheduler scheduler(Platform::GetConcurrencyFactor());
-	JobHandle preCompileJob = scheduler.CreateJob();
-	JobHandle pchCompileJob = scheduler.CreateJob();
-	JobHandle compileJob = scheduler.CreateJob();
-	JobHandle preLinkJob = scheduler.CreateJob();
-	JobHandle linkJob = scheduler.CreateJob();
-	JobHandle postBuildJob = scheduler.CreateJob();
 	bool bBuildFailed = false;
 	JobHandle previousCommandHandle;
 
 	// Run the pre-build commands syncronously in case they update plugin source state.
 	for (auto& command : project.Get_PreBuildCommands_Command())
 	{
-		std::shared_ptr<ShellCommandTask> task = std::make_shared<ShellCommandTask>(command);
+		std::shared_ptr<ShellCommandTask> task = std::make_shared<ShellCommandTask>(BuildStage::PreBuildUser, command);
 		if (!task->Execute())
 		{
 			bBuildFailed = true;
@@ -250,7 +263,9 @@ bool Builder::Build(ProjectFile& project, bool bRebuild)
 	std::vector<BuilderFileInfo> fileInfos = BuilderFileInfo::GetMultipleFileInfos(
 		sourceFiles,	
 		rootDir, 
-		outputDir
+		outputDir,
+		configurationHash,
+		!toolchain->RequiresCompileStep()
 	);
 	
 	bool bUpToDate = true;
@@ -271,7 +286,7 @@ bool Builder::Build(ProjectFile& project, bool bRebuild)
 	outputFile.OutputPath			= project.Get_Project_OutputDirectory().AppendFragment(Strings::Format("%s%s", project.Get_Project_OutputName().c_str(), project.Get_Project_OutputExtension().c_str()), true);
 	outputFile.ManifestPath			= project.Get_Project_IntermediateDirectory().AppendFragment(Strings::Format("%s.target.build.manifest", project.Get_Project_Name().c_str()), true);
 	outputFile.Hash					= 0;
-	outputFile.bOutOfDate			= BuilderFileInfo::CheckOutOfDate(outputFile);
+	outputFile.bOutOfDate			= BuilderFileInfo::CheckOutOfDate(outputFile, configurationHash, false);
 
 	if (outputFile.bOutOfDate)
 	{
@@ -294,87 +309,112 @@ bool Builder::Build(ProjectFile& project, bool bRebuild)
 		std::atomic<int> currentJobIndex = 0;
 		int totalJobs = 0;
 
-		// Skip all individual builds if we are not multi-pass.
-		if (toolchain->RequiresCompileStep())
-		{
-			// Do we have a precompiled header? If so compile that first.
-			Platform::Path precompiledSourcePath = project.Get_Build_PrecompiledSource();
-			BuilderFileInfo precompiledSourceFile;
-			bool bPrecompiledSourceFileFound = false;
-			for (auto iter = fileInfos.begin(); iter != fileInfos.end(); iter++)
-			{
-				BuilderFileInfo& file = *iter;
-				if (file.SourcePath == precompiledSourcePath)
-				{
-					// Remove precompiled source file from the list as we want to compile it seperately.
-					bPrecompiledSourceFileFound = true;
-					precompiledSourceFile = file;
-					fileInfos.erase(iter);
-					break;
-				}
-			}
-
-			if (bPrecompiledSourceFileFound)
-			{
-				if (precompiledSourceFile.bOutOfDate)
-				{
-					std::shared_ptr<CompilePchTask> task = std::make_shared<CompilePchTask>(toolchain, project, precompiledSourceFile);
-					QueueTask(scheduler, pchCompileJob, &preCompileJob, task, bBuildFailed, &totalJobs, &currentJobIndex);
-				}
-			}
-
-			// General build tasks for each translation unit.
-			for (auto& file : fileInfos)
-			{
-				if (file.bOutOfDate)
-				{
-					std::shared_ptr<CompileTask> task = std::make_shared<CompileTask>(toolchain, project, file, precompiledSourceFile);
-					QueueTask(scheduler, compileJob, &pchCompileJob, task, bBuildFailed, &totalJobs, &currentJobIndex);
-				}
-			}
-		}
-	
-		previousCommandHandle = compileJob;
-		for (auto& command : project.Get_PreLinkCommands_Command())
-		{
-			std::shared_ptr<ShellCommandTask> task = std::make_shared<ShellCommandTask>(command);
-			previousCommandHandle = QueueTask(scheduler, preLinkJob, &previousCommandHandle, task, bBuildFailed, nullptr, nullptr);
-		}
-
-		// Generate a final link task for all the object files.
-		if (project.Get_Project_OutputType() == EOutputType::StaticLib)
-		{
-			std::shared_ptr<ArchiveTask> archiveTask = std::make_shared<ArchiveTask>(fileInfos, toolchain, project, outputFile);
-			QueueTask(scheduler, linkJob, &preLinkJob, archiveTask, bBuildFailed, &totalJobs, &currentJobIndex);
-		}
-		else
-		{
-			std::shared_ptr<LinkTask> linkTask = std::make_shared<LinkTask>(fileInfos, toolchain, project, outputFile);
-			QueueTask(scheduler, linkJob, &preLinkJob, linkTask, bBuildFailed, &totalJobs, &currentJobIndex);
-		}
-
-		// Queue any postbuild commands.
-		previousCommandHandle = linkJob;
-		for (auto& command : project.Get_PostBuildCommands_Command())
-		{
-			std::shared_ptr<ShellCommandTask> task = std::make_shared<ShellCommandTask>(command);
-			previousCommandHandle = QueueTask(scheduler, postBuildJob, &previousCommandHandle, task, bBuildFailed, nullptr, nullptr);
-		}
-
-		// Chain tasks together, enqueue and wait for result!
+		// We have one global job that each build stage is a child of.		
 		JobHandle hostJob = scheduler.CreateJob();
-		scheduler.AddDependency(hostJob, preCompileJob);
-		scheduler.AddDependency(hostJob, pchCompileJob);
-		scheduler.AddDependency(hostJob, compileJob);
-		scheduler.AddDependency(hostJob, preLinkJob);
-		scheduler.AddDependency(hostJob, linkJob);
-		scheduler.AddDependency(hostJob, postBuildJob);
 
-		scheduler.AddDependency(pchCompileJob, preCompileJob);
-		scheduler.AddDependency(compileJob, pchCompileJob);
-		scheduler.AddDependency(preLinkJob, compileJob);
-		scheduler.AddDependency(linkJob, preLinkJob);
-		scheduler.AddDependency(postBuildJob, linkJob);
+		// Create host jobs for each build stage.
+		std::vector<JobHandle> buildStageHostJobs;
+		for (int i = 0; i < (int)BuildStage::COUNT; i++)
+		{
+			JobHandle job = scheduler.CreateJob();
+
+			// Host job is always dependent on the previous one executing.
+			if (i > 0)
+			{
+				scheduler.AddDependency(job, buildStageHostJobs[i - 1]);
+			}
+
+			scheduler.AddDependency(hostJob, job);
+
+			buildStageHostJobs.push_back(job);
+		}
+
+		// Gets all the tasks required to build the project.
+		std::vector<std::shared_ptr<BuildTask>> tasks = toolchain->GetTasks(fileInfos, configurationHash, outputFile);
+
+		// Register individual tasks for each build stage.
+		for (int i = 0; i < (int)BuildStage::COUNT; i++)
+		{
+			JobHandle stageJob = buildStageHostJobs[i];
+
+			std::vector<std::shared_ptr<BuildTask>> parallelTasks;
+			std::vector<std::shared_ptr<BuildTask>> sequentialTasks;
+
+			for (auto& task : tasks)
+			{
+				if (task->GetBuildState() == (BuildStage)i)
+				{
+					if (task->CanRunInParallel())
+					{
+						parallelTasks.push_back(task);
+					}
+					else
+					{
+						sequentialTasks.push_back(task);
+					}
+				}
+			}
+
+			// Register parallel tasks first.
+			JobHandle parallelGorupJob = scheduler.CreateJob();
+			if (i > 0)
+			{
+				scheduler.AddDependency(parallelGorupJob, buildStageHostJobs[i - 1]);
+			}
+			scheduler.AddDependency(stageJob, parallelGorupJob);
+
+			for (auto& task : parallelTasks)
+			{
+				JobHandle* parentJob = nullptr;
+				if (i > 0)
+				{
+					parentJob = &buildStageHostJobs[i - 1];
+				}
+
+				QueueTask(
+					scheduler, 
+					parallelGorupJob, 
+					parentJob, 
+					task, 
+					bBuildFailed, 
+					&totalJobs, 
+					&currentJobIndex
+				);
+			}
+
+			// Register sequential tasks after.
+			JobHandle previousSequentialTask;
+
+			for (auto& task : sequentialTasks)
+			{
+				JobHandle* parentJob = nullptr;
+				if (i > 0)
+				{
+					parentJob = &buildStageHostJobs[i - 1];
+				}
+
+				JobHandle taskJobHandle = QueueTask(
+					scheduler, 
+					stageJob, 
+					parentJob, 
+					task, 
+					bBuildFailed, 
+					&totalJobs, 
+					&currentJobIndex
+				);
+
+				// Dependent on all parallel tasks finishing.
+				scheduler.AddDependency(taskJobHandle, parallelGorupJob);
+
+				// Also dependent on the previous task finishing.
+				if (previousSequentialTask.IsValid())
+				{
+					scheduler.AddDependency(taskJobHandle, previousSequentialTask);
+				}
+
+				previousSequentialTask = taskJobHandle;
+			}
+		}
 
 		scheduler.Enqueue(hostJob);
 		scheduler.Wait(hostJob);
@@ -402,7 +442,7 @@ bool Builder::Build(ProjectFile& project, bool bRebuild)
 	return true;
 }
 
-Toolchain* Builder::GetToolchain(ProjectFile& project)
+Toolchain* Builder::GetToolchain(ProjectFile& project, uint64_t configurationHash)
 {
 	switch (project.Get_Project_Language())
 	{
@@ -410,42 +450,145 @@ Toolchain* Builder::GetToolchain(ProjectFile& project)
 		{
 			switch (project.Get_Target_Platform())
 			{
+
+			// Desktop Platforms
 			case EPlatform::x86:
 			case EPlatform::x64:
 			case EPlatform::ARM:
 			case EPlatform::ARM64:
-				{				
-#if defined(MB_PLATFORM_WINDOWS)
-					return new Toolchain_Microsoft(project);
-#elif defined(MB_PLATFORM_LINUX) 
+				{								
 					if (project.Get_Build_PlatformToolset() == EPlatformToolset::Clang)
 					{
-						return new Toolchain_Clang(project);
+						return new Toolchain_Clang(project, configurationHash);
 					}
-					else
+					else if (project.Get_Build_PlatformToolset() == EPlatformToolset::GCC)
 					{
-						return new Toolchain_Gcc(project);
+						return new Toolchain_Gcc(project, configurationHash);
 					}
-#elif defined(MB_PLATFORM_MACOS)
-					return new Toolchain_XCode(project);
+#if defined(MB_PLATFORM_WINDOWS)
+					else if (project.Get_Build_PlatformToolset() == EPlatformToolset::MSBuild_v140)
+					{
+						return new Toolchain_Microsoft(project, configurationHash);
+					}
 #endif
+#if defined(MB_PLATFORM_MACOS)
+					else if (project.Get_Build_PlatformToolset() == EPlatformToolset::XCode)
+					{
+						return new Toolchain_XCode(project, configurationHash);
+					}
+#endif
+					else if (project.Get_Build_PlatformToolset() == EPlatformToolset::Default)
+					{							
+#if defined(MB_PLATFORM_WINDOWS) 
+						return new Toolchain_Microsoft(project, configurationHash);
+#elif defined(MB_PLATFORM_LINUX) 
+						return new Toolchain_Clang(project, configurationHash);
+#elif defined(MB_PLATFORM_MACOS)
+						return new Toolchain_XCode(project, configurationHash);
+#endif
+					}
 					break;
 				}
+			
+			case EPlatform::WinRT_x86:
+			case EPlatform::WinRT_x64:
+			case EPlatform::WinRT_ARM:
+			case EPlatform::WinRT_ARM64:
+				{						
+#if defined(MB_PLATFORM_WINDOWS)
+					return new Toolchain_Microsoft(project, configurationHash);
+#else
+					break;
+#endif
+				}
 
+			// Web Platforms			
+			case EPlatform::HTML5:
+				{
+					return new Toolchain_Emscripten(project, configurationHash);
+				}
+
+			// Mobile Platforms
+			case EPlatform::iOS:
+				{					
+#if defined(MB_PLATFORM_WINDOWS)
+					return new Toolchain_XCode(project, configurationHash);
+#else
+					break;
+#endif
+				}
+			case EPlatform::Android:
+				{
+					return new Toolchain_AndroidNdk(project, configurationHash);
+				}
+
+			// Console Platforms
+			case EPlatform::PS3:
+				{		
+#if defined(MB_PLATFORM_WINDOWS)
+					return new Toolchain_Playstation3(project, configurationHash);
+#else
+					break;
+#endif
+				}
+			case EPlatform::PS4:
+				{
+#if defined(MB_PLATFORM_WINDOWS)
+					return new Toolchain_Playstation4(project, configurationHash);
+#else
+					break;
+#endif
+				}
+			case EPlatform::PSVita:
+				{
+#if defined(MB_PLATFORM_WINDOWS)
+					return new Toolchain_PlaystationVita(project, configurationHash);
+#else
+					break;
+#endif
+				}
+			case EPlatform::Xbox360:
+				{
+#if defined(MB_PLATFORM_WINDOWS)
+					return new Toolchain_Xbox360(project, configurationHash);
+#else
+					break;
+#endif
+				}
+			case EPlatform::XboxOne:
+				{
+#if defined(MB_PLATFORM_WINDOWS)
+					return new Toolchain_XboxOne(project, configurationHash);
+#else
+					break;
+#endif
+				}
+			case EPlatform::NintendoWiiU:
+				{
+#if defined(MB_PLATFORM_WINDOWS)
+					return new Toolchain_NintendoWiiU(project, configurationHash);
+#else
+					break;
+#endif
+				}
+			case EPlatform::Nintendo3DS:
+				{
+#if defined(MB_PLATFORM_WINDOWS)
+					return new Toolchain_Nintendo3ds(project, configurationHash);
+#else
+					break;
+#endif
+				}
+
+			// MacOS Bundles
 			case EPlatform::Native:
 			case EPlatform::Universal86:
 			case EPlatform::Universal64:
 			case EPlatform::Universal:
 				{
 #if defined(MB_PLATFORM_MACOS)
-					return new Toolchain_XCode(project);
+					return new Toolchain_XCode(project, configurationHash);
 #endif
-					break;
-				}
-
-			case EPlatform::HTML5:
-				{
-					return new Toolchain_Emscripten(project);
 					break;
 				}
 			}		
@@ -461,12 +604,30 @@ Toolchain* Builder::GetToolchain(ProjectFile& project)
 			case EPlatform::ARM:
 			case EPlatform::ARM64:
 			case EPlatform::AnyCPU:
-				{
+				{		
+					if (project.Get_Build_PlatformToolset() == EPlatformToolset::DotNet_2_0 ||
+						project.Get_Build_PlatformToolset() == EPlatformToolset::DotNet_3_0 ||
+						project.Get_Build_PlatformToolset() == EPlatformToolset::DotNet_3_5 ||
+						project.Get_Build_PlatformToolset() == EPlatformToolset::DotNet_4_0 ||
+						project.Get_Build_PlatformToolset() == EPlatformToolset::DotNet_4_5 ||
+						project.Get_Build_PlatformToolset() == EPlatformToolset::DotNet_4_5_1 ||
+						project.Get_Build_PlatformToolset() == EPlatformToolset::DotNet_4_5_2 ||
+						project.Get_Build_PlatformToolset() == EPlatformToolset::DotNet_4_6)
+					{
+						return new Toolchain_DotNet(project, configurationHash);
+					}
+					else if (project.Get_Build_PlatformToolset() == EPlatformToolset::Mono)
+					{
+						return new Toolchain_Mono(project, configurationHash);
+					}
+					else if (project.Get_Build_PlatformToolset() == EPlatformToolset::Default)
+					{				
 #if defined(MB_PLATFORM_WINDOWS)
-					return new Toolchain_DotNet(project);
+						return new Toolchain_DotNet(project, configurationHash);
 #elif defined(MB_PLATFORM_LINUX) || defined(MB_PLATFORM_MACOS)
-					return new Toolchain_Mono(project);
+						return new Toolchain_Mono(project, configurationHash);
 #endif
+					}
 					break;
 				}
 			}		

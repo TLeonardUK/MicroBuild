@@ -40,35 +40,4 @@ void IdeType::SetShortName(const std::string& value)
 	m_shortName = value;
 }
 
-
-bool IdeType::Clean(WorkspaceFile& workspaceFile,
-    DatabaseFile& databaseFile)
-{
-	MB_UNUSED_PARAMETER(workspaceFile);
-	MB_UNUSED_PARAMETER(databaseFile);
-
-	// Unimplemented.
-
-	return true;
-}
-
-bool IdeType::Build(
-	WorkspaceFile& workspaceFile,
-	bool bRebuild,
-	const std::string& configuration,
-	const std::string& platform,
-    DatabaseFile& databaseFile
-)
-{
-	MB_UNUSED_PARAMETER(workspaceFile);
-	MB_UNUSED_PARAMETER(bRebuild);
-	MB_UNUSED_PARAMETER(configuration);
-	MB_UNUSED_PARAMETER(platform);
-	MB_UNUSED_PARAMETER(databaseFile);
-
-	// Unimplemented.
-
-	return true;
-}
-
 } // namespace MicroBuild

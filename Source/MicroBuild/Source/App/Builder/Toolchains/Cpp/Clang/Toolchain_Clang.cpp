@@ -1,0 +1,86 @@
+/*
+MicroBuild
+Copyright (C) 2016 TwinDrills
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+#include "PCH.h"
+#include "App/Builder/Toolchains/Cpp/Clang/Toolchain_Clang.h"
+#include "Core/Platform/Process.h"
+
+namespace MicroBuild {
+
+Toolchain_Clang::Toolchain_Clang(ProjectFile& file, uint64_t configurationHash)
+	: Toolchain_Gcc(file, configurationHash)
+{
+}
+
+bool Toolchain_Clang::Init() 
+{
+	m_bAvailable = FindToolchain();
+	m_bRequiresCompileStep = true;
+	m_description = Strings::Format("Clang (%s)", m_version.c_str());	
+	return m_bAvailable;
+}
+
+bool Toolchain_Clang::FindToolchain()
+{
+	std::vector<Platform::Path> additionalDirs;
+
+#if defined(MB_PLATFORM_WINDOWS)
+	additionalDirs.push_back("C:/Program Files/LLVM/bin");
+#endif
+
+	if (!Platform::Path::FindFile("clang++", m_compilerPath, additionalDirs))
+	{
+		return false;
+	}
+
+	if (!Platform::Path::FindFile("llvm-ar", m_archiverPath, additionalDirs))
+	{
+		return false;
+	}
+	
+	m_linkerPath = m_compilerPath;
+
+	Platform::Process process;
+
+	std::vector<std::string> args;
+	args.push_back("--version");
+	if (!process.Open(m_compilerPath, m_compilerPath.GetDirectory(), args, true))
+	{
+		return false;
+	}
+
+	m_version = "Unknown Version";
+
+	std::vector<std::string> lines = Strings::Split('\n', process.ReadToEnd());
+	if (lines.size() > 0)
+	{
+		std::string versionLine = lines[0];
+		std::vector<std::string> split = Strings::Split(' ', versionLine);
+		if (split.size() >= 3)
+		{
+			m_version = split[2];
+		}
+	}	
+
+	// todo: On windows we need to figure out appropriate include/library directories from visual studio / mingw, given clang 
+	//		 does not correctly find them itself, but does on other platforms -_-.
+
+	return true;
+}
+
+}; // namespace MicroBuild
