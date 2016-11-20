@@ -77,11 +77,13 @@ private:
 	int m_jobIndex;
 	int m_totalJobs;
 
+	bool m_bGiveJobIndex;
+
 	BuildStage m_stage;
 	bool m_bCanRunInParallel;
 
 public:
-	BuildTask(BuildStage stage, bool bCanRunInParallel);
+	BuildTask(BuildStage stage, bool bCanRunInParallel, bool bGiveJobIndex);
 
 	// Gets the state during which this task is executed.
 	BuildStage GetBuildState();
@@ -90,6 +92,11 @@ public:
 	// it will get queued up with all other synchronous tasks and executed one
 	// at a time at the end of the phase.
 	bool CanRunInParallel();
+	
+	// If we should assing this task a job index for progression tracking, 
+	// only false for tasks we explicitly do not want to log to the user,
+	// such as shell commands.
+	bool ShouldGiveJobIndex();
 
 	// Entrey point for the task, returns true on success, false on failure.
 	virtual bool Execute() = 0;

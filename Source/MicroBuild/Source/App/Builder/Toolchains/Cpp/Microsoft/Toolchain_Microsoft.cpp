@@ -26,11 +26,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Helpers/TextStream.h"
 
 #include <sstream>
+#include <stdio.h>
 
 namespace MicroBuild {
 	
-Toolchain_Microsoft::Toolchain_Microsoft(ProjectFile& file, uint64_t configurationHash)
+Toolchain_Microsoft::Toolchain_Microsoft(ProjectFile& file, uint64_t configurationHash, bool bUseDefaultToolchain)
 	: Toolchain(file, configurationHash)
+	, m_bUseDefaultToolchain(bUseDefaultToolchain)
 {
 }
 
@@ -45,7 +47,13 @@ bool Toolchain_Microsoft::Init()
 
 bool Toolchain_Microsoft::FindToolchain()
 {
-	switch (m_projectFile.Get_Build_PlatformToolset())
+	EPlatformToolset toolset = m_projectFile.Get_Build_PlatformToolset();
+	if (m_bUseDefaultToolchain)
+	{
+		toolset = EPlatformToolset::Default;
+	}
+
+	switch (toolset)
 	{
 	case EPlatformToolset::Default:
 		// Fallthrough
@@ -427,11 +435,8 @@ void Toolchain_Microsoft::GetBaseCompileArguments(std::vector<std::string>& args
 
 void Toolchain_Microsoft::GetPchCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
-	Platform::Path outputPdb = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), ".pdb"), true);
-
-	Platform::Path pchPath = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("pch").GetFilename(), true);
+	Platform::Path outputPdb = GetPdbPath();
+	Platform::Path pchPath = GetPchPath();
 	
 	// Emit debug info to the appropriate PDB.
 	args.push_back(Strings::Format("/Fd%s", Strings::Quoted(outputPdb.ToString()).c_str()));
@@ -452,11 +457,8 @@ void Toolchain_Microsoft::GetPchCompileArguments(const BuilderFileInfo& file, st
 
 void Toolchain_Microsoft::GetSourceCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
-	Platform::Path outputPdb = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), ".pdb"), true);
-	
-	Platform::Path pchPath = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("pch").GetFilename(), true);
+	Platform::Path outputPdb = GetPdbPath();
+	Platform::Path pchPath = GetPchPath();
 
 	std::string pchFilename = m_projectFile.Get_Build_PrecompiledHeader().GetFilename();
 
@@ -483,20 +485,11 @@ void Toolchain_Microsoft::GetSourceCompileArguments(const BuilderFileInfo& file,
 
 void Toolchain_Microsoft::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args)
 {
-	Platform::Path outputPath = m_projectFile.Get_Project_OutputDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str()), true);
-	
-	Platform::Path pchPath = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("pch").GetFilename(), true);
-	
-	Platform::Path pchObjectPath = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("o").GetFilename(), true);
-
-	Platform::Path versionInfoObjectPath = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(Strings::Format("%s_VersionInfo.generated.o", m_projectFile.Get_Project_Name().c_str()), true);
-
-	Platform::Path outputPdb = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), ".pdb"), true);
+	Platform::Path outputPath = GetOutputPath();	
+	Platform::Path pchPath = GetPchPath();	
+	Platform::Path pchObjectPath = GetPchObjectPath();
+	Platform::Path versionInfoObjectPath = GetVersionInfoObjectPath();
+	Platform::Path outputPdb = GetPdbPath();
 	
 	args.push_back("/ERRORREPORT:NONE");
 	args.push_back("/MANIFEST");
@@ -620,19 +613,11 @@ void Toolchain_Microsoft::GetLinkArguments(const std::vector<BuilderFileInfo>& s
 
 void Toolchain_Microsoft::GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args)
 {
-	Platform::Path outputPath = m_projectFile.Get_Project_OutputDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str()), true);
-	
-	Platform::Path pchPath = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("pch").GetFilename(), true);
-	
-	Platform::Path pchObjectPath = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("o").GetFilename(), true);
-
-	Platform::Path outputPdb = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), ".pdb"), true);
+	Platform::Path outputPath = GetOutputPath();	
+	Platform::Path pchPath = GetPchPath();
+	Platform::Path pchObjectPath = GetPchObjectPath();
+	Platform::Path outputPdb = GetPdbPath();
 		
-
 	args.push_back(Strings::Format("/OUT:%s", Strings::Quoted(outputPath.ToString()).c_str()));	
 	
 	args.push_back("/NOLOGO");	
@@ -745,10 +730,8 @@ bool Toolchain_Microsoft::Archive(std::vector<BuilderFileInfo>& files, BuilderFi
 	}
 	
 	// Copy PDB to output.	
-	Platform::Path intPdb = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), ".pdb"), true);
-	Platform::Path outPdb = m_projectFile.Get_Project_OutputDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), ".pdb"), true);
+	Platform::Path intPdb = GetPdbPath();
+	Platform::Path outPdb = GetOutputPdbPath();
 		
 	if (!intPdb.Copy(outPdb))
 	{
@@ -767,10 +750,8 @@ bool Toolchain_Microsoft::Link(std::vector<BuilderFileInfo>& files, BuilderFileI
 	}
 	
 	// Copy PDB to output.	
-	Platform::Path intPdb = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), ".pdb"), true);
-	Platform::Path outPdb = m_projectFile.Get_Project_OutputDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), ".pdb"), true);
+	Platform::Path intPdb = GetPdbPath();
+	Platform::Path outPdb = GetOutputPdbPath();
 		
 	if (!intPdb.Copy(outPdb))
 	{
@@ -781,11 +762,9 @@ bool Toolchain_Microsoft::Link(std::vector<BuilderFileInfo>& files, BuilderFileI
 	return true;
 }
 
-bool Toolchain_Microsoft::CompileVersionInfo(BuilderFileInfo& fileInfo) 
-{	
-	Platform::Path iconPath = fileInfo.OutputPath.ChangeExtension("ico");
-	Platform::Path rcScriptPath = fileInfo.OutputPath.ChangeExtension("rc");
 
+bool Toolchain_Microsoft::CreateVersionInfoScript(Platform::Path iconPath, Platform::Path rcScriptPath)
+{
 	// Convert icon png into icon file format.	
 	Image::Ptr icon = Image::CreateIcon(m_projectFile.Get_ProductInfo_Icon());
 	if (!icon || !icon->Save(iconPath))
@@ -848,6 +827,19 @@ bool Toolchain_Microsoft::CompileVersionInfo(BuilderFileInfo& fileInfo)
 	if (!stream.WriteToFile(rcScriptPath))
 	{
 		Log(LogSeverity::Fatal, "Failed to create resource script file at '%s'.", rcScriptPath.ToString().c_str());
+		return false;
+	}
+
+	return true;
+}
+
+bool Toolchain_Microsoft::CompileVersionInfo(BuilderFileInfo& fileInfo) 
+{	
+	Platform::Path iconPath = fileInfo.OutputPath.ChangeExtension("ico");
+	Platform::Path rcScriptPath = fileInfo.OutputPath.ChangeExtension("rc");
+
+	if (!CreateVersionInfoScript(iconPath, rcScriptPath))
+	{
 		return false;
 	}
 

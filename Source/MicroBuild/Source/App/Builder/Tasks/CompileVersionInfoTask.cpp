@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 CompileVersionInfoTask::CompileVersionInfoTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file)
-	: BuildTask(BuildStage::PreBuild, true)
+	: BuildTask(BuildStage::PreBuild, true, true)
 	, m_projectFile(project)
 	, m_file(file)
 	, m_toolchain(toolchain)

@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 ArchiveTask::ArchiveTask(std::vector<BuilderFileInfo>& sourceFiles, Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& outputFile)
-	: BuildTask(BuildStage::Link, true)
+	: BuildTask(BuildStage::Link, true, true)
 	, m_projectFile(project)
 	, m_toolchain(toolchain)
 	, m_sourceFiles(sourceFiles)

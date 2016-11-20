@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Builder/Toolchains/Cpp/Clang/Toolchain_Clang.h"
+#include "App/Builder/Toolchains/Cpp/Microsoft/Toolchain_Microsoft.h"
 #include "Core/Platform/Process.h"
 
 namespace MicroBuild {
@@ -31,6 +32,7 @@ bool Toolchain_Clang::Init()
 {
 	m_bAvailable = FindToolchain();
 	m_bRequiresCompileStep = true;
+	m_bRequiresVersionInfo = true;
 	m_description = Strings::Format("Clang (%s)", m_version.c_str());	
 	return m_bAvailable;
 }
@@ -41,6 +43,13 @@ bool Toolchain_Clang::FindToolchain()
 
 #if defined(MB_PLATFORM_WINDOWS)
 	additionalDirs.push_back("C:/Program Files/LLVM/bin");
+#endif
+	
+#if defined(MB_PLATFORM_WINDOWS)
+	if (!InitMicrosoftToolchain())
+	{
+		return false;
+	}
 #endif
 
 	if (!Platform::Path::FindFile("clang++", m_compilerPath, additionalDirs))
@@ -77,8 +86,30 @@ bool Toolchain_Clang::FindToolchain()
 		}
 	}	
 
-	// todo: On windows we need to figure out appropriate include/library directories from visual studio / mingw, given clang 
-	//		 does not correctly find them itself, but does on other platforms -_-.
+	return true;
+}
+
+bool Toolchain_Clang::CompileVersionInfo(BuilderFileInfo& fileInfo) 
+{	
+	 MB_UNUSED_PARAMETER(fileInfo);
+
+#if defined(MB_PLATFORM_WINDOWS)
+	
+	// Use microsoft toolchain to generate the version info file which we can link in to the exe.
+	if (!m_microsoftToolchain.CompileVersionInfo(fileInfo))
+	{
+		return false;
+	}
+
+#elif defined(MB_PLATFORM_LINUX)
+
+	// todo: Generate desktop entry object.	
+
+#elif defined(MB_PLATFORM_MACOS)
+
+	// todo: Generate iconset and embed it.
+
+#endif
 
 	return true;
 }

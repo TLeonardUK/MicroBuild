@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #pragma once
 
 #include "App/Builder/Toolchains/Toolchain.h"
+#include "App/Builder/Toolchains/Cpp/Microsoft/Toolchain_Microsoft.h"
 
 namespace MicroBuild {
 	
@@ -29,8 +30,22 @@ class Toolchain_Gcc
 protected:
 	std::string m_version;
 
+	Platform::Path m_windowsResourceCompilerPath;
+
+#if defined(MB_PLATFORM_WINDOWS)
+	Toolchain_Microsoft m_microsoftToolchain;
+#endif
+
 protected:	
 	
+#if defined(MB_PLATFORM_WINDOWS)
+
+	// Initializes our internal microsoft toolchain, we use this toolchain when on windows
+	// for the resource compiler and the other tools that there are not equivilents of.
+	bool InitMicrosoftToolchain();
+
+#endif
+
 	// Attempts to locate the toolchain on the users computer, returns true
 	// if its found and available for use, otherwise false.
 	virtual bool FindToolchain();
@@ -57,6 +72,7 @@ public:
 	Toolchain_Gcc(ProjectFile& file, uint64_t configurationHash);
 	
 	virtual bool Init() override;
+	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo) override;
 
 }; 
 

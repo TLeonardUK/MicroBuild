@@ -119,14 +119,17 @@ JobHandle Builder::QueueTask(
 		{
 			return;
 		}
-		int jobIndex = -2;
-		int totalJobCount = -1;
-		if (currentJobIndex != nullptr)
+		if (task->ShouldGiveJobIndex())
 		{
-			jobIndex = ((*currentJobIndex)++);
-			totalJobCount = *totalJobs;
+			int jobIndex = -2;
+			int totalJobCount = -1;
+			if (currentJobIndex != nullptr)
+			{
+				jobIndex = ((*currentJobIndex)++);
+				totalJobCount = *totalJobs;
+			}
+			task->SetTaskProgress(jobIndex + 1, totalJobCount);
 		}
-		task->SetTaskProgress(jobIndex + 1, totalJobCount);
 		task->GetTaskThreadId(scheduler.GetThreadId());
 		if (!task->Execute())
 		{

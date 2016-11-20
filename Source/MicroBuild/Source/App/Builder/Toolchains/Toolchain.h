@@ -114,6 +114,14 @@ public:
 	// Links all the source files provided into a sinmgle executable.
 	virtual bool Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
 
+	// Some general paths that most toolchains use, this just makes them a bit cleaner to access.
+	Platform::Path GetOutputPath();
+	Platform::Path GetPchPath();
+	Platform::Path GetPchObjectPath();
+	Platform::Path GetVersionInfoObjectPath();
+	Platform::Path GetPdbPath();
+	Platform::Path GetOutputPdbPath();
+
 }; 
 
 }; // namespace MicroBuild

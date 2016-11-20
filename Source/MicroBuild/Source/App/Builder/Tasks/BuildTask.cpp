@@ -22,9 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 	
-BuildTask::BuildTask(BuildStage stage, bool bCanRunInParallel)
+BuildTask::BuildTask(BuildStage stage, bool bCanRunInParallel, bool bGiveJobIndex)
 	: m_stage(stage)
 	, m_bCanRunInParallel(bCanRunInParallel)
+	, m_jobIndex(-1)
+	, m_totalJobs(-1)
+	, m_bGiveJobIndex(bGiveJobIndex)
 {
 }
 
@@ -36,6 +39,11 @@ BuildStage BuildTask::GetBuildState()
 bool BuildTask::CanRunInParallel()
 {
 	return m_bCanRunInParallel;
+}
+
+bool BuildTask::ShouldGiveJobIndex()
+{
+	return m_bGiveJobIndex;
 }
 	
 int BuildTask::GetTaskThreadId()
@@ -76,11 +84,20 @@ void BuildTask::TaskLog(LogSeverity Severity, const char* format, ...)
 	);
 	*/
 	
-	Log(Severity, "(%4i/%4i) %s", 
-		m_jobIndex,
-		m_totalJobs,
-		message.c_str()
-	);
+	if (m_jobIndex == -1)
+	{	
+		Log(Severity, "(-   /-   ) %s", 
+			message.c_str()
+		);
+	}
+	else
+	{
+		Log(Severity, "(%4i/%4i) %s", 
+			m_jobIndex,
+			m_totalJobs,
+			message.c_str()
+		);
+	}
 }
 
 }; // namespace MicroBuild

@@ -489,7 +489,7 @@ bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outpu
 		}
 
 		// Link version info as well if required.
-		if (m_bRequiresVersionInfo)
+		if (RequiresVersionInfo())
 		{
 			Platform::Path versionInfoPath = m_projectFile.Get_Project_IntermediateDirectory()
 				.AppendFragment(Strings::Format("%s_VersionInfo.generated.o", m_projectFile.Get_Project_Name().c_str()), true);
@@ -516,6 +516,42 @@ bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outpu
 	outputFile.StoreManifest();
 
 	return true;
+}
+
+Platform::Path Toolchain::GetOutputPath()
+{
+	return m_projectFile.Get_Project_OutputDirectory()
+		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str()), true);
+}
+
+Platform::Path Toolchain::GetPchPath()
+{
+	return m_projectFile.Get_Project_IntermediateDirectory()
+		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("pch").GetFilename(), true);
+}
+
+Platform::Path Toolchain::GetPchObjectPath()
+{
+	return m_projectFile.Get_Project_IntermediateDirectory()
+		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("o").GetFilename(), true);
+}
+
+Platform::Path Toolchain::GetVersionInfoObjectPath()
+{
+	return m_projectFile.Get_Project_IntermediateDirectory()
+		.AppendFragment(Strings::Format("%s_VersionInfo.generated.o", m_projectFile.Get_Project_Name().c_str()), true);
+}
+
+Platform::Path Toolchain::GetPdbPath()
+{
+	return m_projectFile.Get_Project_IntermediateDirectory()
+		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), ".pdb"), true);
+}
+
+Platform::Path Toolchain::GetOutputPdbPath()
+{
+	return m_projectFile.Get_Project_OutputDirectory()
+		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), ".pdb"), true);
 }
 
 }; // namespace MicroBuild

@@ -35,6 +35,8 @@ private:
 
 	Platform::Path m_resourceCompilerPath;
 
+	bool m_bUseDefaultToolchain;
+
 protected:
 
 	// Attempts to locate the toolchain on the users computer, returns true
@@ -60,12 +62,14 @@ protected:
 	virtual void ExtractDependencies(const BuilderFileInfo& file, const std::string& input, std::string& rawInput, std::vector<Platform::Path>& dependencies) override;
 	
 public:
-	Toolchain_Microsoft(ProjectFile& file, uint64_t configurationHash);
+	Toolchain_Microsoft(ProjectFile& file, uint64_t configurationHash, bool bUseDefaultToolchain = false);
 	
 	virtual bool Init() override;
 	virtual bool Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
 	virtual bool Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
 	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo) override;
+
+	bool CreateVersionInfoScript(Platform::Path iconPath, Platform::Path rcScriptPath);
 
 }; 
 

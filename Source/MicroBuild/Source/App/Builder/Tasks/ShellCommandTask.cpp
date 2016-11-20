@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 ShellCommandTask::ShellCommandTask(BuildStage stage, const std::string& command)
-	: BuildTask(stage, false)
+	: BuildTask(stage, false, false)
 	, m_command(command)
 {
 }
@@ -35,7 +35,7 @@ bool ShellCommandTask::Execute()
 	std::string executable = Strings::StripQuotes(arguments[0]);
 	arguments.erase(arguments.begin());
 	
-	TaskLog(LogSeverity::SilentInfo, "Executing: %s\n", m_command.c_str());
+	//TaskLog(LogSeverity::SilentInfo, "Executing: %s\n", m_command.c_str());
 
 	Platform::Process process;
 	if (!process.Open(executable, Platform::Path::GetExecutablePath().GetDirectory(), arguments, false))
