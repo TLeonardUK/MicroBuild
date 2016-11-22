@@ -25,8 +25,8 @@ on_success:
   - cd Build
   - cd Automation
   - cd Windows
-  - ps: if ($env:PLATFORM -eq "Windows (64 Bit)") { ./Build/Automation/Windows/GitAddArtifacts_x64.bat }
-  - ps: if ($env:PLATFORM -eq "Windows (32 Bit)") { ./Build/Automation/Windows/GitAddArtifacts_x86.bat }
+  - ps: if ($env:PLATFORM -eq "Windows (64 Bit)") { ./GitAddArtifacts_x64.bat }
+  - ps: if ($env:PLATFORM -eq "Windows (32 Bit)") { ./GitAddArtifacts_x86.bat }
   - cd ..
   - cd ..
   - cd ..
