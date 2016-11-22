@@ -1,7 +1,7 @@
 os: Visual Studio 2015
 
 platform:
-  - Win32
+  - x86
   - x64
 
 configuration:
@@ -9,37 +9,27 @@ configuration:
 
 before_build:
   - cd Build
-  - Generate.Windows.bat
+  - cd Automation
+  - cd Windows
+  - GenerateBootstrap.bat
+  - cd ..
+  - cd ..
   - cd ..
 
 build:
   project: Build\ProjectFiles\MicroBuild.sln
 
 on_success: 
-  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x64/Shipping/MicroBuild-Core.pdb ./Binaries/Windows_x64/MicroBuild-Core.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x86/Shipping/MicroBuild-Core.pdb ./Binaries/Windows_x86/MicroBuild-Core.pdb }
-  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x64/Shipping/MicroBuild-Schemas.pdb ./Binaries/Windows_x64/MicroBuild-Schemas.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Build/ProjectFiles/MicroBuild-Core/Obj/x86/Shipping/MicroBuild-Schemas.pdb ./Binaries/Windows_x86/MicroBuild-Schemas.pdb }
-  - ps: if ($env:PLATFORM -eq "x64")   { cp ./Build/ProjectFiles/MicroBuild-ZLib/Obj/x64/Shipping/MicroBuild-ZLib.pdb ./Binaries/Windows_x64/MicroBuild-Zlib.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { cp ./Build/ProjectFiles/MicroBuild-ZLib/Obj/x86/Shipping/MicroBuild-ZLib.pdb ./Binaries/Windows_x86/MicroBuild-Zlib.pdb }
   - git config --global user.email "buildserver@programmingbytim.com"
   - git config --global user.name "Build Server"
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild.exe }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild.exe }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild.pdb }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-Core.lib }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-Core.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-Core.lib }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-Core.pdb }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-Schemas.lib }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-Schemas.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-Schemas.lib }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-Schemas.pdb }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-ZLib.lib }
-  - ps: if ($env:PLATFORM -eq "x64")   { git add ./Binaries/Windows_x64/MicroBuild-ZLib.pdb }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-ZLib.lib }
-  - ps: if ($env:PLATFORM -eq "Win32") { git add ./Binaries/Windows_x86/MicroBuild-ZLib.pdb }
+  - cd Build
+  - cd Automation
+  - cd Windows
+  - ps: if ($env:PLATFORM -eq "x64")   cp ./Build/Automation/Windows/GitAddArtifacts_x64.bat }
+  - ps: if ($env:PLATFORM -eq "x86")   cp ./Build/Automation/Windows/GitAddArtifacts_x86.bat }
+  - cd ..
+  - cd ..
+  - cd ..
   - git checkout %APPVEYOR_REPO_BRANCH%
   - git pull --no-edit --no-commit
   - git commit -m "[ci skip] Automated Build (Appveyor build %APPVEYOR_BUILD_NUMBER%)."
