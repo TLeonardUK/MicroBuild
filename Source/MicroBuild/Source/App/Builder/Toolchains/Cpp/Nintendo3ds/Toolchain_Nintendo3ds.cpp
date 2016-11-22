@@ -22,6 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Platform/Platform.h"
 #include "Core/Helpers/Strings.h"
 
+// TODO: on packaging we need to generate a rom file, and associated banner file.
+
 namespace MicroBuild {
 
 Toolchain_Nintendo3ds::Toolchain_Nintendo3ds(ProjectFile& file, uint64_t configurationHash)
@@ -50,13 +52,17 @@ bool Toolchain_Nintendo3ds::FindToolchain()
 		return false;
 	}
 
-	m_compilerPath	= m_toolchainPath.AppendFragment("armcc.exe", true);
-	m_linkerPath	= m_toolchainPath.AppendFragment("armlink.exe", true);
-	m_archiverPath	= m_toolchainPath.AppendFragment("armar.exe", true);
+	m_compilerPath		= m_toolchainPath.AppendFragment("armcc.exe", true);
+	m_linkerPath		= m_toolchainPath.AppendFragment("armlink.exe", true);
+	m_archiverPath		= m_toolchainPath.AppendFragment("armar.exe", true);
+	m_makeRomPath		= m_sdkPath.AppendFragment("tools/CommandLineTools/ctr_makerom32.exe", true);
+	m_makeBannerPath	= m_sdkPath.AppendFragment("tools/CommandLineTools/ctr_makebanner32.exe", true);
 
 	if (!m_compilerPath.Exists() ||
 		!m_linkerPath.Exists()	 ||
-		!m_archiverPath.Exists())
+		!m_archiverPath.Exists() ||
+		!m_makeRomPath.Exists()	 ||
+		!m_makeBannerPath.Exists())
 	{
 		return false;
 	}
@@ -150,9 +156,6 @@ void Toolchain_Nintendo3ds::GetBaseCompileArguments(std::vector<std::string>& ar
 	// Compiler to use, we hardcode this to 5 for the time being.
 	args.push_back("-DNN_COMPILER_RVCT_VERSION_MAJOR=5");
 
-	// Optimization effort, should match -o flags.
-	args.push_back("-DNN_EFFORT_FAST");
-
 	// Disable various SDK verbose logging.
 	args.push_back("-DNN_SWITCH_DISABLE_ASSERT_WARNING=1");
 	args.push_back("-DNN_SWITCH_DISABLE_ASSERT_WARNING_FOR_SDK=1");
@@ -167,12 +170,8 @@ void Toolchain_Nintendo3ds::GetBaseCompileArguments(std::vector<std::string>& ar
 	args.push_back("--signed_chars");
 	args.push_back("--cpp");
 	args.push_back("--force_new_nothrow");
-	args.push_back("--no_exceptions");
-	args.push_back("--no_rtti");
+	args.push_back("--dwarf3");
 
-	
-
-	/*
 	switch (m_projectFile.Get_Build_OptimizationLevel())
 	{
 	default:
@@ -181,22 +180,26 @@ void Toolchain_Nintendo3ds::GetBaseCompileArguments(std::vector<std::string>& ar
 		// Fallthrough
 	case EOptimizationLevel::Debug:	
 		{
-			args.push_back("-Og");
+			args.push_back("-O0");
+			args.push_back("-DNN_EFFORT_SMALL");
 			break;
 		}
 	case EOptimizationLevel::PreferSize:
 		{
-			args.push_back("-Os");
+			args.push_back("-Ospace");
+			args.push_back("-DNN_EFFORT_FAST");
 			break;
 		}
 	case EOptimizationLevel::PreferSpeed:
 		{
-			args.push_back("-Ofast");
+			args.push_back("-Otime");
+			args.push_back("-DNN_EFFORT_FAST");
 			break;
 		}
 	case EOptimizationLevel::Full:
 		{
 			args.push_back("-O3");
+			args.push_back("-DNN_EFFORT_FAST");
 			break;
 		}
 	}
@@ -211,17 +214,16 @@ void Toolchain_Nintendo3ds::GetBaseCompileArguments(std::vector<std::string>& ar
 		// Fallthrough
 	case EWarningLevel::Low:
 		// Fallthrough
-	case EWarningLevel::Medium:
-			// All of these just use the default warning level in gcc.
-		break;
 	case EWarningLevel::High:
+		// Fallthrough
+	case EWarningLevel::Medium:
 		{
-			args.push_back("-Wall");
+			// Nothing but verbose does anything else.
 			break;
 		}
 	case EWarningLevel::Verbose:
 		{
-			args.push_back("-Wextra");
+			args.push_back("--remarks");
 			break;
 		}
 	}
@@ -238,14 +240,12 @@ void Toolchain_Nintendo3ds::GetBaseCompileArguments(std::vector<std::string>& ar
 	{
 		args.push_back(Strings::Format("-Wno-%s", warning.c_str()));
 	}
-	*/
 
 	for (auto& includeDir : m_projectFile.Get_SearchPaths_IncludeDirectory())
 	{
 		args.push_back(Strings::Format("-I%s", Strings::Quoted(includeDir.ToString()).c_str()));
 	}
 
-	/*
 	for (auto& includeDir : m_standardIncludePaths)
 	{
 		args.push_back(Strings::Format("-I%s", Strings::Quoted(includeDir.ToString()).c_str()));
@@ -253,107 +253,61 @@ void Toolchain_Nintendo3ds::GetBaseCompileArguments(std::vector<std::string>& ar
 
 	for (auto& forcedInclude : m_projectFile.Get_ForcedIncludes_ForcedInclude())
 	{
-		args.push_back(Strings::Format("-include I%s", Strings::Quoted(forcedInclude.ToString()).c_str()));
+		args.push_back(Strings::Format("-preinclude=%s", Strings::Quoted(forcedInclude.ToString()).c_str()));
 	}
-	
+
 	if (m_projectFile.Get_Flags_CompilerWarningsFatal())
 	{
 		args.push_back("-Werror");	
 	}
 
 	if (m_projectFile.Get_Flags_RuntimeTypeInfo())
-	{
-		args.push_back("-frtti");	
+	{	
+		args.push_back("--rtti");
 	}
 	else
 	{	
-		args.push_back("-fno-rtti");	
+		args.push_back("--no_rtti");
 	}
 
 	if (m_projectFile.Get_Flags_GenerateDebugInformation())
-	{
-		args.push_back("-g");	
+	{ 
+		args.push_back("--debug");	
 	}
 	
-	if (m_projectFile.Get_Flags_LinkTimeOptimization())
-	{
-		args.push_back("-flto");	
-	}
-	else
-	{
-		args.push_back("-fno-lto");	
-	}
-
 	if (m_projectFile.Get_Flags_Exceptions())
 	{
-		args.push_back("-fexceptions");	
+		args.push_back("--exceptions");	
 	}
 	else
 	{
-		args.push_back("-fno-exceptions");
-	}
-
-	if (m_projectFile.Get_Flags_StaticRuntime())
-	{
-		args.push_back("-static");
+		args.push_back("--no_exceptions");
 	}
 	
-	switch (m_projectFile.Get_Target_Platform())
+	/*
+	// Prohibited from use by Nintendo for some reason.
+	if (m_projectFile.Get_Flags_LinkTimeOptimization())
 	{
-	case EPlatform::ARM64:
-		// Fallthrough
-	case EPlatform::x64:
-		{
-			args.push_back("-m64");
-			break;
-		}
-	default:
-		{
-			args.push_back("-m32");
-			break;
-		}
+		args.push_back("--ltcg");	
 	}
-
-	switch (m_projectFile.Get_Project_LanguageVersion())
+	else
 	{
-	case ELanguageVersion::Default:
-		{
-			break;
-		}
-	case ELanguageVersion::Cpp_11:
-		{
-			args.push_back("-std=c++0x");
-			break;
-		}
-	case ELanguageVersion::Cpp_98:
-		{
-			args.push_back("-std=c++98");
-			break;
-		}
-	case ELanguageVersion::Cpp_14:
-		{
-			args.push_back("-std=c++14");
-			break;
-		}
-	}	
-
-	if (m_projectFile.Get_Project_OutputType() == EOutputType::DynamicLib)
-	{
-		args.push_back("-fPIC");
+		args.push_back("--no-ltcg");	
 	}
-	
-	// Dumps out dependencies to a file.
-	args.push_back("-MD");
-	args.push_back("-MP");
 	*/
+
+	// Dumps out dependencies to a file.
+	args.push_back("--md");
 }
 
 void Toolchain_Nintendo3ds::GetPchCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args) 
 {
-	MB_UNUSED_PARAMETER(file);
+	// ArmCC is to stupid to create the dependency file itself, so lets make it now ..			
+	Platform::Path depsFile = file.OutputPath.ChangeExtension("d");
+	depsFile.CreateAsFile();
+	args.push_back(Strings::Format("--depend=%s", Strings::Quoted(depsFile.ToString()).c_str()));
 
-	Platform::Path pchPath = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("pch").GetFilename(), true);
+	Platform::Path pchPath = GetPchPath();
 	
 	args.push_back("--create_pch=" + Strings::Quoted(pchPath.ToString()));
 	args.push_back(Strings::Quoted(m_projectFile.Get_Build_PrecompiledSource().ToString()));
@@ -361,17 +315,18 @@ void Toolchain_Nintendo3ds::GetPchCompileArguments(const BuilderFileInfo& file, 
 
 void Toolchain_Nintendo3ds::GetSourceCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args) 
 {
+	// ArmCC is to stupid to create the dependency file itself, so lets make it now ..	
+	Platform::Path depsFile = file.OutputPath.ChangeExtension("d");
+	depsFile.CreateAsFile();
+	args.push_back(Strings::Format("--depend=%s", Strings::Quoted(depsFile.ToString()).c_str()));
+
 	// Include our generated pch before anything else.
-	/*
 	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
-		Platform::Path pchPath = m_projectFile.Get_Project_IntermediateDirectory()
-			.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("pch").GetFilename(), true);
-	
-		args.push_back(Strings::Format("-include %s", Strings::Quoted(pchPath.ToString()).c_str()));
+		Platform::Path pchPath = GetPchPath();
+		args.push_back(Strings::Format("-preinclude=%s", Strings::Quoted(pchPath.ToString()).c_str()));
 	}
-	*/
-	
+
 	args.push_back("-c");
 
 	args.push_back("-o");
@@ -385,48 +340,26 @@ void Toolchain_Nintendo3ds::GetLinkArguments(const std::vector<BuilderFileInfo>&
 	MB_UNUSED_PARAMETER(sourceFiles);
 	MB_UNUSED_PARAMETER(args);
 
-	/*
-	Platform::Path outputPath = m_projectFile.Get_Project_OutputDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str()), true);
+	Platform::Path outputPath = GetOutputPath();
 	
-	args.push_back("-o");
-	args.push_back(Strings::Quoted(outputPath.ToString()));
-		
-	// Object files to link.
-	for (auto& sourceFile : sourceFiles)
-	{
-		args.push_back(Strings::Quoted(sourceFile.OutputPath.ToString()));
-	}
+	// Required arguments
+	args.push_back("--datacompressor=off");
+	args.push_back("--keep=nnMain");
+	args.push_back("--scatter=" + Strings::Quoted(m_sdkPath.AppendFragment("resources/specfiles/linker/CTR.Process.MPCore.ldscript", true).ToString()));
 
-	// Flags.
-	switch (m_projectFile.Get_Build_OptimizationLevel())
-	{
-	default:
-		// Fallthrough
-	case EOptimizationLevel::None:
-		// Fallthrough
-	case EOptimizationLevel::Debug:	
-		{
-			args.push_back("-Og");
-			break;
-		}
-	case EOptimizationLevel::PreferSize:
-		{
-			args.push_back("-Os");
-			break;
-		}
-	case EOptimizationLevel::PreferSpeed:
-		{
-			args.push_back("-Ofast");
-			break;
-		}
-	case EOptimizationLevel::Full:
-		{
-			args.push_back("-O3");
-			break;
-		}
-	}
+	args.push_back("--be8");
+	args.push_back("--cpu=MPCore");
+	args.push_back("--entry=__ctr_start");
+	args.push_back("--legacyalign");
+	args.push_back("--library_type=standardlib");
+	args.push_back("--ref_cpp_init");
+	args.push_back("--scanlib");
+	args.push_back("--startup=__ctr_start");
 
+	args.push_back("--largeregions");
+	args.push_back("--no_eager_load_debug");
+	args.push_back("--strict");
+	
 	switch (m_projectFile.Get_Build_WarningLevel())
 	{
 	default:
@@ -437,23 +370,21 @@ void Toolchain_Nintendo3ds::GetLinkArguments(const std::vector<BuilderFileInfo>&
 		// Fallthrough
 	case EWarningLevel::Low:
 		// Fallthrough
-	case EWarningLevel::Medium:
-			// All of these just use the default warning level in gcc.
-		break;
 	case EWarningLevel::High:
+		// Fallthrough
+	case EWarningLevel::Medium:
 		{
-			args.push_back("-Wall");
+			// Nothing but verbose does anything else.
 			break;
 		}
 	case EWarningLevel::Verbose:
 		{
-			args.push_back("-Wextra");
+			args.push_back("--remarks");
 			break;
 		}
 	}
 
 	std::vector<std::string> customArgs = Strings::Crack(m_projectFile.Get_Build_LinkerArguments());	args.insert(args.end(), customArgs.begin(), customArgs.end());
-
 
 	for (auto& warning : m_projectFile.Get_DisabledWarnings_DisabledWarning())
 	{
@@ -470,78 +401,51 @@ void Toolchain_Nintendo3ds::GetLinkArguments(const std::vector<BuilderFileInfo>&
 		args.push_back(Strings::Format("-I%s", Strings::Quoted(includeDir.ToString()).c_str()));
 	}
 	
-	if (m_projectFile.Get_Flags_LinkerWarningsFatal())
+	if (m_projectFile.Get_Flags_CompilerWarningsFatal())
 	{
 		args.push_back("-Werror");	
 	}
 
-	if (m_projectFile.Get_Flags_RuntimeTypeInfo())
-	{
-		args.push_back("-frtti");	
-	}
-	else
-	{	
-		args.push_back("-fno-rtti");	
-	}
-
 	if (m_projectFile.Get_Flags_GenerateDebugInformation())
-	{
-		args.push_back("-g");	
+	{ 
+		args.push_back("--debug");	
 	}
 	
-	if (m_projectFile.Get_Flags_LinkTimeOptimization())
-	{
-		args.push_back("-flto");	
-	}
-	else
-	{
-		args.push_back("-fno-lto");	
-	}
-
 	if (m_projectFile.Get_Flags_Exceptions())
 	{
-		args.push_back("-fexceptions");	
+		args.push_back("--exceptions");	
 	}
 	else
 	{
-		args.push_back("-fno-exceptions");
-	}
-
-	if (m_projectFile.Get_Flags_StaticRuntime())
-	{
-		args.push_back("-static");
+		args.push_back("--no_exceptions");
 	}
 	
-	switch (m_projectFile.Get_Target_Platform())
+	/*
+	// Prohibited from use by Nintendo for some reason.
+	if (m_projectFile.Get_Flags_LinkTimeOptimization())
 	{
-	case EPlatform::ARM64:
-		// Fallthrough
-	case EPlatform::x64:
-		{
-			args.push_back("-m64");
-			args.push_back("-L/usr/lib64");
-			break;
-		}
-	default:
-		{
-			args.push_back("-m32");
-			args.push_back("-L/usr/lib32");
-			break;
-		}
+		args.push_back("--ltcg");	
+	}
+	else
+	{
+		args.push_back("--no-ltcg");	
+	}
+	*/
+
+	args.push_back("-o");
+	args.push_back(Strings::Quoted(outputPath.ToString()));
+		
+	// Object files to link.
+	for (auto& sourceFile : sourceFiles)
+	{
+		args.push_back(Strings::Quoted(sourceFile.OutputPath.ToString()));
 	}
 
-	if (m_projectFile.Get_Project_OutputType() == EOutputType::DynamicLib)
-	{
-		args.push_back("-fPIC");
-		args.push_back("-shared");
-	}
-	
 	// Libraries.
 	for (auto& library : m_projectFile.Get_Libraries_Library())
 	{
 		args.push_back(Strings::Quoted(library.ToString()));
 	}
-	*/
 }
 
 void Toolchain_Nintendo3ds::GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args) 
@@ -549,17 +453,11 @@ void Toolchain_Nintendo3ds::GetArchiveArguments(const std::vector<BuilderFileInf
 	MB_UNUSED_PARAMETER(sourceFiles);
 	MB_UNUSED_PARAMETER(args);
 
-	/*
-	Platform::Path outputPath = m_projectFile.Get_Project_OutputDirectory()
-		.AppendFragment(Strings::Format("%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str()), true);
-	
-	Platform::Path pchPath = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("pch").GetFilename(), true);
-	
-	Platform::Path pchObjectPath = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("o").GetFilename(), true);
+	Platform::Path outputPath = GetOutputPath();	
+	Platform::Path pchPath = GetPchPath();
+	Platform::Path pchObjectPath = GetPchObjectPath();
 
-	args.push_back("rcs");	
+	args.push_back("--create");	
 	args.push_back(Strings::Quoted(outputPath.ToString()).c_str());	
 	
 	// Object files to link.
@@ -573,7 +471,6 @@ void Toolchain_Nintendo3ds::GetArchiveArguments(const std::vector<BuilderFileInf
 	{
 		args.push_back(Strings::Quoted(pchObjectPath.ToString()));
 	}
-	*/
 }
 
 void Toolchain_Nintendo3ds::ExtractDependencies(const BuilderFileInfo& file, const std::string& input, std::string& rawInput, std::vector<Platform::Path>& dependencies)
@@ -587,8 +484,6 @@ void Toolchain_Nintendo3ds::ExtractDependencies(const BuilderFileInfo& file, con
 	// to extract dependencies.
 
 	rawInput = input;
-
-	/*
 
 	Platform::Path depsFile = file.OutputPath.ChangeExtension("d");
 	if (depsFile.Exists())
@@ -604,20 +499,14 @@ void Toolchain_Nintendo3ds::ExtractDependencies(const BuilderFileInfo& file, con
 		{
 			if (line.size() > 2)
 			{
-				if (line.substr(line.size() - 2, 2) == " \\")
+				size_t offset = line.find(": ");
+				if (offset != std::string::npos)
 				{
-					line = line.substr(0, line.size() - 2);
-				}
-
-				if (line[line.size() - 1] != ':')
-				{
-					dependencies.push_back(Strings::Replace(Strings::Trim(line), "\\ ", " "));
+					dependencies.push_back(Strings::Trim(line.substr(offset + 2)));
 				}
 			}
 		}
 	}
-
-	*/
 }
 
 }; // namespace MicroBuild

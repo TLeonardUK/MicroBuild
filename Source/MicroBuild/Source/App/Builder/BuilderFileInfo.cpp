@@ -23,6 +23,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Config/ConfigFile.h"
 
 namespace MicroBuild {
+	
+std::map<uint64_t, std::time_t> BuilderFileInfo::m_modifiedTimeCache;
+std::map<uint64_t, bool> BuilderFileInfo::m_fileExistsCache;
+std::mutex BuilderFileInfo::m_fileCacheLock;
 
 BuilderFileInfo::BuilderFileInfo()
 	: Hash(0)
@@ -76,9 +80,62 @@ bool BuilderFileInfo::StoreManifest()
 	return file.Serialize(ManifestPath);
 }
 
+std::time_t BuilderFileInfo::GetCachedModifiedTime(const Platform::Path& path)
+{
+	std::string extension = path.GetExtension();
+
+	// We only permit caching of source-code file-types, as other file-types may be updated during the build.
+	if (path.IsIncludeFile() || 
+		path.IsSourceFile() ||
+		path.IsResourceFile() ||
+		path.IsXamlFile() ||
+		path.IsImageFile() ||
+		extension == "")
+	{
+		std::lock_guard<std::mutex> lock(m_fileCacheLock);
+
+		uint64_t key = Strings::Hash64(path.ToString());
+
+		auto iter = m_modifiedTimeCache.find(key);
+		if (iter != m_modifiedTimeCache.end())
+		{
+			return iter->second;
+		}
+
+		std::time_t time = path.GetModifiedTime();
+		
+		m_modifiedTimeCache[key] = time;
+
+		return time;
+	}
+	else
+	{
+		return path.GetModifiedTime();
+	}
+}
+
+bool BuilderFileInfo::GetCachedPathExists(const Platform::Path& path)
+{
+	std::lock_guard<std::mutex> lock(m_fileCacheLock);
+
+	uint64_t key = Strings::Hash64(path.ToString());
+		
+	auto iter = m_fileExistsCache.find(key);
+	if (iter != m_fileExistsCache.end())
+	{
+		return iter->second;
+	}
+
+	bool bState = path.Exists();
+
+	m_fileExistsCache[key] = bState;
+
+	return bState;
+}
+
 uint64_t BuilderFileInfo::CalculateFileHash(const Platform::Path& path, uint64_t configurationHash)
 {
-	configurationHash = Strings::Hash64(Strings::Format("%llu", path.GetModifiedTime()), configurationHash);
+	configurationHash = Strings::Hash64(Strings::Format("%llu", GetCachedModifiedTime(path)), configurationHash);
 	configurationHash = Strings::Hash64(path.ToString(), configurationHash);	
 	return configurationHash;
 }
@@ -86,8 +143,8 @@ uint64_t BuilderFileInfo::CalculateFileHash(const Platform::Path& path, uint64_t
 bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info, uint64_t configurationHash, bool bNoIntermediateFiles)
 {
 	if (!bNoIntermediateFiles && 
-		(!info.ManifestPath.Exists() ||
-		 !info.OutputPath.Exists()))
+		(!GetCachedPathExists(info.ManifestPath) ||
+		 !GetCachedPathExists(info.OutputPath)))
 	{
 		info.bOutOfDate = true;
 	}
@@ -110,7 +167,7 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info, uint64_t configurati
 			{
 				uint64_t dependencyHash = CalculateFileHash(dependencyInfo.SourcePath, configurationHash);
 
-				if (!dependencyInfo.SourcePath.Exists() ||
+				if (!GetCachedPathExists(dependencyInfo.SourcePath) ||
 					 dependencyInfo.Hash != dependencyHash)
 				{
 					info.bOutOfDate = true;
@@ -141,13 +198,14 @@ std::vector<BuilderFileInfo> BuilderFileInfo::GetMultipleFileInfos(
 		Platform::Path relativePath = rootDirectory.RelativeTo(path);
 		assert(relativePath.IsRelative());
 
-		info.OutputPath			= outputDirectory.AppendFragment(path.ChangeExtension("o").GetFilename(), true);
+		info.OutputPath				= outputDirectory.AppendFragment(path.ChangeExtension("o").GetFilename(), true);
 		info.ManifestPath			= info.OutputPath.ChangeExtension("build.manifest");
 		info.bOutOfDate				= false;
 		info.Hash					= CalculateFileHash(info.SourcePath, configurationHash);
 
 		Platform::Path baseDirectory = info.OutputPath.GetDirectory();
-		if (!baseDirectory.Exists())
+		//if (!baseDirectory.Exists())
+		if (GetCachedPathExists(baseDirectory))
 		{
 			baseDirectory.CreateAsDirectory();
 		}

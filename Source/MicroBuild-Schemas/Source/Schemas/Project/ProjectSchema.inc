@@ -685,3 +685,22 @@ START_ARRAY_OPTION(
 END_ARRAY_OPTION()
 
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Platform Specific Information
+// ---------------------------------------------------------------------------
+#include "Schemas/Project/Platforms/Android.inc"
+#include "Schemas/Project/Platforms/HTML5.inc"
+#include "Schemas/Project/Platforms/iOS.inc"
+#include "Schemas/Project/Platforms/Linux.inc"
+#include "Schemas/Project/Platforms/MacOS.inc"
+#include "Schemas/Project/Platforms/Nintendo3ds.inc"
+#include "Schemas/Project/Platforms/NintendoWiiU.inc"
+#include "Schemas/Project/Platforms/Playstation3.inc"
+#include "Schemas/Project/Platforms/Playstation4.inc"
+#include "Schemas/Project/Platforms/PlaystationVita.inc"
+#include "Schemas/Project/Platforms/Windows.inc"
+#include "Schemas/Project/Platforms/WindowsRT.inc"
+#include "Schemas/Project/Platforms/Xbox360.inc"
+#include "Schemas/Project/Platforms/XboxOne.inc"
+

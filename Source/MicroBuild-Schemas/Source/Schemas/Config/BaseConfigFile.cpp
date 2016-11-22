@@ -67,7 +67,24 @@ void BaseConfigFile::Resolve()
 		Set_Target_DynamicLibExtension(".bc");
 		break;
 	}
+
+	// Console platforms		
+	case EPlatform::Nintendo3DS:
+	{
+		Set_Target_ExeExtension(".axf");
+		Set_Target_StaticLibExtension(".a");
+		Set_Target_DynamicLibExtension(".a");
+		break;
+	}
 	
+	case EPlatform::NintendoWiiU:
+	{
+		Set_Target_ExeExtension(".rpx");
+		Set_Target_StaticLibExtension(".a");
+		Set_Target_DynamicLibExtension(".rpl");
+		break;
+	}
+
     // Desktop Platforms
 	case EPlatform::x86:
 	case EPlatform::x64:
@@ -84,14 +101,11 @@ void BaseConfigFile::Resolve()
 	case EPlatform::Android:
 		// Fallthrough
 
-	// Console platforms
 	case EPlatform::PS3:
 	case EPlatform::PS4:
 	case EPlatform::PSVita:
 	case EPlatform::Xbox360:	
 	case EPlatform::XboxOne:
-	case EPlatform::NintendoWiiU:
-	case EPlatform::Nintendo3DS:
 		// Fallthrough
 
     // DotNet Specific

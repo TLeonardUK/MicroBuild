@@ -114,10 +114,12 @@ bool Toolchain_Microsoft::FindToolchain()
 					if (Platform::IsOperatingSystem64Bit())
 					{
 						toolchainPath = vcInstallPath.AppendFragment("bin/amd64", true);
+						m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvars64.bat", true);
 					}
 					else
 					{
 						toolchainPath = vcInstallPath.AppendFragment("bin/x86_amd64", true);
+						m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvarsx86_amd64.bat", true);
 					}			
 					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/amd64", true));
 					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("atlmfc/lib/amd64", true));
@@ -128,6 +130,7 @@ bool Toolchain_Microsoft::FindToolchain()
 			case EPlatform::x86:
 				{
 					toolchainPath = vcInstallPath.AppendFragment("bin", true);
+					m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvars32.bat", true);
 					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib", true));
 					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("atlmfc/lib", true));
 					m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x86", latestWindows10KitVersion.c_str()), true));
@@ -140,10 +143,12 @@ bool Toolchain_Microsoft::FindToolchain()
 					if (Platform::IsOperatingSystem64Bit())
 					{
 						toolchainPath = vcInstallPath.AppendFragment("bin/amd64_arm", true);
+						m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvarsamd64_arm.bat", true);
 					}
 					else
 					{
 						toolchainPath = vcInstallPath.AppendFragment("bin/x86_arm", true);
+						m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvarsx86_arm.bat", true);
 					}
 					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/arm", true));
 					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("atlmfc/lib/arm", true));
@@ -153,7 +158,6 @@ bool Toolchain_Microsoft::FindToolchain()
 				}
 			}
 
-			m_envVarBatchFilePath = vcInstallPath.AppendFragment("bin/vcvars32.bat", true);
 			m_compilerPath = toolchainPath.AppendFragment("cl.exe", true);
 			m_linkerPath = toolchainPath.AppendFragment("link.exe", true);
 			m_archiverPath = toolchainPath.AppendFragment("lib.exe", true);
@@ -761,7 +765,6 @@ bool Toolchain_Microsoft::Link(std::vector<BuilderFileInfo>& files, BuilderFileI
 
 	return true;
 }
-
 
 bool Toolchain_Microsoft::CreateVersionInfoScript(Platform::Path iconPath, Platform::Path rcScriptPath)
 {

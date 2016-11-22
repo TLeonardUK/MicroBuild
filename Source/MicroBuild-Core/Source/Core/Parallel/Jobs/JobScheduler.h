@@ -74,7 +74,7 @@ private:
 		std::vector<JobHandle>	Dependencies;
 		std::vector<JobHandle>	Dependents;
 		bool					Completed;
-		bool					Enqueued;
+		std::atomic<bool>		Enqueued;
 	};
 
 	std::vector<std::thread*> m_Threads;
@@ -127,6 +127,9 @@ public:
 	// Gets the thread-id the calling task is executing on, will return negative 
 	// values if called from non-job thread.
 	int GetThreadId();
+
+	// Prints a debug tree showing the handle and all its decendents.
+	void PrintJobTree();
 
 };
 

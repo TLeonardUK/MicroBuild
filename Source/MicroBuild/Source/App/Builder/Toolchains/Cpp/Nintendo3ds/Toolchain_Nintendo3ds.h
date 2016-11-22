@@ -31,6 +31,9 @@ protected:
 	
 	Platform::Path m_sdkPath;
 	Platform::Path m_toolchainPath;
+
+	Platform::Path m_makeRomPath;
+	Platform::Path m_makeBannerPath;
 	
 protected:	
 	

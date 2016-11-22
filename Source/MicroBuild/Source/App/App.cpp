@@ -39,6 +39,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "FreeImage.h"
 
+// Prints time between entering and exiting the main app entry point.
+//#define MB_OPT_PRINT_FULL_APP_TIME
+
 // x86
 // x64
 // anycpu
@@ -129,6 +132,17 @@ PluginManager* App::GetPluginManager()
 
 int App::Run()
 {
+#if MB_OPT_PRINT_FULL_APP_TIME
+	auto startTime = std::chrono::high_resolution_clock::now();
+	auto printTime = [startTime](){	
+		auto elapsedTime = std::chrono::high_resolution_clock::now() - startTime;
+		auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(elapsedTime).count();
+				
+		Log(LogSeverity::SilentInfo, "\n");
+		Log(LogSeverity::SilentInfo, "Start to end: %.1f seconds\n", elapsedMs / 1000.0f);
+	};
+#endif
+
 	if (!m_commandLineParser.PreParse(m_argc, m_argv))
 	{
 		return 1;
@@ -149,6 +163,9 @@ int App::Run()
 		{
 			if (m_commandLineParser.DispatchCommands())
 			{
+#if MB_OPT_PRINT_FULL_APP_TIME
+				printTime();
+#endif
 				return 0;
 			}
 		}
@@ -157,7 +174,10 @@ int App::Run()
 			m_commandLineParser.PrintHelp();
 		}
 	}
-
+	
+#if MB_OPT_PRINT_FULL_APP_TIME
+	printTime();
+#endif
 	return 1;
 }
 

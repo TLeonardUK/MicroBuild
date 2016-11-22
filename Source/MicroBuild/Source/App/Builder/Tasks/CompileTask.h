@@ -31,7 +31,7 @@ class CompileTask
 private:
 	ProjectFile& m_projectFile;
 	Toolchain* m_toolchain;
-	BuilderFileInfo& m_file;
+	BuilderFileInfo m_file;
 	BuilderFileInfo m_pchFile;
 
 public:

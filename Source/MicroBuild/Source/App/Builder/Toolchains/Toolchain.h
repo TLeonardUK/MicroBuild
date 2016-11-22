@@ -73,6 +73,9 @@ protected:
 	
 	// Gets arguments to send to archiver for generating an library file.
 	virtual void GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args);
+
+	// Updates the output files dependencies based on a linking operation.
+	virtual void UpdateLinkDependencies(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
 	
 public:
 

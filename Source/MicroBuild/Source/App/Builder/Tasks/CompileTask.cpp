@@ -39,7 +39,12 @@ bool CompileTask::Execute()
 	
 	TaskLog(LogSeverity::SilentInfo, "Compiling: %s\n", m_file.SourcePath.GetFilename().c_str());
 
-	return m_toolchain->Compile(m_file, m_pchFile);
+	bool bResult = m_toolchain->Compile(m_file, m_pchFile);
+	if (bResult)
+	{
+		assert(m_file.OutputPath.Exists());
+	}
+	return bResult;
 }
 
 }; // namespace MicroBuild

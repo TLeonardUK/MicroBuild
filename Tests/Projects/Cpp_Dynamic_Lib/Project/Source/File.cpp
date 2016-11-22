@@ -17,7 +17,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "Include/File.h"
- 
+
+int Add(int a, int b)
+{
+	printf("Add(a,b) Called");
+	return a+b;
+}
+
+extern "C" int rpl_entry(void * aHandle, int aReason)
+{
+	return 0;
+}
+
 int main(int argc, char** argv)
 {
 	(void)argc;

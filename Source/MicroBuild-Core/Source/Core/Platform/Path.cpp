@@ -97,8 +97,11 @@ std::string Path::GetBaseName() const
 
 std::string Path::GetExtension() const
 {
+	size_t lastSeperatorOffset = m_raw.find_last_of(Seperator);
 	size_t lastDotOffset = m_raw.find_last_of('.');
-	if (lastDotOffset != std::string::npos)
+
+	if (lastDotOffset > lastSeperatorOffset && 
+		lastDotOffset != std::string::npos)
 	{
 		return m_raw.substr(lastDotOffset + 1);
 	}

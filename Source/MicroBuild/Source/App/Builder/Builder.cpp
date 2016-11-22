@@ -419,6 +419,10 @@ bool Builder::Build(WorkspaceFile& workspaceFile, ProjectFile& project, bool bRe
 			}
 		}
 
+		// job b is completing and enqueing job a
+		// we call enqueue below and re-enqueue job a !? Fail.
+
+		//scheduler.PrintJobTree();
 		scheduler.Enqueue(hostJob);
 		scheduler.Wait(hostJob);
 

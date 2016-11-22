@@ -28,6 +28,7 @@ thread_local int g_jobSchedulerthreadId = -1;
 
 JobScheduler::JobScheduler(int ThreadCount)
 	: m_Aborting(false)
+	, m_JobVersionCounter(0)
 {
 	assert(ThreadCount > 0);
 
@@ -124,23 +125,27 @@ void JobScheduler::AddDependency(JobHandle Primary, JobHandle DependentOn)
 void JobScheduler::Enqueue(JobHandle Handle)
 {
 	// Ensure we aren't already enqueued.
-	Job* ParentJob = GetJob(Handle);
+	Job* ResolvedJob = GetJob(Handle);
+	
+	assert(ResolvedJob != nullptr);// , "Parent job handle is no longer valid - its probably already been executed. Add job dependencies before enqueing them.");
 
-	assert(ParentJob != nullptr);// , "Parent job handle is no longer valid - its probably already been executed. Add job dependencies before enqueing them.");
-	assert(!ParentJob->Enqueued);//, "Dependent job has already been enqueued. Add job dependencies before enqueing jobs.");
+	if (ResolvedJob->DependenciesPending <= 0)
+	{		
+		bool expectedValue = false;
 
-	if (ParentJob->DependenciesPending <= 0)
-	{
-		ParentJob->Enqueued = true;
-
-		if (!m_QueuedJobs.Push(Handle.Index))
+		if (ResolvedJob->Enqueued.compare_exchange_strong(expectedValue, true))
 		{
-			assert(false);// "Failed to enqueue job, job queue is probably full, increasing MaxJobCount may be required.");
+			//Log(LogSeverity::SilentInfo, "Enqueing (ResolvedJob=0x%p version=0x%08x) index=%i version=0x%08x\n", ResolvedJob, ResolvedJob->Version, Handle.Index, Handle.Version);
+	
+			if (!m_QueuedJobs.Push(Handle.Index))
+			{
+				assert(false);// "Failed to enqueue job, job queue is probably full, increasing MaxJobCount may be required.");
+			}
 		}
 	}
 
 	// Enqueue children first.
-	for (JobHandle ChildHandle : ParentJob->Dependencies)
+	for (JobHandle ChildHandle : ResolvedJob->Dependencies)
 	{
 		Job* ChildJob = GetJob(ChildHandle);
 		if (ChildJob != nullptr && !ChildJob->Enqueued)
@@ -209,6 +214,7 @@ int JobScheduler::WaitForJob()
 		int JobIndex = 0;
 		if (m_QueuedJobs.Pop(&JobIndex))
 		{
+			//Log(LogSeverity::SilentInfo, "Returning job %i\n", JobIndex);
 			return JobIndex;
 		}
 		m_WorkCondVar.wait(lock);
@@ -233,5 +239,25 @@ int JobScheduler::GetThreadId()
 {
 	return g_jobSchedulerthreadId;
 }
+
+void JobScheduler::PrintJobTree()
+{
+	for (int i = 0; i < MaxJobCount; i++)
+	{
+		Job* job = &m_Jobs[i];
+		if (job->Completed)
+		{
+			continue;
+		}
+
+		Log(LogSeverity::SilentInfo, "Job %i\n", i);
+	
+		for (JobHandle ChildHandle : job->Dependencies)
+		{
+			Log(LogSeverity::SilentInfo, "\tDependent %i\n", ChildHandle.Index);
+		}
+	}
+}
+
 
 }; // namespace Ludo

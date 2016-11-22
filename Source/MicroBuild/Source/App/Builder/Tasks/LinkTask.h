@@ -32,7 +32,7 @@ private:
 	ProjectFile& m_projectFile;
 	Toolchain* m_toolchain;
 	std::vector<BuilderFileInfo>& m_sourceFiles;
-	BuilderFileInfo& m_outputFile;
+	BuilderFileInfo m_outputFile;
 
 public:
 	LinkTask(std::vector<BuilderFileInfo>& sourceFiles, Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& outputFile);

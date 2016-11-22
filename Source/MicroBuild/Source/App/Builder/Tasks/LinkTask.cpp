@@ -39,7 +39,13 @@ bool LinkTask::Execute()
 	
 	TaskLog(LogSeverity::SilentInfo, "Linking: %s\n", m_outputFile.OutputPath.GetFilename().c_str());
 
-	return m_toolchain->Link(m_sourceFiles, m_outputFile);
+	bool bResult = m_toolchain->Link(m_sourceFiles, m_outputFile);	
+	if (bResult)
+	{
+		assert(m_outputFile.OutputPath.Exists());
+	}
+
+	return bResult;
 }
 
 }; // namespace MicroBuild

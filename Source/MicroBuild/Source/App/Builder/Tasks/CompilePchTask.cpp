@@ -38,7 +38,12 @@ bool CompilePchTask::Execute()
 
 	TaskLog(LogSeverity::SilentInfo, "Generating PCH: %s\n", m_file.SourcePath.GetFilename().c_str());
 
-	return m_toolchain->CompilePch(m_file);
+	bool bResult = m_toolchain->CompilePch(m_file);
+	if (bResult)
+	{
+		assert(m_file.OutputPath.Exists());
+	}
+	return bResult;
 }
 
 }; // namespace MicroBuild

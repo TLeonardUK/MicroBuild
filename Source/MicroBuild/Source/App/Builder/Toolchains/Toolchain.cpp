@@ -425,25 +425,8 @@ bool Toolchain::Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& ou
 	return true;
 }
 
-bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+void Toolchain::UpdateLinkDependencies(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
 {
-	std::vector<std::string> arguments;
-	GetLinkArguments(files, arguments);
-
-	Platform::Process process;
-	if (!process.Open(m_linkerPath, m_linkerPath.GetDirectory(), arguments, true))
-	{
-		return false;
-	}
-	
-	std::string output = process.ReadToEnd();
-	printf("%s", output.c_str());
-
-	if (process.GetExitCode() != 0)
-	{
-		return false;
-	}
-	
 	outputFile.Dependencies.clear();
 
 	// Libraries to link.
@@ -511,8 +494,29 @@ bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outpu
 			info.Hash = BuilderFileInfo::CalculateFileHash(info.SourcePath, m_configurationHash);
 			outputFile.Dependencies.push_back(info);
 		}	
+	}	
+}
+
+bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+{
+	std::vector<std::string> arguments;
+	GetLinkArguments(files, arguments);
+
+	Platform::Process process;
+	if (!process.Open(m_linkerPath, m_linkerPath.GetDirectory(), arguments, true))
+	{
+		return false;
 	}
 	
+	std::string output = process.ReadToEnd();
+	printf("%s", output.c_str());
+
+	if (process.GetExitCode() != 0)
+	{
+		return false;
+	}
+	
+	UpdateLinkDependencies(files, outputFile);
 	outputFile.StoreManifest();
 
 	return true;

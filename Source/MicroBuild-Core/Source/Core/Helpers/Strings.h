@@ -72,7 +72,7 @@ uint64_t Hash64(const std::string& value, uint64_t start = 0);
 std::string Trim(const std::string& input);
 
 // Splits the string into fragments deliminated by the given seperator.
-std::vector<std::string> Split(char seperator, const std::string& value);
+std::vector<std::string> Split(char seperator, const std::string& value, bool bAllowEscaping = false, bool bIgnoreEmpty = false);
 
 // Generates a guid given the key data.
 std::string Guid(const std::vector<std::string>& values);

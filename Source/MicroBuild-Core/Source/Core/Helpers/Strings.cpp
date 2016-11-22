@@ -336,25 +336,41 @@ std::string Trim(const std::string& input)
 	return input.substr(startIndex, (endIndex - startIndex) + 1);
 }
 
-std::vector<std::string> Split(char seperator, const std::string& value)
+std::vector<std::string> Split(char seperator, const std::string& value, bool bAllowEscaping, bool bIgnoreEmpty)
 {
 	std::vector<std::string> result;
 
 	size_t offset = 0;
+	size_t shiftOffset = 0;
 	while (offset < value.size())
 	{
-		size_t endOffset = value.find(seperator, offset);
+		size_t endOffset = value.find(seperator, offset + shiftOffset);
 		if (endOffset != std::string::npos)
 		{
-			std::string frag = value.substr(offset, endOffset - offset);
-			result.push_back(Trim(frag));
+			if (!bAllowEscaping || (endOffset < 1 || value[endOffset - 1] != '\\'))
+			{
+				std::string frag = Trim(value.substr(offset, endOffset - offset));
+				if (frag.size() > 0 || !bIgnoreEmpty)
+				{
+					result.push_back(frag);
+				}
 
-			offset = endOffset + 1;
+				offset = endOffset + 1;
+				shiftOffset = 0;
+			}
+			else
+			{
+				shiftOffset++;
+			}
 		}
 		else
 		{
-			std::string frag = value.substr(offset);
-			result.push_back(Trim(frag));
+			std::string frag = Trim(value.substr(offset));
+			if (frag.size() > 0 || !bIgnoreEmpty)
+			{
+				result.push_back(frag);
+			}
+			shiftOffset = 0;
 			break;
 		}
 	}

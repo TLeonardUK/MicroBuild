@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Commands/Command.h"
 #include "Core/Platform/Path.h"
 
+#include <mutex>
+
 namespace MicroBuild {
 
 // Stores information on a dependency of a MetadataFileInfo
@@ -37,6 +39,11 @@ public:
 // have meta data generated for it.
 struct BuilderFileInfo 
 {
+private:
+	static std::map<uint64_t, std::time_t> m_modifiedTimeCache;
+	static std::map<uint64_t, bool> m_fileExistsCache;
+	static std::mutex m_fileCacheLock;
+
 public:
 
 	BuilderFileInfo();
@@ -83,6 +90,12 @@ public:
 
 	// Checks if a given file info is out of date.
 	static bool CheckOutOfDate(BuilderFileInfo& file, uint64_t configurationHash, bool bNoIntermediateFiles);
+
+	// Gets the modified time for a given file, and stores 
+	static std::time_t GetCachedModifiedTime(const Platform::Path& path);
+
+	// Gets the existance state for a given file.
+	static bool GetCachedPathExists(const Platform::Path& path);
 };
 
 }; // namespace MicroBuild
