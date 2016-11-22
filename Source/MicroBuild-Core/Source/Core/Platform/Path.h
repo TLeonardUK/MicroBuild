@@ -50,8 +50,9 @@ public:
 
 	// Equality test operators.
 	bool operator ==(const Path& Other) const;
-	bool operator !=(const Path& Other) const;
-
+	bool operator !=(const Path& Other) const;	
+    bool operator < (const Path& Other) const;
+    
 	// Gets the base name for the path, which is the filename without 
 	// an extension.
 	std::string GetBaseName() const;

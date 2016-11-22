@@ -20,21 +20,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "App/Builder/Toolchains/Toolchain.h"
 #include "App/Builder/Toolchains/Cpp/Gcc/Toolchain_Gcc.h"
+#include "App/Builder/Toolchains/Cpp/Clang/Toolchain_Clang.h"
 
 namespace MicroBuild {
 	
 // Android native development toolchain.
 class Toolchain_AndroidNdk
-	: public Toolchain_Gcc
+	: public Toolchain_Clang
 {
 protected:
 	std::string m_version;
+	Platform::Path m_platformFolder;
+	Platform::Path m_toolchainFolder;
+	Platform::Path m_sysRoot;
 
 protected:	
 	
 	// Attempts to locate the toolchain on the users computer, returns true
 	// if its found and available for use, otherwise false.
 	virtual bool FindToolchain() override;
+
+	virtual void GetBaseCompileArguments(std::vector<std::string>& args) override;
+	virtual void GetLinkArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args) override;
 	
 public:
 	Toolchain_AndroidNdk(ProjectFile& file, uint64_t configurationHash);

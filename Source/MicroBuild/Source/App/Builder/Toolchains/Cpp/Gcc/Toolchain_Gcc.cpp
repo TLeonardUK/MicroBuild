@@ -267,9 +267,14 @@ void Toolchain_Gcc::GetBaseCompileArguments(std::vector<std::string>& args)
 			args.push_back("-m64");
 			break;
 		}
-	default:
+	case EPlatform::x86:
 		{
 			args.push_back("-m32");
+			break;
+		}
+	default:
+		{
+			// Do we want to do anything here?
 			break;
 		}
 	}
@@ -479,7 +484,7 @@ void Toolchain_Gcc::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceF
 	{
 		args.push_back("-static");
 	}
-	
+
 	switch (m_projectFile.Get_Target_Platform())
 	{
 	case EPlatform::ARM64:
@@ -492,12 +497,17 @@ void Toolchain_Gcc::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceF
 #endif
 			break;
 		}
-	default:
+	case EPlatform::x86:
 		{
 			args.push_back("-m32");
 #if !defined(MB_PLATFORM_WINDOWS)
 			args.push_back("-L/usr/lib32");
 #endif
+			break;
+		}
+	default:
+		{
+			// Do we want to do anything here?
 			break;
 		}
 	}

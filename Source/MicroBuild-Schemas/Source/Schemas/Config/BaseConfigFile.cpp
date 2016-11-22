@@ -84,6 +84,20 @@ void BaseConfigFile::Resolve()
 		Set_Target_DynamicLibExtension(".rpl");
 		break;
 	}
+	
+	// Mobile platforms
+	case EPlatform::Android_ARM:
+	case EPlatform::Android_ARM64:
+	case EPlatform::Android_x86:
+	case EPlatform::Android_x64:
+	case EPlatform::Android_MIPS:
+	case EPlatform::Android_MIPS64:
+	{
+		Set_Target_ExeExtension("");
+		Set_Target_StaticLibExtension(".a");
+		Set_Target_DynamicLibExtension(".so");
+		break;
+	}
 
     // Desktop Platforms
 	case EPlatform::x86:
@@ -98,7 +112,6 @@ void BaseConfigFile::Resolve()
 
 	// Mobile platforms
 	case EPlatform::iOS:
-	case EPlatform::Android:
 		// Fallthrough
 
 	case EPlatform::PS3:

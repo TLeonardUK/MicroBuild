@@ -48,7 +48,12 @@ START_ENUM(EPlatform)
 
 	// Mobile platforms
 	ENUM_KEY(iOS)
-	ENUM_KEY(Android)
+	ENUM_KEY(Android_ARM)
+	ENUM_KEY(Android_ARM64)
+	ENUM_KEY(Android_x86)
+	ENUM_KEY(Android_x64)
+	ENUM_KEY(Android_MIPS)
+	ENUM_KEY(Android_MIPS64)
 
 	// Console platforms
 	ENUM_KEY(PS3)

@@ -46,9 +46,24 @@ bool Toolchain_Nintendo3ds::FindToolchain()
 	m_sdkPath		= Platform::GetEnvironmentVariable("CTRSDK_ROOT");
 	m_toolchainPath = Platform::GetEnvironmentVariable("ARMCC5BIN");
 	
-	if (!m_sdkPath.Exists() ||
-		!m_toolchainPath.Exists())
+	if (m_sdkPath.IsEmpty())
 	{
+		Log(LogSeverity::Fatal, "CTRSDK_ROOT environment variable not defined, unable to locate toolchain.");
+		return false;
+	}
+	if (!m_sdkPath.Exists())
+	{
+		Log(LogSeverity::Fatal, "CTRSDK_ROOT environment variable pointing to non-existing folder.");
+		return false;
+	}
+	if (m_toolchainPath.IsEmpty())
+	{
+		Log(LogSeverity::Fatal, "ARMCC5BIN environment variable not defined, unable to locate toolchain.");
+		return false;
+	}
+	if (!m_toolchainPath.Exists())
+	{
+		Log(LogSeverity::Fatal, "ARMCC5BIN environment variable pointing to non-existing folder.");
 		return false;
 	}
 

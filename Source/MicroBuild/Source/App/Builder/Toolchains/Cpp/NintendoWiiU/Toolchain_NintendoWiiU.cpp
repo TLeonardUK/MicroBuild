@@ -44,9 +44,24 @@ bool Toolchain_NintendoWiiU::FindToolchain()
 	m_sdkPath		= Platform::GetEnvironmentVariable("CAFE_ROOT");
 	m_toolchainPath = Platform::GetEnvironmentVariable("GHS_ROOT");
 	
-	if (!m_sdkPath.Exists() ||
-		!m_toolchainPath.Exists())
+	if (m_sdkPath.IsEmpty())
 	{
+		Log(LogSeverity::Fatal, "CAFE_ROOT environment variable not defined, unable to locate toolchain.");
+		return false;
+	}
+	if (!m_sdkPath.Exists())
+	{
+		Log(LogSeverity::Fatal, "CAFE_ROOT environment variable pointing to non-existing folder.");
+		return false;
+	}
+	if (m_toolchainPath.IsEmpty())
+	{
+		Log(LogSeverity::Fatal, "GHS_ROOT environment variable not defined, unable to locate toolchain.");
+		return false;
+	}
+	if (!m_toolchainPath.Exists())
+	{
+		Log(LogSeverity::Fatal, "GHS_ROOT environment variable pointing to non-existing folder.");
 		return false;
 	}
 

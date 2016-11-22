@@ -61,6 +61,25 @@ START_ENUM(EPlatformToolset)
 	ENUM_KEY(DotNet_4_5_2)
 	ENUM_KEY(DotNet_4_6)	
 
+	// Android Api Toolsets
+	ENUM_KEY(Android_3) 
+	ENUM_KEY(Android_4) 
+	ENUM_KEY(Android_5) 
+	ENUM_KEY(Android_8) 
+	ENUM_KEY(Android_9) 
+	ENUM_KEY(Android_12) 
+	ENUM_KEY(Android_13) 
+	ENUM_KEY(Android_14) 
+	ENUM_KEY(Android_15) 
+	ENUM_KEY(Android_16) 
+	ENUM_KEY(Android_17) 
+	ENUM_KEY(Android_18) 
+	ENUM_KEY(Android_19) 
+	ENUM_KEY(Android_21) 
+	ENUM_KEY(Android_22) 
+	ENUM_KEY(Android_23)
+	ENUM_KEY(Android_24)  
+
 	// Mono
 	ENUM_KEY(Mono)
 

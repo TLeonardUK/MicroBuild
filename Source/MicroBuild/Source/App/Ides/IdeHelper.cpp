@@ -508,8 +508,13 @@ std::string GetPlatformHumanReadableId(EPlatform platform)
 	case EPlatform::HTML5:			return "HTML5";
 
 	// Mobile platforms
-	case EPlatform::iOS:			return "iOS";
-	case EPlatform::Android:		return "Android";
+	case EPlatform::iOS:			return "iOS";		
+	case EPlatform::Android_ARM:	return "Android (ARM 32 Bit)";
+	case EPlatform::Android_ARM64:	return "Android (ARM 64 Bit)";
+	case EPlatform::Android_x86:	return "Android (32 Bit)";
+	case EPlatform::Android_x64:	return "Android (64 Bit)";
+	case EPlatform::Android_MIPS:	return "Android (MIPS 32 Bit)";
+	case EPlatform::Android_MIPS64:	return "Android (MIPS 64 Bit)";
 		
 	// Console
 	case EPlatform::PS3:			return "Playstation 3";

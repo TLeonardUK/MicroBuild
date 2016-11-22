@@ -419,9 +419,6 @@ bool Builder::Build(WorkspaceFile& workspaceFile, ProjectFile& project, bool bRe
 			}
 		}
 
-		// job b is completing and enqueing job a
-		// we call enqueue below and re-enqueue job a !? Fail.
-
 		//scheduler.PrintJobTree();
 		scheduler.Enqueue(hostJob);
 		scheduler.Wait(hostJob);
@@ -524,7 +521,13 @@ Toolchain* Builder::GetToolchain(ProjectFile& project, uint64_t configurationHas
 					break;
 #endif
 				}
-			case EPlatform::Android:
+
+			case EPlatform::Android_ARM:
+			case EPlatform::Android_ARM64:
+			case EPlatform::Android_x86:
+			case EPlatform::Android_x64:
+			case EPlatform::Android_MIPS:
+			case EPlatform::Android_MIPS64:
 				{
 					return new Toolchain_AndroidNdk(project, configurationHash);
 				}
