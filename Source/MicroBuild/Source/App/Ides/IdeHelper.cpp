@@ -483,59 +483,62 @@ std::string GetPlatformHumanReadableId(EPlatform platform)
 #if defined(MB_PLATFORM_WINDOWS)
 	#define PLATFORM_NAME "Windows"
 #elif defined(MB_PLATFORM_LINUX)
-	#define PLATFORM_NAME "Linux";
+	#define PLATFORM_NAME "Linux"
 #elif defined(MB_PLATFORM_MACOS)
-	#define PLATFORM_NAME "MacOS";
+	#define PLATFORM_NAME "MacOS"
 #else
 		#error Unimplemented platform.
 #endif
 
-	switch (platform)
-	{
-	
-    // Desktop Platforms
-	case EPlatform::ARM:			return PLATFORM_NAME " (ARM 32 bit)";
-	case EPlatform::ARM64:			return PLATFORM_NAME " (ARM 64 bit)";
-	case EPlatform::x86:			return PLATFORM_NAME " (32 Bit)";
-	case EPlatform::x64:			return PLATFORM_NAME " (64 Bit)";
+	std::string name = "";
 
-	case EPlatform::WinRT_ARM:		return PLATFORM_NAME " RT (ARM 32 bit)";
-	case EPlatform::WinRT_ARM64:	return PLATFORM_NAME " RT (ARM 64 bit)";
-	case EPlatform::WinRT_x86:		return PLATFORM_NAME " RT (32 Bit)";
-	case EPlatform::WinRT_x64:		return PLATFORM_NAME " RT (64 Bit)";
+	switch (platform)
+	{	
+    	// Desktop Platforms
+	case EPlatform::ARM:			{ name = (PLATFORM_NAME " (ARM 32 bit)"); break; }
+	case EPlatform::ARM64:			{ name = (PLATFORM_NAME " (ARM 64 bit)"); break; }
+	case EPlatform::x86:			{ name = (PLATFORM_NAME " (32 Bit)"); break; }
+	case EPlatform::x64:			{ name = (PLATFORM_NAME " (64 Bit)"); break; }
+
+	case EPlatform::WinRT_ARM:		{ name = (PLATFORM_NAME " RT (ARM 32 bit)"); break; }
+	case EPlatform::WinRT_ARM64:		{ name = (PLATFORM_NAME " RT (ARM 64 bit)"); break; }
+	case EPlatform::WinRT_x86:		{ name = (PLATFORM_NAME " RT (32 Bit)"); break; }
+	case EPlatform::WinRT_x64:		{ name = (PLATFORM_NAME " RT (64 Bit)"); break; }
 	
 	// Web platforms
-	case EPlatform::HTML5:			return "HTML5";
+	case EPlatform::HTML5:			{ name = "HTML5"; break; }
 
 	// Mobile platforms
-	case EPlatform::iOS:			return "iOS";		
-	case EPlatform::Android_ARM:	return "Android (ARM 32 Bit)";
-	case EPlatform::Android_ARM64:	return "Android (ARM 64 Bit)";
-	case EPlatform::Android_x86:	return "Android (32 Bit)";
-	case EPlatform::Android_x64:	return "Android (64 Bit)";
-	case EPlatform::Android_MIPS:	return "Android (MIPS 32 Bit)";
-	case EPlatform::Android_MIPS64:	return "Android (MIPS 64 Bit)";
+	case EPlatform::iOS:			{ name = "iOS"; }	
+	case EPlatform::Android_ARM:		{ name = "Android (ARM 32 Bit)"; break; }
+	case EPlatform::Android_ARM64:		{ name = "Android (ARM 64 Bit)"; break; }
+	case EPlatform::Android_x86:		{ name = "Android (32 Bit)"; break; }
+	case EPlatform::Android_x64:		{ name = "Android (64 Bit)"; break; }
+	case EPlatform::Android_MIPS:		{ name = "Android (MIPS 32 Bit)"; break; }
+	case EPlatform::Android_MIPS64:		{ name = "Android (MIPS 64 Bit)"; break; }
 		
 	// Console
-	case EPlatform::PS3:			return "Playstation 3";
-	case EPlatform::PS4:			return "Playstation 4";
-	case EPlatform::PSVita:			return "Playstation Vita";
-	case EPlatform::Xbox360:		return "Xbox 360";
-	case EPlatform::XboxOne:		return "Xbox One";
-	case EPlatform::NintendoWiiU:	return "Nintendo WiiU";
-	case EPlatform::Nintendo3DS:	return "Nintendo 3DS";
+	case EPlatform::PS3:			{ name = "Playstation 3"; break; }
+	case EPlatform::PS4:			{ name = "Playstation 4"; break; }
+	case EPlatform::PSVita:			{ name = "Playstation Vita"; break; }
+	case EPlatform::Xbox360:		{ name = "Xbox 360"; break; }
+	case EPlatform::XboxOne:		{ name = "Xbox One"; break; }
+	case EPlatform::NintendoWiiU:		{ name = "Nintendo WiiU"; break; }
+	case EPlatform::Nintendo3DS:		{ name = "Nintendo 3DS"; break; }
 
 	// DotNET Specific
-	case EPlatform::AnyCPU:			return PLATFORM_NAME " (AnyCPU)";
+	case EPlatform::AnyCPU:			{ name = (PLATFORM_NAME " (AnyCPU)"); break; }
 
 	// MacOS Bundles
-	case EPlatform::Native:			return PLATFORM_NAME " (Native Bundle)";
-	case EPlatform::Universal86:	return PLATFORM_NAME " (Universal 32 bit Bundle)";
-	case EPlatform::Universal64:	return PLATFORM_NAME " (Universal 64 bit Bundle)";
-	case EPlatform::Universal:		return PLATFORM_NAME " (Universal Bundle)";
+	case EPlatform::Native:			{ name = (PLATFORM_NAME " (Native Bundle)"); }
+	case EPlatform::Universal86:		{ name = (PLATFORM_NAME " (Universal 32 bit Bundle)"); break; }
+	case EPlatform::Universal64:		{ name = (PLATFORM_NAME " (Universal 64 bit Bundle)"); break; }
+	case EPlatform::Universal:		{ name = (PLATFORM_NAME " (Universal Bundle)"); break; }
 
-	default:						return CastToString(platform);
+	default:				{ name = CastToString(platform); }
 	}
+	
+	return name;
 }
 
 }; // namespace IdeHelper

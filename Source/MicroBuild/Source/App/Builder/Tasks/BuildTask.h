@@ -73,14 +73,14 @@ enum class BuildStage
 class BuildTask
 {
 private:
-	int m_threadId;
-	int m_jobIndex;
-	int m_totalJobs;
-
-	bool m_bGiveJobIndex;
 
 	BuildStage m_stage;
 	bool m_bCanRunInParallel;
+
+	int m_threadId;
+	int m_jobIndex;
+	int m_totalJobs;
+	bool m_bGiveJobIndex;
 
 public:
 	BuildTask(BuildStage stage, bool bCanRunInParallel, bool bGiveJobIndex);

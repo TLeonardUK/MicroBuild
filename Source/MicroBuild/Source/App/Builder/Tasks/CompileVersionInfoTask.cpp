@@ -26,8 +26,8 @@ namespace MicroBuild {
 CompileVersionInfoTask::CompileVersionInfoTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file)
 	: BuildTask(BuildStage::PreBuild, true, true)
 	, m_projectFile(project)
-	, m_file(file)
 	, m_toolchain(toolchain)
+	, m_file(file)
 {
 }
 

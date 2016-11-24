@@ -22,6 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Platform/Path.h"
 #include "Core/Log.h"
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 // This is outside the MB namespace as gcc differs from msbuild as it appends
 // the namespace to the nested extern reference :(. Theres probably a nicer way
 // to deal with this.
@@ -160,7 +163,7 @@ struct StringConverter<uint64_t, std::string>
 	bool Cast(const uint64_t& value, std::string& type)
 	{
 		char buffer[128];
-		sprintf(buffer, "%llu", value);
+		sprintf(buffer, "%" PRIu64, value);
 		type = buffer;
 		return true;
 	}

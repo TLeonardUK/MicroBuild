@@ -26,9 +26,9 @@ namespace MicroBuild {
 CompileTask::CompileTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& file, BuilderFileInfo pchFile)
 	: BuildTask(BuildStage::Compile, true, true)
 	, m_projectFile(project)
+	, m_toolchain(toolchain)
 	, m_file(file)
 	, m_pchFile(pchFile)
-	, m_toolchain(toolchain)
 {
 }
 

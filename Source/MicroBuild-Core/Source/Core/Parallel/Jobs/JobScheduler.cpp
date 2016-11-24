@@ -27,8 +27,8 @@ namespace MicroBuild {
 thread_local int g_jobSchedulerthreadId = -1;
 
 JobScheduler::JobScheduler(int ThreadCount)
-	: m_Aborting(false)
-	, m_JobVersionCounter(0)
+	: m_JobVersionCounter(-1)
+	, m_Aborting(false)
 {
 	assert(ThreadCount > 0);
 

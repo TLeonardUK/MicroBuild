@@ -29,8 +29,8 @@ std::map<uint64_t, bool> BuilderFileInfo::m_fileExistsCache;
 std::mutex BuilderFileInfo::m_fileCacheLock;
 
 BuilderFileInfo::BuilderFileInfo()
-	: Hash(0)
-	, bOutOfDate(false)
+	: bOutOfDate(false)
+	, Hash(0)
 {
 }
 
