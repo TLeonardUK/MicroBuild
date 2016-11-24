@@ -300,6 +300,10 @@ void Toolchain_Gcc::GetBaseCompileArguments(std::vector<std::string>& args)
 			args.push_back("-std=c++14");
 			break;
 		}
+	default:
+		{
+			break;
+		}
 	}	
 
 	if (m_projectFile.Get_Project_OutputType() == EOutputType::DynamicLib)

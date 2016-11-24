@@ -1510,7 +1510,7 @@ bool Path::FindFile(const std::string& filename, Platform::Path& result, std::ve
 			for (std::string& file : path.GetFiles())
 			{
 				Platform::Path location = path.AppendFragment(file, true);
-				if (location.Exists() & location.GetBaseName() == filename)
+				if (location.Exists() && location.GetBaseName() == filename)
 				{
 					result = location;
 					return true;

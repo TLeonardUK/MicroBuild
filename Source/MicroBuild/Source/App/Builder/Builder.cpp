@@ -309,7 +309,7 @@ bool Builder::Build(WorkspaceFile& workspaceFile, ProjectFile& project, bool bRe
 	}
 	else
 	{
-		std::atomic<int> currentJobIndex = 0;
+		std::atomic<int> currentJobIndex(0);
 		int totalJobs = 0;
 
 		// We have one global job that each build stage is a child of.		
@@ -601,6 +601,11 @@ Toolchain* Builder::GetToolchain(ProjectFile& project, uint64_t configurationHas
 #endif
 					break;
 				}
+
+			default:
+				{
+					return nullptr;
+				}
 			}		
 			break;
 		}
@@ -640,8 +645,16 @@ Toolchain* Builder::GetToolchain(ProjectFile& project, uint64_t configurationHas
 					}
 					break;
 				}
+			default:
+				{
+					return nullptr;
+				}
 			}		
 			break;
+		default:
+			{
+				return nullptr;
+			}
 		}
 	}
 

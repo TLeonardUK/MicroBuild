@@ -267,6 +267,11 @@ void Toolchain_Mono::GetLinkArguments(const std::vector<BuilderFileInfo>& files,
 			args.push_back("/platform:arm");
 			break;
 		}
+	default:
+		{
+			assert(false);
+			break;
+		}
 	}
 	
 	switch (m_projectFile.Get_Project_OutputType())
@@ -284,6 +289,11 @@ void Toolchain_Mono::GetLinkArguments(const std::vector<BuilderFileInfo>& files,
 	case EOutputType::Executable:
 		{
 			args.push_back("/target:winexe");
+			break;
+		}
+	default:
+		{
+			assert(false);
 			break;
 		}
 	}
@@ -318,6 +328,11 @@ void Toolchain_Mono::GetLinkArguments(const std::vector<BuilderFileInfo>& files,
 	case ELanguageVersion::CSharp_6_0:
 		{
 			args.push_back("/langversion:6");
+			break;
+		}
+	default:
+		{
+			assert(false);
 			break;
 		}
 	}

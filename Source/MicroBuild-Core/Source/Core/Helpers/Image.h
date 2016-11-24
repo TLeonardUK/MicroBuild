@@ -41,9 +41,7 @@ private:
 
 protected:
 
-public:
-	typedef std::shared_ptr<Image> Ptr;
-	
+public:	
 	Image(FIBITMAP* Bitmap);
 	Image();
 	~Image();

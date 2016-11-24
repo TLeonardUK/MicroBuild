@@ -33,7 +33,7 @@ void DebugOutput(const char* output)
 
 void RelaxCpu()
 {
-	__asm volatile ("pause" ::: "memory")
+	__asm volatile ("pause" ::: "memory");
 }
 
 int GetConcurrencyFactor()
@@ -50,7 +50,6 @@ bool IsOperatingSystem64Bit()
 void SetEnvironmentVariable(const std::string& tag, const std::string& value)
 {
 	assert(false); // TODO: Fix if this is ever actually used on linux.
-	return true;
 }
 
 }; // namespace Platform

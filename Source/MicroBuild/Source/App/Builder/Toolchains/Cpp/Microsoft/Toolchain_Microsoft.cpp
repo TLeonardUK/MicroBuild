@@ -156,6 +156,11 @@ bool Toolchain_Microsoft::FindToolchain()
 					m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/arm", true));
 					break;
 				}
+			default:
+				{
+					assert(false);
+					break;
+				}
 			}
 
 			m_compilerPath = toolchainPath.AppendFragment("cl.exe", true);

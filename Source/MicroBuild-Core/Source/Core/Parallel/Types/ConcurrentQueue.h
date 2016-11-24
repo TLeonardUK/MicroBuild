@@ -129,20 +129,22 @@ public:
 	// Clears out the queue of all elements.
 	void Empty()
 	{
-		m_Top = m_Data;
-		m_ComittedTop = m_Top;
+		m_Head = m_Data;
+		m_UncomittedHead = m_Data;
+		m_Tail = m_Data;
+		m_UncomittedTail = m_Data;
 	}
 
 	// Returns true if the queue has any elements in it.
 	bool IsEmpty() const
 	{
-		return (m_ComittedTop == m_Data);
+		return (m_Head == m_Tail);
 	}
 
 	// Returns the number of elements currently in the queue.
 	int Length() const
 	{
-		return (m_ComittedTop - m_Data);
+		return (m_Head - m_Tail);
 	}
 
 };

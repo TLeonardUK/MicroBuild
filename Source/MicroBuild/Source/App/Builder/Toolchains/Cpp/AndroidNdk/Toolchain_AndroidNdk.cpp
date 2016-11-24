@@ -286,6 +286,11 @@ void Toolchain_AndroidNdk::GetBaseCompileArguments(std::vector<std::string>& arg
 				args.push_back("-march=mips64"); 
 				break;
 			}
+		default:
+			{
+				assert(false);
+				break;
+			}
 	}
 
 	args.push_back("-mfloat-abi=softfp");
@@ -328,6 +333,11 @@ void Toolchain_AndroidNdk::GetLinkArguments(const std::vector<BuilderFileInfo>& 
 		case EPlatform::Android_MIPS64:
 			{
 				args.push_back("-march=mips64"); 
+				break;
+			}
+		default:
+			{
+				assert(false);
 				break;
 			}
 	}
