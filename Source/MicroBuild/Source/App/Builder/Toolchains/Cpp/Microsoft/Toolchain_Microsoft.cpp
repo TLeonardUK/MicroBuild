@@ -237,6 +237,8 @@ bool Toolchain_Microsoft::FindToolchain()
 
 void Toolchain_Microsoft::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
+	MB_UNUSED_PARAMETER(file);
+	
 	switch (m_projectFile.Get_Build_OptimizationLevel())
 	{
 	default:
