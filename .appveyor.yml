@@ -22,7 +22,8 @@ before_build:
 
 build:
   project: Build\ProjectFiles\MicroBuild.sln
-
+  verbosity: minimal
+  
 on_success: 
   - git config --global user.email "buildserver@programmingbytim.com"
   - git config --global user.name "Build Server"
