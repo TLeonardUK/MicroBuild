@@ -70,7 +70,7 @@ namespace MicroBuild {
 App::App(int argc, char* argv[])    
 	: m_argv(argv)
 	, m_argc(argc)
-	, m_commandLineParser(MB_NAME, MB_DESCRIPTION, MB_COPYRIGHT)
+	, m_commandLineParser(MB_NAME, MB_COPYRIGHT)
 	, m_pluginManager(this)
 {
 	Platform::Path::SetExecutablePath(argv[0]);

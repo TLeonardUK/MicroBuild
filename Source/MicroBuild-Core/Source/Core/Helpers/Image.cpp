@@ -125,7 +125,7 @@ Image::Ptr Image::Scale(int Width, int Height)
 	FIBITMAP* newImage = FreeImage_Rescale(m_bitmap, Width, Height, FILTER_BICUBIC);
 	if (!newImage)
 	{
-		return false;
+		return nullptr;
 	}
 
 	return std::make_shared<Image>(newImage);

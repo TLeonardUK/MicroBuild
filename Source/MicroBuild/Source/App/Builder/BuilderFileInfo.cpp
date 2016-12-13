@@ -147,6 +147,7 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info, uint64_t configurati
 		 !GetCachedPathExists(info.OutputPath)))
 	{
 		info.bOutOfDate = true;
+		//Log(LogSeverity::Warning, "[%s] Out of date because cached paths non-existant.\n", info.SourcePath.GetFilename().c_str());
 	}
 	else
 	{
@@ -155,9 +156,11 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info, uint64_t configurati
 		if (!bNoIntermediateFiles && !info.LoadManifest())
 		{
 			info.bOutOfDate = true;
+			//Log(LogSeverity::Warning, "[%s] Could not load manifest.\n", info.SourcePath.ToString().c_str());
 		}
 		else if (!info.SourcePath.IsEmpty() && info.Hash != currentHash)
 		{
+			//Log(LogSeverity::Warning, "[%s] Hash was different.\n", info.SourcePath.ToString().c_str());
 			info.bOutOfDate = true;
 			info.Hash = currentHash;
 		}
@@ -170,6 +173,13 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info, uint64_t configurati
 				if (!GetCachedPathExists(dependencyInfo.SourcePath) ||
 					 dependencyInfo.Hash != dependencyHash)
 				{
+				/*	Log(LogSeverity::Warning, "[%s] Dependency out of date (hash=%i exists=%i): %s.\n", 
+						info.SourcePath.GetFilename().c_str(),
+						dependencyInfo.Hash != dependencyHash,
+						GetCachedPathExists(dependencyInfo.SourcePath),
+						 dependencyInfo.SourcePath.ToString().c_str()
+					);
+				*/
 					info.bOutOfDate = true;
 					break;
 				}

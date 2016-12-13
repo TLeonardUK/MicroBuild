@@ -55,7 +55,6 @@ protected:
 		std::atomic<int>* currentJobIndex);
 
 private:
-	bool m_bRebuild;
 	App* m_app;
 
 }; 

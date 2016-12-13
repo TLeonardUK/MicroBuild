@@ -25,11 +25,11 @@ namespace MicroBuild {
 
 LinkTask::LinkTask(std::vector<BuilderFileInfo>& sourceFiles, Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& outputFile)
 	: BuildTask(BuildStage::Link, true, true) 
-	, m_projectFile(project)
 	, m_toolchain(toolchain)
 	, m_sourceFiles(sourceFiles)
 	, m_outputFile(outputFile)
 {
+	MB_UNUSED_PARAMETER(project);
 }
 
 bool LinkTask::Execute()

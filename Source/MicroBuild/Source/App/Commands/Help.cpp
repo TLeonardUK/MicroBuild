@@ -26,8 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 HelpCommand::HelpCommand(App* app)
-	: m_app(app)
 {
+	MB_UNUSED_PARAMETER(app);
+
 	SetName("help");
 	SetShortName("h");
 	SetDescription("Shows command line syntax and usage.");

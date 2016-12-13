@@ -35,8 +35,6 @@ protected:
 	virtual bool Invoke(CommandLineParser* parser) override;
 
 private:
-	App* m_app;
-
 	WorkspaceFile m_workspaceFile;
 	Platform::Path m_workspaceFilePath;
 

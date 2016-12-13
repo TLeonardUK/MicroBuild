@@ -29,7 +29,6 @@ class ArchiveTask
 	: public BuildTask
 {
 private:
-	ProjectFile& m_projectFile;
 	Toolchain* m_toolchain;
 	std::vector<BuilderFileInfo>& m_sourceFiles;
 	BuilderFileInfo m_outputFile;

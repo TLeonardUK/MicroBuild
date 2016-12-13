@@ -35,9 +35,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 PackageCommand::PackageCommand(App* app)
-	: m_app(app)
-	, m_rebuild(false)
+	: m_rebuild(false)
 {
+	MB_UNUSED_PARAMETER(app);
+
 	SetName("package");
 	SetShortName("p");
 	SetDescription("Packages the project for the given configuration and "

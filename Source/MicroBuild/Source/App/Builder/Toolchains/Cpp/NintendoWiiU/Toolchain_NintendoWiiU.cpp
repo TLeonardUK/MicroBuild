@@ -171,7 +171,7 @@ Platform::Path Toolchain_NintendoWiiU::GetRplExportLibraryPath()
 	return GetOutputPath().ChangeExtension("a");
 }
 
-void Toolchain_NintendoWiiU::GetBaseCompileArguments(std::vector<std::string>& args)
+void Toolchain_NintendoWiiU::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
 	MB_UNUSED_PARAMETER(args);
 

@@ -41,11 +41,11 @@ std::vector<std::string> Path::GetFiles() const
 	DIR* handle = opendir(m_raw.c_str());
 	if (handle == nullptr)
 	{	
-		Log(LogSeverity::Warning, "Failed to enumerate directory: %s\n", m_raw.c_str());
+		//Log(LogSeverity::Warning, "Failed to enumerate directory: %s\n", m_raw.c_str());
 		return result;
 	}
 
-	Log(LogSeverity::Verbose, "GetFiles(%s)\n", m_raw.c_str());
+	//Log(LogSeverity::Verbose, "GetFiles(%s)\n", m_raw.c_str());
 
 	while (true)
 	{
@@ -55,7 +55,7 @@ std::vector<std::string> Path::GetFiles() const
 			break;
 		}		
 
-		Log(LogSeverity::Verbose, "\tdirent: name=%s type=%i\n", entry->d_name, entry->d_type);
+		//Log(LogSeverity::Verbose, "\tdirent: name=%s type=%i\n", entry->d_name, entry->d_type);
 
 		struct stat attr;
 		int res = stat(AppendFragment(entry->d_name, true).ToString().c_str(), &attr);
@@ -80,11 +80,11 @@ std::vector<std::string> Path::GetDirectories() const
 	DIR* handle = opendir(m_raw.c_str());
 	if (handle == nullptr)
 	{
-		Log(LogSeverity::Warning, "Failed to enumerate directory: %s\n", m_raw.c_str());
+		//Log(LogSeverity::Warning, "Failed to enumerate directory: %s\n", m_raw.c_str());
 		return result;
 	}
 
-	Log(LogSeverity::Verbose, "GetDirectories(%s)\n", m_raw.c_str());
+	//Log(LogSeverity::Verbose, "GetDirectories(%s)\n", m_raw.c_str());
 
 	while (true)
 	{
@@ -94,7 +94,7 @@ std::vector<std::string> Path::GetDirectories() const
 			break;
 		}
 
-		Log(LogSeverity::Verbose, "\tdirent: name=%s type=%i\n", entry->d_name, entry->d_type);
+		//Log(LogSeverity::Verbose, "\tdirent: name=%s type=%i\n", entry->d_name, entry->d_type);
 
 		struct stat attr;
 		int res = stat(AppendFragment(entry->d_name, true).ToString().c_str(), &attr);

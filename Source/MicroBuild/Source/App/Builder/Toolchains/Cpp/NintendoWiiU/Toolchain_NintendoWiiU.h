@@ -44,7 +44,7 @@ protected:
 	virtual bool FindToolchain();
 	
 	// Gets all the generic arguments required to compile a file.
-	virtual void GetBaseCompileArguments(std::vector<std::string>& args);
+	virtual void GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args) override;
 	
 	// Gets arguments to send to compiler for generating a pch.
 	virtual void GetPchCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args) override;

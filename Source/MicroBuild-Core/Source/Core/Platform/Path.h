@@ -51,7 +51,7 @@ public:
 	// Equality test operators.
 	bool operator ==(const Path& Other) const;
 	bool operator !=(const Path& Other) const;	
-    bool operator < (const Path& Other) const;
+ 	bool operator < (const Path& Other) const;
     
 	// Gets the base name for the path, which is the filename without 
 	// an extension.
@@ -137,6 +137,9 @@ public:
 
 	// Returns true if the extension of this path looks like a objc file.
 	bool IsObjCFile() const;
+
+	// Returns true if the extension of this path looks like a objc file.
+	bool IsObjCppFile() const;
 
 	// Returns true if the extension of this path looks like a c++ file.
 	bool IsCppFile() const;

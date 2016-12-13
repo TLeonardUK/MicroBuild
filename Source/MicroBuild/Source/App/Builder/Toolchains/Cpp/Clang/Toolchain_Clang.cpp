@@ -75,7 +75,10 @@ bool Toolchain_Clang::FindToolchain()
 
 	m_version = "Unknown Version";
 
-	std::vector<std::string> lines = Strings::Split('\n', process.ReadToEnd());
+	std::string data = process.ReadToEnd();
+//	Log(LogSeverity::Warning, "Data=%s\n", data.c_str());
+
+	std::vector<std::string> lines = Strings::Split('\n', data);
 	if (lines.size() > 0)
 	{
 		std::string versionLine = lines[0];

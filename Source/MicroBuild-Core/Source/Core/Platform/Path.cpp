@@ -431,7 +431,6 @@ bool Path::IsImageFile() const
 bool Path::IsObjCFile() const
 {
 	static const char* extensions[] = {
-		"mm",
 		"m",
 		"objc",
 		nullptr
@@ -449,6 +448,29 @@ bool Path::IsObjCFile() const
 
 	return false;
 }
+
+bool Path::IsObjCppFile() const
+{
+	static const char* extensions[] = {
+		"mm",
+		"objc",
+		nullptr
+	};
+
+	std::string extension = Strings::ToLowercase(GetExtension());
+
+	for (int i = 0; extensions[i] != nullptr; i++)
+	{
+		if (extensions[i] == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 
 bool Path::IsCFile() const
 {

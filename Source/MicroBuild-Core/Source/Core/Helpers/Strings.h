@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Core/Platform/Path.h"
 
+#include <string>
+
 namespace MicroBuild {
 namespace Strings {
 
@@ -89,8 +91,9 @@ std::string Quoted(const std::string& input, bool bEscapeSequences = false);
 // Escapes any quotes in the string.
 std::string SpacesEscaped(const std::string& input);
 
-// Resmoves quote at start and end of string if it contains them.
-std::string StripQuotes(const std::string& input);
+// Resmoves quote at start and end of string if it contains them. If throughout
+// is set, all quote-pairs that do not have a space between them will be stripped.
+std::string StripQuotes(const std::string& input, bool bThroughout = false);
 
 // Checks if a string matches the given pattern that can contain several
 // wildcards.
