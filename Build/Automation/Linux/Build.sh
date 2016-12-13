@@ -1,2 +1,4 @@
-../../../Binaries/Linux/Shipping_x64/MicroBuild.bootstrap Build "../../Config/Workspace.ini" MicroBuild -c=Shipping -p=x86 -r
-../../../Binaries/Linux/Shipping_x64/MicroBuild.bootstrap Build "../../Config/Workspace.ini" MicroBuild -c=Shipping -p=x64 -r
+cd ../../../Build/ProjectFiles/
+make config=Shipping_x86
+make config=Shipping_x64
+cd ../../Build/Automation/Linux/
