@@ -92,15 +92,60 @@ std::string Join(const std::vector<std::string>& needles, std::string glue)
 	return result;
 }
 
-std::string StripQuotes(const std::string& input)
+std::string StripQuotes(const std::string& input, bool bThroughout)
 {
-	if (input.size() >= 2 && input[0] == '\"' && input[input.size() - 1] == '\"')
+	if (bThroughout)
 	{
-		return input.substr(1, input.size() - 2);
+		bool bInPair = false;
+		bool bQuotesRequired = false;
+		char lastChr = '\0';
+		size_t startPosition = 0;
+			
+		std::string result = input;
+
+		for (size_t i = 0; i < result.size(); i++)
+		{		
+			char chr = result[i];
+			if (chr == '"' && lastChr != '\\')
+			{
+				if (bInPair)
+				{
+					if (!bQuotesRequired)
+					{
+						result.erase(startPosition, 1);
+						i--;
+						result.erase(i, 1);
+						i--;
+					}
+				}
+				else
+				{
+					bInPair = true;
+					bQuotesRequired = false;
+					startPosition = i;
+				}
+			}
+			else if (chr == ' ')	
+			{
+				bQuotesRequired = true;
+			}
+			lastChr = chr;
+		}
+
+		Log(LogSeverity::Info, "StripQuotes() = %s\n", result.c_str());
+
+		return result;
 	}
 	else
 	{
-		return input;
+		if (input.size() >= 2 && input[0] == '\"' && input[input.size() - 1] == '\"')
+		{
+			return input.substr(1, input.size() - 2);
+		}
+		else
+		{
+			return input;
+		}
 	}
 }
 

@@ -29,7 +29,6 @@ class CompileVersionInfoTask
 	: public BuildTask
 {
 private:
-	ProjectFile& m_projectFile;
 	Toolchain* m_toolchain;
 	BuilderFileInfo m_file;
 

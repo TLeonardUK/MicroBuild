@@ -129,8 +129,10 @@ bool Toolchain_Gcc::InitMicrosoftToolchain()
 
 #endif
 
-void Toolchain_Gcc::GetBaseCompileArguments(std::vector<std::string>& args)
+void Toolchain_Gcc::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
+	args.push_back("-fPIC");
+
 	switch (m_projectFile.Get_Build_OptimizationLevel())
 	{
 	default:
@@ -213,7 +215,8 @@ void Toolchain_Gcc::GetBaseCompileArguments(std::vector<std::string>& args)
 
 	for (auto& forcedInclude : m_projectFile.Get_ForcedIncludes_ForcedInclude())
 	{
-		args.push_back(Strings::Format("-include I%s", Strings::Quoted(forcedInclude.ToString()).c_str()));
+		args.push_back("-include");
+		args.push_back(Strings::Quoted(forcedInclude.ToString()));
 	}
 	
 	if (m_projectFile.Get_Flags_CompilerWarningsFatal())
@@ -278,7 +281,7 @@ void Toolchain_Gcc::GetBaseCompileArguments(std::vector<std::string>& args)
 			break;
 		}
 	}
-
+	
 	switch (m_projectFile.Get_Project_LanguageVersion())
 	{
 	case ELanguageVersion::Default:
@@ -287,17 +290,26 @@ void Toolchain_Gcc::GetBaseCompileArguments(std::vector<std::string>& args)
 		}
 	case ELanguageVersion::Cpp_11:
 		{
-			args.push_back("-std=c++0x");
+			if (file.SourcePath.IsCppFile())
+			{
+				args.push_back("-std=c++0x");
+			}
 			break;
 		}
 	case ELanguageVersion::Cpp_98:
 		{
-			args.push_back("-std=c++98");
+			if (file.SourcePath.IsCppFile())
+			{
+				args.push_back("-std=c++98");
+			}
 			break;
 		}
 	case ELanguageVersion::Cpp_14:
 		{
-			args.push_back("-std=c++14");
+			if (file.SourcePath.IsCppFile())
+			{
+				args.push_back("-std=c++14");
+			}
 			break;
 		}
 	default:
@@ -305,11 +317,6 @@ void Toolchain_Gcc::GetBaseCompileArguments(std::vector<std::string>& args)
 			break;
 		}
 	}	
-
-	if (m_projectFile.Get_Project_OutputType() == EOutputType::DynamicLib)
-	{
-		args.push_back("-fPIC");
-	}
 	
 	// Dumps out dependencies to a file.
 	args.push_back("-MD");
@@ -334,14 +341,39 @@ void Toolchain_Gcc::GetPchCompileArguments(const BuilderFileInfo& file, std::vec
 
 void Toolchain_Gcc::GetSourceCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args) 
 {
+	args.push_back("-fPIC");
+	
 	// Include our generated pch before anything else.
 	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
 		Platform::Path pchPath = GetPchPath();
-	
-		args.push_back(Strings::Format("-include %s", Strings::Quoted(pchPath.ToString()).c_str()));
+
+		args.push_back(Strings::Format("-I%s", Strings::Quoted(pchPath.GetDirectory().ToString()).c_str()));
+
+		//args.push_back("-include");
+		//args.push_back(Strings::Quoted(pchPath.ToString()));
 	}
-	
+
+	// Force the language based on the extension - not stricly required, but
+	// silences to clang warnings.
+	args.push_back("-x");
+	if (file.SourcePath.IsCFile())
+	{
+		args.push_back("c");
+	}
+	else if (file.SourcePath.IsCppFile())
+	{
+		args.push_back("c++");
+	}
+	else if (file.SourcePath.IsObjCFile())
+	{
+		args.push_back("objective-c");
+	}
+	else if (file.SourcePath.IsObjCppFile())
+	{
+		args.push_back("objective-c++");
+	}
+
 	args.push_back("-o");
 	args.push_back(Strings::Quoted(file.OutputPath.ToString()));
 	
@@ -353,6 +385,11 @@ void Toolchain_Gcc::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceF
 {
 	Platform::Path outputPath = GetOutputPath();
 	
+	if (m_projectFile.Get_Project_OutputType() == EOutputType::DynamicLib)
+	{
+		args.push_back("-shared");
+	}
+
 	args.push_back("-o");
 	args.push_back(Strings::Quoted(outputPath.ToString()));
 		
@@ -516,17 +553,22 @@ void Toolchain_Gcc::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceF
 		}
 	}
 
-	if (m_projectFile.Get_Project_OutputType() == EOutputType::DynamicLib)
-	{
-		args.push_back("-fPIC");
-		args.push_back("-shared");
-	}
+	args.push_back("-Wl,--start-group");
 	
 	// Libraries.
 	for (auto& library : m_projectFile.Get_Libraries_Library())
 	{
-		args.push_back(Strings::Quoted(library.ToString()));
+		if (library.IsRelative())
+		{
+			args.push_back(Strings::Format("-l%s", Strings::Quoted(library.ToString()).c_str()));
+		}
+		else
+		{
+			args.push_back(Strings::Quoted(library.ToString()));	
+		}
 	}
+
+	args.push_back("-Wl,--end-group");
 }
 
 void Toolchain_Gcc::GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args) 
@@ -561,6 +603,8 @@ void Toolchain_Gcc::ExtractDependencies(const BuilderFileInfo& file, const std::
 
 	rawInput = input;
 
+	//Log(LogSeverity::Warning, "[File:%s]\n", file.SourcePath.ToString().c_str());
+
 	Platform::Path depsFile = file.OutputPath.ChangeExtension("d");
 	if (depsFile.Exists())
 	{
@@ -570,24 +614,27 @@ void Toolchain_Gcc::ExtractDependencies(const BuilderFileInfo& file, const std::
 			return;
 		}
 
+		rawDeps = Strings::Replace(rawDeps, "\\\n", " ");
+
 		std::vector<std::string> lines = Strings::Split('\n', rawDeps);
 		for (std::string& line : lines)
 		{
-			if (line.size() > 2)
-			{
-				if (line.substr(line.size() - 2, 2) == " \\")
-				{
-					line = line.substr(0, line.size() - 2);
-				}
+			std::vector<std::string> lineSplit = Strings::Split(' ', line, true, true);
 
-				if (line[line.size() - 1] != ':')
+			for (auto& dep : lineSplit)
+			{
+				std::string depStripped = Strings::Trim(dep);
+				if (depStripped[depStripped.size() - 1] == ':')
 				{
-					dependencies.push_back(Strings::Replace(Strings::Trim(line), "\\ ", " "));
+					depStripped = depStripped.substr(0, depStripped.size() - 1);
 				}
+			//	Log(LogSeverity::Warning, "[File:%s] Dep=%s\n", file.SourcePath.ToString().c_str(), depStripped.c_str());
+				dependencies.push_back(depStripped);
 			}
 		}
 	}
 }
+
 
 #if defined(MB_PLATFORM_WINDOWS)
 	

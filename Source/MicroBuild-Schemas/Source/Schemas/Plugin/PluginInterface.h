@@ -153,7 +153,7 @@ public:
 #ifdef MB_PLATFORM_WINDOWS
 #define DLL_EXPORT extern "C" __declspec(dllexport)
 #else
-#define DLL_EXPORT
+#define DLL_EXPORT extern "C" 
 #endif
 
 #define MicroBuildPlugin() \

@@ -261,7 +261,7 @@ void Toolchain::ExtractDependencies(const BuilderFileInfo& file, const std::stri
 	MB_UNUSED_PARAMETER(dependencies);
 }
 
-void Toolchain::GetBaseCompileArguments(std::vector<std::string>& args)
+void Toolchain::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
 	MB_UNUSED_PARAMETER(args);
 }
@@ -293,7 +293,7 @@ void Toolchain::GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFi
 bool Toolchain::CompilePch(BuilderFileInfo& fileInfo) 
 {
 	std::vector<std::string> arguments;
-	GetBaseCompileArguments(arguments);
+	GetBaseCompileArguments(fileInfo, arguments);
 	GetPchCompileArguments(fileInfo, arguments);
 
 	Platform::Process process;
@@ -324,7 +324,7 @@ bool Toolchain::CompilePch(BuilderFileInfo& fileInfo)
 bool Toolchain::Compile(BuilderFileInfo& fileInfo, BuilderFileInfo& pchFileInfo)
 {
 	std::vector<std::string> arguments;
-	GetBaseCompileArguments(arguments);
+	GetBaseCompileArguments(fileInfo, arguments);
 	GetSourceCompileArguments(fileInfo, arguments);
 //	arguments.push_back("-v");
 	
@@ -442,7 +442,7 @@ void Toolchain::UpdateLinkDependencies(std::vector<BuilderFileInfo>& files, Buil
 			info.Hash = BuilderFileInfo::CalculateFileHash(fullPath, m_configurationHash);
 			outputFile.Dependencies.push_back(info);
 		}
-		else
+		else if (library.IsAbsolute())
 		{
 			Log(LogSeverity::Warning, "Could not find library '%s', dependency building will not function correctly.\n", fullPath.ToString().c_str());
 		}
@@ -502,6 +502,11 @@ bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outpu
 	std::vector<std::string> arguments;
 	GetLinkArguments(files, arguments);
 
+//	for (size_t i = 0; i < arguments.size(); i++)
+//	{
+//		Log(LogSeverity::Warning, "[%i] %s\n", i, arguments[i].c_str());
+//	}	
+
 	Platform::Process process;
 	if (!process.Open(m_linkerPath, m_linkerPath.GetDirectory(), arguments, true))
 	{
@@ -531,7 +536,7 @@ Platform::Path Toolchain::GetOutputPath()
 Platform::Path Toolchain::GetPchPath()
 {
 	return m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("pch").GetFilename(), true);
+		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().AppendFragment(".gch", false).GetFilename(), true);
 }
 
 Platform::Path Toolchain::GetPchObjectPath()

@@ -250,9 +250,9 @@ bool Toolchain_AndroidNdk::FindToolchain()
 	return true;
 }
 
-void Toolchain_AndroidNdk::GetBaseCompileArguments(std::vector<std::string>& args) 
+void Toolchain_AndroidNdk::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args) 
 {
-	Toolchain_Clang::GetBaseCompileArguments(args);
+	Toolchain_Clang::GetBaseCompileArguments(file, args);
 
 	switch (m_projectFile.Get_Target_Platform())
 	{

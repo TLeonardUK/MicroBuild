@@ -40,7 +40,7 @@ protected:
 	// if its found and available for use, otherwise false.
 	virtual bool FindToolchain() override;
 
-	virtual void GetBaseCompileArguments(std::vector<std::string>& args) override;
+	virtual void GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args) override;
 	virtual void GetLinkArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args) override;
 	
 public:

@@ -38,7 +38,6 @@ class CommandLineParser
 public:
 	CommandLineParser(
 		const char* appName, 
-		const char* appDescription, 
 		const char* appCopyright);
 
 	~CommandLineParser();
@@ -77,7 +76,6 @@ protected:
 
 private:
 	const char* m_appName;
-	const char* m_appDescription;
 	const char* m_appCopyright;
 
 	std::vector<PendingCommand> m_pendingCommands;

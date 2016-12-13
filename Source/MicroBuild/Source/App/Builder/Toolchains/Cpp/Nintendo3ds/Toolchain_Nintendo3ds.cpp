@@ -147,7 +147,7 @@ bool Toolchain_Nintendo3ds::FindToolchain()
 	return true;
 }
 
-void Toolchain_Nintendo3ds::GetBaseCompileArguments(std::vector<std::string>& args)
+void Toolchain_Nintendo3ds::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
 	MB_UNUSED_PARAMETER(args);
 
@@ -492,8 +492,6 @@ void Toolchain_Nintendo3ds::ExtractDependencies(const BuilderFileInfo& file, con
 {
 	MB_UNUSED_PARAMETER(input);
 	MB_UNUSED_PARAMETER(rawInput);
-	MB_UNUSED_PARAMETER(file);
-	MB_UNUSED_PARAMETER(dependencies);
 	
 	// We read the .d dependency file we forced gcc to dump out earlier during the compile
 	// to extract dependencies.
@@ -509,16 +507,21 @@ void Toolchain_Nintendo3ds::ExtractDependencies(const BuilderFileInfo& file, con
 			return;
 		}
 
+		rawDeps = Strings::Replace(rawDeps, "\\\n", " ");
+
 		std::vector<std::string> lines = Strings::Split('\n', rawDeps);
 		for (std::string& line : lines)
 		{
-			if (line.size() > 2)
+			std::vector<std::string> lineSplit = Strings::Split(' ', line, true, true);
+
+			for (auto& dep : lineSplit)
 			{
-				size_t offset = line.find(": ");
-				if (offset != std::string::npos)
+				std::string depStripped = Strings::Trim(dep);
+				if (depStripped[depStripped.size() - 1] == ':')
 				{
-					dependencies.push_back(Strings::Trim(line.substr(offset + 2)));
+					depStripped = depStripped.substr(0, depStripped.size() - 1);
 				}
+				dependencies.push_back(depStripped);
 			}
 		}
 	}

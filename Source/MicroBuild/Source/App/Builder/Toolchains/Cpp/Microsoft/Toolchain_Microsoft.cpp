@@ -235,7 +235,7 @@ bool Toolchain_Microsoft::FindToolchain()
 	return true;
 }
 
-void Toolchain_Microsoft::GetBaseCompileArguments(std::vector<std::string>& args)
+void Toolchain_Microsoft::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
 	switch (m_projectFile.Get_Build_OptimizationLevel())
 	{

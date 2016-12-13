@@ -482,9 +482,14 @@ Int StrIOEncInit(CWMImageStrCodec* pSC)
                 pSC->ppTempFile[i] = (char *)malloc(FILENAME_MAX * sizeof(char));
                 if(pSC->ppTempFile[i] == NULL) return ICERR_ERROR;
 
-                if ((pFilename = tmpnam(NULL)) == NULL)
-                    return ICERR_ERROR;                
-                strcpy(pSC->ppTempFile[i], pFilename);
+		char template[] = "/tmp/libjxrXXXXXX";
+		int fd = mkstemp(template);
+		if (fd <= 0)
+                    return ICERR_ERROR;            
+
+		pFilename = template;
+    
+                strcpy(pSC->ppTempFile[i], template);
 #endif
                 if(CreateWS_File(pSC->ppWStream + i, pFilename, "w+b") != ICERR_OK) return ICERR_ERROR;                
 

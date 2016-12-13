@@ -53,8 +53,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 Builder::Builder(App* app)
-	: m_bRebuild(false)
-	, m_app(app)
+	: m_app(app)
 {
 }
 
@@ -299,12 +298,12 @@ bool Builder::Build(WorkspaceFile& workspaceFile, ProjectFile& project, bool bRe
 	// If its a container, just 
 	if (project.Get_Project_OutputType() == EOutputType::Container)
 	{
-		Log(LogSeverity::SilentInfo, "Project is container, skipping");
+		Log(LogSeverity::SilentInfo, "Project is container, skipping.\n");
 		return true;
 	}
 	else if (bUpToDate)
 	{
-		Log(LogSeverity::SilentInfo, "Project up to date.");
+		Log(LogSeverity::SilentInfo, "Project up to date.\n");
 		return true;
 	}
 	else
@@ -425,7 +424,7 @@ bool Builder::Build(WorkspaceFile& workspaceFile, ProjectFile& project, bool bRe
 
 		if (bBuildFailed)
 		{
-			Log(LogSeverity::Fatal, "Build of '%s' failed.", project.Get_Project_Name().c_str());
+			Log(LogSeverity::Fatal, "Build of '%s' failed.\n", project.Get_Project_Name().c_str());
 			return false;
 		}
 

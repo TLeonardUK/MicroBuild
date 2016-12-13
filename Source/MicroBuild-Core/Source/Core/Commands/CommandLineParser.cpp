@@ -28,10 +28,8 @@ namespace MicroBuild {
 
 CommandLineParser::CommandLineParser(
 	const char* appName,
-	const char* appDescription,
 	const char* appCopyright)
 	: m_appName(appName)
-	, m_appDescription(appDescription)
 	, m_appCopyright(appCopyright)
 {
 }

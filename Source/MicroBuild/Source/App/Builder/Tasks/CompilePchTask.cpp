@@ -25,10 +25,10 @@ namespace MicroBuild {
 
 CompilePchTask::CompilePchTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file)
 	: BuildTask(BuildStage::PchCompile, true, true)
-	, m_projectFile(project)
 	, m_toolchain(toolchain)
 	, m_file(file)
 {
+	MB_UNUSED_PARAMETER(project);
 }
 
 bool CompilePchTask::Execute()
