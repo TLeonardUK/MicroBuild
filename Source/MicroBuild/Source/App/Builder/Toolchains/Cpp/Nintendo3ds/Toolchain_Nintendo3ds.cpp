@@ -149,6 +149,7 @@ bool Toolchain_Nintendo3ds::FindToolchain()
 
 void Toolchain_Nintendo3ds::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
+	MB_UNUSED_PARAMETER(file);
 	MB_UNUSED_PARAMETER(args);
 
 	// CPU definitions for 3ds.
