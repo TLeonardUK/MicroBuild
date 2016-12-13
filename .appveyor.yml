@@ -8,6 +8,10 @@ configuration:
   - Shipping
 
 before_build:
+  # Xamarin targets spam up the log with a bunch of verbose messages, we don't care about these for MicroBuild,
+  # so lets just get rid of them
+  # http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
+  - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
   - cd Build
   - cd Automation
   - cd Windows
