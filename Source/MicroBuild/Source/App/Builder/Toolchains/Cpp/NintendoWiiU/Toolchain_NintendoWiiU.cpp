@@ -173,6 +173,7 @@ Platform::Path Toolchain_NintendoWiiU::GetRplExportLibraryPath()
 
 void Toolchain_NintendoWiiU::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
+	MB_UNUSED_PARAMETER(file);
 	MB_UNUSED_PARAMETER(args);
 
 	// Default arguments.
