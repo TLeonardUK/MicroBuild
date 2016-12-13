@@ -263,6 +263,7 @@ void Toolchain::ExtractDependencies(const BuilderFileInfo& file, const std::stri
 
 void Toolchain::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
+	MB_UNUSED_PARAMETER(file);
 	MB_UNUSED_PARAMETER(args);
 }
 	
