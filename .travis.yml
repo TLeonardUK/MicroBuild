@@ -6,7 +6,7 @@ language: cpp
 osx_image: xcode8
 os:
   - linux
-  - osx
+#  - osx
 branches:
   only:
   - master
