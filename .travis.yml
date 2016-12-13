@@ -28,46 +28,20 @@ addons:
     - gcc-6-multilib
     - g++-6-multilib	
     - linux-libc-dev
-  coverity_scan:
-    project:
-      name: "TLeonardUK/MicroBuild"
-      description: "Quick, simple, cross platform project generator."
-    notification_email: tim@programmingbytim.com
-    build_command_prepend: "cd ./Build/; ./Generate.Linux.sh; cd ./ProjectFiles"
-    build_command: "make config=Shipping_x64"
-    branch_pattern: coverity_scan    
 script: 
-  - cd ./Build/
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Generate.Linux.sh; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ../Binaries/linux_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x86; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ../Binaries/linux_x64/microbuild clean Config/Workspace.ini || true; fi 
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Generate.Linux.sh; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ../Binaries/linux_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x64; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Generate.Macos.sh; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x86; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild clean Config/Workspace.ini || true; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Generate.Macos.sh; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ../Binaries/macos_x64/microbuild build Config/Workspace.ini -r -configuration=Shipping -p=x64; fi
-  - cd ./../
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; cd ./Build/Automation/Linux; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; cd ./Build/Automation/MacOS; fi
+  - ./GenerateBootstrap.sh; fi
+  - ./Build.sh; fi
+  - cd ./../../../
 after_success: 
   - git config --global user.email "buildserver@programmingbytim.com"
   - git config --global user.name "Build Server"
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/Linux_x64/MicroBuild; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/Linux_x86/MicroBuild; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/Linux_x64/MicroBuild-Core.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/Linux_x86/MicroBuild-Core.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/Linux_x64/MicroBuild-Schemas.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/Linux_x86/MicroBuild-Schemas.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/Linux_x64/MicroBuild-ZLib.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then git add ./Binaries/Linux_x86/MicroBuild-ZLib.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/MacOS_x64/MicroBuild; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/MacOS_x86/MicroBuild; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/MacOS_x64/MicroBuild-Core.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/MacOS_x86/MicroBuild-Core.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/MacOS_x64/MicroBuild-Schemas.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/MacOS_x86/MicroBuild-Schemas.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/MacOS_x64/MicroBuild-ZLib.a; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then git add ./Binaries/MacOS_x86/MicroBuild-ZLib.a; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; cd ./Build/Automation/Linux; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; cd ./Build/Automation/MacOS; fi
+  - ./GitAddArtifacts_x64.sh
+  - ./GitAddArtifacts_x86.sh 
+  - cd ./../../../  
   - git checkout $TRAVIS_BRANCH
   - git pull --no-edit --no-commit
   - git commit -m "[ci skip] Automated Build (Travis build $TRAVIS_BUILD_NUMBER)."
