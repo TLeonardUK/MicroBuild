@@ -131,7 +131,10 @@ bool Toolchain_Gcc::InitMicrosoftToolchain()
 
 void Toolchain_Gcc::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
 {
+	// Windows is always PIC, this is redundent.
+#ifndef MB_PLATFORM_WINDOWS
 	args.push_back("-fPIC");
+#endif
 
 	switch (m_projectFile.Get_Build_OptimizationLevel())
 	{
@@ -341,8 +344,11 @@ void Toolchain_Gcc::GetPchCompileArguments(const BuilderFileInfo& file, std::vec
 
 void Toolchain_Gcc::GetSourceCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args) 
 {
+	// Windows is always PIC, this is redundent.
+#ifndef MB_PLATFORM_WINDOWS
 	args.push_back("-fPIC");
-	
+#endif
+
 	// Include our generated pch before anything else.
 	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
@@ -593,17 +599,9 @@ void Toolchain_Gcc::GetArchiveArguments(const std::vector<BuilderFileInfo>& sour
 	}
 }
 
-void Toolchain_Gcc::ExtractDependencies(const BuilderFileInfo& file, const std::string& input, std::string& rawInput, std::vector<Platform::Path>& dependencies)
-{
+bool Toolchain_Gcc::ParseDependencyFile(BuilderFileInfo& file, std::string& input)
+{	
 	MB_UNUSED_PARAMETER(input);
-	MB_UNUSED_PARAMETER(rawInput);
-	
-	// We read the .d dependency file we forced gcc to dump out earlier during the compile
-	// to extract dependencies.
-
-	rawInput = input;
-
-	//Log(LogSeverity::Warning, "[File:%s]\n", file.SourcePath.ToString().c_str());
 
 	Platform::Path depsFile = file.OutputPath.ChangeExtension("d");
 	if (depsFile.Exists())
@@ -611,7 +609,7 @@ void Toolchain_Gcc::ExtractDependencies(const BuilderFileInfo& file, const std::
 		std::string rawDeps;
 		if (!Strings::ReadFile(depsFile, rawDeps))
 		{
-			return;
+			return false;
 		}
 
 		rawDeps = Strings::Replace(rawDeps, "\\\n", " ");
@@ -628,13 +626,128 @@ void Toolchain_Gcc::ExtractDependencies(const BuilderFileInfo& file, const std::
 				{
 					depStripped = depStripped.substr(0, depStripped.size() - 1);
 				}
-			//	Log(LogSeverity::Warning, "[File:%s] Dep=%s\n", file.SourcePath.ToString().c_str(), depStripped.c_str());
-				dependencies.push_back(depStripped);
+				file.OutputDependencyPaths.push_back(depStripped);
 			}
 		}
 	}
+
+	return true;
 }
 
+bool Toolchain_Gcc::ParseMessageOutput(BuilderFileInfo& file, std::string& input)
+{
+	MB_UNUSED_PARAMETER(file);
+
+	// Attempts to extract messages in the following formats:
+	// Rather ugly ...
+
+	// MyFile.cpp:100:100: error: variable or field 'f' declared void
+
+	size_t startOffset = 0;
+	while (startOffset < input.size())
+	{
+		size_t endOffset = input.find("\n", startOffset);
+		if (endOffset == std::string::npos)
+		{
+			break;
+		}
+
+		std::string line = Strings::Trim(input.substr(startOffset, endOffset - startOffset));
+
+		size_t colonIndex = line.find(':', 3 /* Skip drive colon */);
+		if (colonIndex != std::string::npos)
+		{
+			std::string origin;
+			std::string message;
+			Strings::SplitOnIndex(line, colonIndex, origin, message);
+
+			colonIndex = message.find(':');
+			if (colonIndex != std::string::npos)
+			{
+				std::string lineValue;
+				Strings::SplitOnIndex(message, colonIndex, lineValue, message);
+
+				lineValue = Strings::Trim(lineValue);
+
+				if (Strings::IsNumeric(lineValue))
+				{
+					colonIndex = message.find(':');
+					if (colonIndex != std::string::npos)
+					{
+						std::string columnValue;
+						Strings::SplitOnIndex(message, colonIndex, columnValue, message);
+
+						columnValue = Strings::Trim(columnValue);
+
+						if (Strings::IsNumeric(columnValue))
+						{
+							colonIndex = message.find(':');
+							if (colonIndex != std::string::npos)
+							{
+								std::string errorType;
+								Strings::SplitOnIndex(message, colonIndex, errorType, message);
+
+								errorType = Strings::Trim(errorType);
+								message = Strings::Trim(message);
+
+								BuilderFileMessage fileMessage;
+								fileMessage.Identifier = "";
+								fileMessage.Text = message;
+								fileMessage.Column = CastFromString<int>(columnValue);
+								fileMessage.Line = CastFromString<int>(lineValue);
+								fileMessage.Origin = origin;
+
+								bool bValid = false;
+
+								if (errorType == "error" || errorType == "fatal")
+								{
+									fileMessage.Type = EBuilderFileMessageType::Error;
+									bValid = true;
+								}
+								else if (errorType == "warning")
+								{
+									fileMessage.Type = EBuilderFileMessageType::Warning;
+									bValid = true;
+								}
+								else if (errorType == "note" || errorType == "message")
+								{
+									fileMessage.Type = EBuilderFileMessageType::Info;
+									bValid = true;
+								}
+								
+								if (bValid)
+								{
+									file.AddMessage(fileMessage);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		startOffset = endOffset + 2;
+	}
+
+	return true;
+}
+
+bool Toolchain_Gcc::ParseOutput(BuilderFileInfo& file, std::string& input)
+{
+	if (!Toolchain::ParseOutput(file, input))
+	{
+		return false;
+	}
+	if (!ParseDependencyFile(file, input))
+	{
+		return false;
+	}
+	if (!ParseMessageOutput(file, input))
+	{
+		return false;
+	}
+	return true;
+}
 
 #if defined(MB_PLATFORM_WINDOWS)
 	

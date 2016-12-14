@@ -35,6 +35,7 @@ enum class LogSeverity
 // Toggles verbose logging, if on all LogSeverity::Verbose entries will be 
 // dumped, otherwise they will be omitted.
 void LogSetVerbose(bool bVerbose);
+bool LogGetVerbose();
 
 // Toggles silent logging, all but errors will be supressed.
 void LogSetSilent(bool bSilent);

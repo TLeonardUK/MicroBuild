@@ -56,8 +56,14 @@ protected:
 	// Tries to find the fuill path to the library by searching project then system library folders.
 	Platform::Path FindLibraryPath(const Platform::Path& path);
 	
-	// Gets the dependencies for a given source file, passes in the stdout incase dependencies are logged in it. 
-	virtual void ExtractDependencies(const BuilderFileInfo& file, const std::string& input, std::string& rawInput, std::vector<Platform::Path>& dependencies);
+	// Writes out all messages that were emitted while building this file.
+	void PrintMessages(BuilderFileInfo& file);
+
+	// Parses the output of a compilation stage, extracting dependencies/errors and anything else of use. 
+	// Output may be modified to remove redundent information.
+	// All extracted information will be stored in the fileInfo passed in.
+	// Returns true if output is invalid and we need to abort asap.
+	virtual bool ParseOutput(BuilderFileInfo& file, std::string& output);
 	
 	// Gets all the generic arguments required to compile a file.
 	virtual void GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args);

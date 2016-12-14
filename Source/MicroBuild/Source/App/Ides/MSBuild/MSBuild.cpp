@@ -35,6 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Ides/MSBuild/MSBuild_VcxFiltersFile.h"
 #include "App/Ides/MSBuild/MSBuild_ProjectFile.h"
 #include "App/Ides/MSBuild/Versions/VisualStudio_2015.h"
+#include "App/Ides/MSBuild/Versions/VisualStudio_2017.h"
 #include "Core/Helpers/TextStream.h"
 #include "Core/Helpers/XmlNode.h"
 #include "Core/Helpers/JsonNode.h"

@@ -40,12 +40,12 @@ bool Toolchain_Emscripten::FindToolchain()
 	Platform::Path basePath = Platform::GetEnvironmentVariable("EMSCRIPTEN");
 	if (basePath.IsEmpty())
 	{
-		Log(LogSeverity::Fatal, "EMSCRIPTEN environment variable not defined, unable to locate toolchain.");
+		Log(LogSeverity::Fatal, "EMSCRIPTEN environment variable not defined, unable to locate toolchain.\n");
 		return false;
 	}
 	if (!basePath.Exists())
 	{
-		Log(LogSeverity::Fatal, "EMSCRIPTEN environment variable pointing to non-existing folder.");
+		Log(LogSeverity::Fatal, "EMSCRIPTEN environment variable pointing to non-existing folder.\n");
 		return false;
 	}
 	

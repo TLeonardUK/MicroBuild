@@ -57,10 +57,13 @@ protected:
 	virtual void GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args) override;	
 	
 	// Splits an stdout capture int dependencies and raw data.
-	virtual void ExtractDependencies(const BuilderFileInfo& file, const std::string& input, std::string& rawInput, std::vector<Platform::Path>& dependencies) override;
+	virtual bool ParseOutput(BuilderFileInfo& file, std::string& output) override;
 
 public:
 	Toolchain_Nintendo3ds(ProjectFile& file, uint64_t configurationHash);
+
+	// Parse message information from the stdout.
+	static bool ParseMessageOutput(BuilderFileInfo& file, std::string& input);
 
 	virtual bool Init() override;
 

@@ -249,16 +249,50 @@ Platform::Path Toolchain::FindLibraryPath(const Platform::Path& lib)
 	return lib;
 }
 
-void Toolchain::ExtractDependencies(const BuilderFileInfo& file, const std::string& input, std::string& rawInput, std::vector<Platform::Path>& dependencies)
+void Toolchain::PrintMessages(BuilderFileInfo& file)
+{
+	for (auto msg : file.Messages)
+	{
+		std::string typeString = "";
+
+		switch (msg.Type)
+		{
+		case EBuilderFileMessageType::Info:
+			{
+				typeString = "message";
+				break;
+			}
+		case EBuilderFileMessageType::Warning:
+			{
+				typeString = "warning";
+				break;
+			}
+		case EBuilderFileMessageType::Error:
+			{
+				typeString = "error";
+				break;
+			}
+		}
+
+		printf("%s(%i,%i): %s %s: %s\n",
+			msg.Origin.ToString().c_str(),
+			msg.Line,
+			msg.Column,
+			typeString.c_str(),
+			msg.Identifier.c_str(),
+			msg.Text.c_str()
+		);
+	}
+}
+
+bool Toolchain::ParseOutput(BuilderFileInfo& file, std::string& output)
 {
 	// Nothing to do here.
 
-	rawInput = input;
-
 	MB_UNUSED_PARAMETER(file);
-	MB_UNUSED_PARAMETER(input);
-	MB_UNUSED_PARAMETER(rawInput);
-	MB_UNUSED_PARAMETER(dependencies);
+	MB_UNUSED_PARAMETER(output);
+
+	return true;
 }
 
 void Toolchain::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
@@ -304,20 +338,26 @@ bool Toolchain::CompilePch(BuilderFileInfo& fileInfo)
 	}
 
 	std::string output = process.ReadToEnd();
-	
-	std::vector<Platform::Path> dependencies;
-	std::string rawOutput;
-	ExtractDependencies(fileInfo, output, rawOutput, dependencies);
-	
-	printf("%s", rawOutput.c_str());
-
+	if (!ParseOutput(fileInfo, output))
+	{
+		return false;
+	}
+	if (LogGetVerbose())
+	{
+		printf("%s", output.c_str());
+	}
+	PrintMessages(fileInfo);
+	if (fileInfo.ErrorCount > 0 || (fileInfo.WarningCount > 0 && m_projectFile.Get_Flags_CompilerWarningsFatal()))
+	{
+		return false;
+	}
 	if (process.GetExitCode() != 0)
 	{
 		return false;
 	}
-	
+
 	std::vector<BuilderFileInfo*> inheritsFromFiles;
-	UpdateDependencyManifest(fileInfo, dependencies, inheritsFromFiles);
+	UpdateDependencyManifest(fileInfo, fileInfo.OutputDependencyPaths, inheritsFromFiles);
 
 	return true;
 }
@@ -336,21 +376,27 @@ bool Toolchain::Compile(BuilderFileInfo& fileInfo, BuilderFileInfo& pchFileInfo)
 	}
 	
 	std::string output = process.ReadToEnd();
-	
-	std::vector<Platform::Path> dependencies;
-	std::string rawOutput;
-	ExtractDependencies(fileInfo, output, rawOutput, dependencies);
-	
-	printf("%s", rawOutput.c_str());
-
+	if (!ParseOutput(fileInfo, output))
+	{
+		return false;
+	}
+	if (LogGetVerbose())
+	{
+		printf("%s", output.c_str());
+	}
+	PrintMessages(fileInfo);
+	if (fileInfo.ErrorCount > 0 || (fileInfo.WarningCount > 0 && m_projectFile.Get_Flags_CompilerWarningsFatal()))
+	{
+		return false;
+	}
 	if (process.GetExitCode() != 0)
 	{
 		return false;
 	}
-	
+
 	std::vector<BuilderFileInfo*> inheritsFromFiles;
 	inheritsFromFiles.push_back(&pchFileInfo);
-	UpdateDependencyManifest(fileInfo, dependencies, inheritsFromFiles);
+	UpdateDependencyManifest(fileInfo, fileInfo.OutputDependencyPaths, inheritsFromFiles);
 
 	return true;
 }
@@ -375,16 +421,27 @@ bool Toolchain::Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& ou
 		return false;
 	}
 	
+	outputFile.Dependencies.clear();
+	
 	std::string output = process.ReadToEnd();
-	printf("%s", output.c_str());
-
+	if (!ParseOutput(outputFile, output))
+	{
+		return false;
+	}
+	if (LogGetVerbose())
+	{
+		printf("%s", output.c_str());
+	}
+	PrintMessages(outputFile);
+	if (outputFile.ErrorCount > 0 || (outputFile.WarningCount > 0 && m_projectFile.Get_Flags_LinkerWarningsFatal()))
+	{
+		return false;
+	}
 	if (process.GetExitCode() != 0)
 	{
 		return false;
 	}
 
-	outputFile.Dependencies.clear();
-	
 	if (m_bRequiresCompileStep)
 	{
 		// Object files to link.
@@ -515,8 +572,19 @@ bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outpu
 	}
 	
 	std::string output = process.ReadToEnd();
-	printf("%s", output.c_str());
-
+	if (!ParseOutput(outputFile, output))
+	{
+		return false;
+	}
+	if (LogGetVerbose())
+	{
+		printf("%s", output.c_str());
+	}
+	PrintMessages(outputFile);
+	if (outputFile.ErrorCount > 0 || (outputFile.WarningCount > 0 && m_projectFile.Get_Flags_LinkerWarningsFatal()))
+	{
+		return false;
+	}
 	if (process.GetExitCode() != 0)
 	{
 		return false;
