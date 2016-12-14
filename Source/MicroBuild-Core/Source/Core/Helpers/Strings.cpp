@@ -48,7 +48,10 @@ bool CaseInsensitiveEquals(const std::string& a, const std::string& b)
 std::string ToLowercase(const std::string& input)
 {
 	std::string result = input;
-	std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+	for (size_t i = 0; i < input.size(); i++)
+	{
+		result[i] = (char)::tolower(result[i]);
+	}
 	return result;
 }
 
@@ -586,6 +589,18 @@ std::string Replace(const std::string& context, const std::string& from, const s
 		}
 	}
 	return value;
+}
+
+bool IsNumeric(const std::string& input)
+{
+	for (size_t i = 0; i < input.size(); i++)
+	{
+		if (!::isdigit(input[i]))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 }; // namespace Strings

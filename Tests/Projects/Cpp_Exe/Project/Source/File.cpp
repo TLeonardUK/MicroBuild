@@ -18,10 +18,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Include/File.h"
  
+ void test(float b)
+ {
+ }
+ 
 int main(int argc, char** argv)
 {
 	(void)argc;
 	(void)argv;
+	size_t x = 0;
+	for (int i = 0; i < x; i++)
+	{
+	}
+	test(x);
+	zyx;
 	printf("Main Called");
 	return 0;
 }

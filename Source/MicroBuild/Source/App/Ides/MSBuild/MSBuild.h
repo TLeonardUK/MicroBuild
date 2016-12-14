@@ -25,7 +25,7 @@ namespace MicroBuild {
 // MSBuild file format version to use.
 enum class MSBuildVersion
 {
-	Version12, // Visual Studio 2015
+	Version12, // Visual Studio 2015-2017
 
 	COUNT
 };

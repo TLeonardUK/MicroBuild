@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Builder/Toolchains/Cpp/Microsoft/Toolchain_Microsoft.h"
+#include "App/Ides/MSBuild/Versions/VisualStudio_2017.h"
 
 #include "Core/Platform/Platform.h"
 #include "Core/Platform/Registry.h"
@@ -45,6 +46,261 @@ bool Toolchain_Microsoft::Init()
 	return m_bAvailable;
 }
 
+bool Toolchain_Microsoft::FindV140Toolchain()
+{
+	Platform::Path toolchainPath;
+	Platform::Path vcInstallPath;
+	Platform::Path windowsKitsRoot81Path;
+	Platform::Path windowsKitsRoot10Path;
+
+#if defined(MB_ARCHITECTURE_X64)
+	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Wow6432Node/Microsoft/VisualStudio/14.0/Setup/VC", "ProductDir", vcInstallPath))
+#else
+	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Microsoft/VisualStudio/14.0/Setup/VC", "ProductDir", vcInstallPath))
+#endif
+	{
+		return false;
+	}
+
+#if defined(MB_ARCHITECTURE_X64)
+	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Wow6432Node/Microsoft/Windows Kits/Installed Roots", "KitsRoot81", windowsKitsRoot81Path))
+#else
+	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Microsoft/Windows Kits/Installed Roots", "KitsRoot81", windowsKitsRoot81Path))
+#endif
+	{
+		return false;
+	}
+
+#if defined(MB_ARCHITECTURE_X64)
+	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Wow6432Node/Microsoft/Windows Kits/Installed Roots", "KitsRoot10", windowsKitsRoot10Path))
+#else
+	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Microsoft/Windows Kits/Installed Roots", "KitsRoot10", windowsKitsRoot10Path))
+#endif
+	{
+		return false;
+	}
+
+	std::vector<std::string> availableWindows10Kits = windowsKitsRoot10Path.AppendFragment("Include", true).GetDirectories();
+	if (availableWindows10Kits.size() == 0)
+	{
+		return false;
+	}
+
+	std::sort(availableWindows10Kits.begin(), availableWindows10Kits.end()); // Sort alphabetically so last is most recent.
+	std::string latestWindows10KitVersion = availableWindows10Kits[availableWindows10Kits.size() - 1];
+
+	m_standardIncludePaths.push_back(vcInstallPath.AppendFragment("include", true));
+	m_standardIncludePaths.push_back(vcInstallPath.AppendFragment("atlmfc/include", true));
+	m_standardIncludePaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Include/%s/ucrt", latestWindows10KitVersion.c_str()), true));
+	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/um", true));
+	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/shared", true));
+	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/winrt", true));
+
+	switch (m_projectFile.Get_Target_Platform())
+	{
+	case EPlatform::x64:
+	{
+		if (Platform::IsOperatingSystem64Bit())
+		{
+			toolchainPath = vcInstallPath.AppendFragment("bin/amd64", true);
+			m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvars64.bat", true);
+		}
+		else
+		{
+			toolchainPath = vcInstallPath.AppendFragment("bin/x86_amd64", true);
+			m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvarsx86_amd64.bat", true);
+		}
+		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/amd64", true));
+		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("atlmfc/lib/amd64", true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x64", latestWindows10KitVersion.c_str()), true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/x64", true));
+		break;
+	}
+	case EPlatform::x86:
+	{
+		toolchainPath = vcInstallPath.AppendFragment("bin", true);
+		m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvars32.bat", true);
+		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib", true));
+		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("atlmfc/lib", true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x86", latestWindows10KitVersion.c_str()), true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/x86", true));
+		break;
+	}
+	case EPlatform::ARM:
+	case EPlatform::ARM64:
+	{
+		if (Platform::IsOperatingSystem64Bit())
+		{
+			toolchainPath = vcInstallPath.AppendFragment("bin/amd64_arm", true);
+			m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvarsamd64_arm.bat", true);
+		}
+		else
+		{
+			toolchainPath = vcInstallPath.AppendFragment("bin/x86_arm", true);
+			m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvarsx86_arm.bat", true);
+		}
+		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/arm", true));
+		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("atlmfc/lib/arm", true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/arm", latestWindows10KitVersion.c_str()), true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/arm", true));
+		break;
+	}
+	default:
+	{
+		assert(false);
+		break;
+	}
+	}
+
+	m_compilerPath = toolchainPath.AppendFragment("cl.exe", true);
+	m_linkerPath = toolchainPath.AppendFragment("link.exe", true);
+	m_archiverPath = toolchainPath.AppendFragment("lib.exe", true);
+
+	if (Platform::IsOperatingSystem64Bit())
+	{
+		m_resourceCompilerPath = windowsKitsRoot81Path.AppendFragment("/bin/x64/rc.exe", true);
+	}
+	else
+	{
+		m_resourceCompilerPath = windowsKitsRoot81Path.AppendFragment("/bin/x86/rc.exe", true);
+	}
+
+	m_version = "Toolset v140";
+
+	return true;
+}
+
+bool Toolchain_Microsoft::FindV141Toolchain()
+{
+	Platform::Path toolchainPath;
+	Platform::Path windowsKitsRoot81Path;
+	Platform::Path windowsKitsRoot10Path;
+
+	Platform::Path vsInstallPath = Ide_VisualStudio_2017::GetVS2017InstallPath();
+	Platform::Path vcInstallPath = vsInstallPath.AppendFragment("VC/Tools/MSVC", true);
+
+	std::vector<std::string> vcVersions = vcInstallPath.GetDirectories();
+	std::sort(vcVersions.begin(), vcVersions.end());
+
+	if (vcVersions.size() == 0)
+	{
+		return false;
+	}
+
+	vcInstallPath = vcInstallPath.AppendFragment(vcVersions[vcVersions.size() - 1], true);
+
+#if defined(MB_ARCHITECTURE_X64)
+	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Wow6432Node/Microsoft/Windows Kits/Installed Roots", "KitsRoot81", windowsKitsRoot81Path))
+#else
+	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Microsoft/Windows Kits/Installed Roots", "KitsRoot81", windowsKitsRoot81Path))
+#endif
+	{
+		return false;
+	}
+
+#if defined(MB_ARCHITECTURE_X64)
+	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Wow6432Node/Microsoft/Windows Kits/Installed Roots", "KitsRoot10", windowsKitsRoot10Path))
+#else
+	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Microsoft/Windows Kits/Installed Roots", "KitsRoot10", windowsKitsRoot10Path))
+#endif
+	{
+		return false;
+	}
+
+	std::vector<std::string> availableWindows10Kits = windowsKitsRoot10Path.AppendFragment("Include", true).GetDirectories();
+	if (availableWindows10Kits.size() == 0)
+	{
+		return false;
+	}
+
+	std::sort(availableWindows10Kits.begin(), availableWindows10Kits.end()); // Sort alphabetically so last is most recent.
+	std::string latestWindows10KitVersion = availableWindows10Kits[availableWindows10Kits.size() - 1];
+
+	m_standardIncludePaths.push_back(vcInstallPath.AppendFragment("include", true));
+	m_standardIncludePaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Include/%s/ucrt", latestWindows10KitVersion.c_str()), true));
+	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/um", true));
+	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/shared", true));
+	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/winrt", true));
+
+	switch (m_projectFile.Get_Target_Platform())
+	{
+	case EPlatform::x64:
+	{
+		if (Platform::IsOperatingSystem64Bit())
+		{
+			toolchainPath = vcInstallPath.AppendFragment("bin/HostX64/x64", true);
+			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvars64.bat", true);
+		}
+		else
+		{
+			toolchainPath = vcInstallPath.AppendFragment("bin/HostX86/x64", true);
+			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvarsx86_amd64.bat", true);
+		}
+		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/x64", true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x64", latestWindows10KitVersion.c_str()), true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/x64", true));
+		break;
+	}
+	case EPlatform::x86:
+	{
+		if (Platform::IsOperatingSystem64Bit())
+		{
+			toolchainPath = vcInstallPath.AppendFragment("bin/HostX64/x86", true);
+			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvars64.bat", true);
+		}
+		else
+		{
+			toolchainPath = vcInstallPath.AppendFragment("bin/HostX86/x86", true);
+			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvarsx86_amd64.bat", true);
+		}
+		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/x86", true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x86", latestWindows10KitVersion.c_str()), true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/x86", true));
+		break;
+	}
+	case EPlatform::ARM:
+	case EPlatform::ARM64:
+	{
+		if (Platform::IsOperatingSystem64Bit())
+		{
+			toolchainPath = vcInstallPath.AppendFragment("bin/HostX64/arm", true);
+			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvars64.bat", true);
+		}
+		else
+		{
+			toolchainPath = vcInstallPath.AppendFragment("bin/HostX86/arm", true);
+			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvarsx86_amd64.bat", true);
+		}
+		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/arm", true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/arm", latestWindows10KitVersion.c_str()), true));
+		m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/arm", true));
+		break;
+	}
+	default:
+	{
+		assert(false);
+		break;
+	}
+	}
+
+	m_compilerPath = toolchainPath.AppendFragment("cl.exe", true);
+	m_linkerPath = toolchainPath.AppendFragment("link.exe", true);
+	m_archiverPath = toolchainPath.AppendFragment("lib.exe", true);
+
+	if (Platform::IsOperatingSystem64Bit())
+	{
+		m_resourceCompilerPath = windowsKitsRoot81Path.AppendFragment("/bin/x64/rc.exe", true);
+	}
+	else
+	{
+		m_resourceCompilerPath = windowsKitsRoot81Path.AppendFragment("/bin/x86/rc.exe", true);
+	}
+
+	m_version = "Toolset v141";
+
+	return true;
+}
+
 bool Toolchain_Microsoft::FindToolchain()
 {
 	EPlatformToolset toolset = m_projectFile.Get_Build_PlatformToolset();
@@ -59,125 +315,18 @@ bool Toolchain_Microsoft::FindToolchain()
 		// Fallthrough
 	case EPlatformToolset::MSBuild_v140:
 		{
-			Platform::Path toolchainPath;
-			Platform::Path vcInstallPath;
-			Platform::Path windowsKitsRoot81Path;
-			Platform::Path windowsKitsRoot10Path;
-			
-#if defined(MB_ARCHITECTURE_X64)
-			if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Wow6432Node/Microsoft/VisualStudio/14.0/Setup/VC", "ProductDir", vcInstallPath))
-#else
-			if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Microsoft/VisualStudio/14.0/Setup/VC", "ProductDir", vcInstallPath))
-#endif
+			if (!FindV140Toolchain())
 			{
 				return false;
 			}
-			
-#if defined(MB_ARCHITECTURE_X64)
-			if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Wow6432Node/Microsoft/Windows Kits/Installed Roots", "KitsRoot81", windowsKitsRoot81Path))
-#else
-			if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Microsoft/Windows Kits/Installed Roots", "KitsRoot81", windowsKitsRoot81Path))
-#endif
+			break;
+		}
+	case EPlatformToolset::MSBuild_v141:
+		{
+			if (!FindV141Toolchain())
 			{
 				return false;
 			}
-
-#if defined(MB_ARCHITECTURE_X64)
-			if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Wow6432Node/Microsoft/Windows Kits/Installed Roots", "KitsRoot10", windowsKitsRoot10Path))
-#else
-			if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Microsoft/Windows Kits/Installed Roots", "KitsRoot10", windowsKitsRoot10Path))
-#endif
-			{
-				return false;
-			}
-			
-			std::vector<std::string> availableWindows10Kits = windowsKitsRoot10Path.AppendFragment("Include", true).GetDirectories();
-			if (availableWindows10Kits.size() == 0)
-			{
-				return false;
-			}
-
-			std::sort(availableWindows10Kits.begin(), availableWindows10Kits.end()); // Sort alphabetically so last is most recent.
-			std::string latestWindows10KitVersion = availableWindows10Kits[availableWindows10Kits.size() - 1];
-
-			m_standardIncludePaths.push_back(vcInstallPath.AppendFragment("include", true));
-			m_standardIncludePaths.push_back(vcInstallPath.AppendFragment("atlmfc/include", true));
-			m_standardIncludePaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Include/%s/ucrt", latestWindows10KitVersion.c_str()), true));
-			m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/um", true));
-			m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/shared", true));
-			m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/winrt", true));
-			
-			switch (m_projectFile.Get_Target_Platform())
-			{
-			case EPlatform::x64: 
-				{
-					if (Platform::IsOperatingSystem64Bit())
-					{
-						toolchainPath = vcInstallPath.AppendFragment("bin/amd64", true);
-						m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvars64.bat", true);
-					}
-					else
-					{
-						toolchainPath = vcInstallPath.AppendFragment("bin/x86_amd64", true);
-						m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvarsx86_amd64.bat", true);
-					}			
-					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/amd64", true));
-					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("atlmfc/lib/amd64", true));
-					m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x64", latestWindows10KitVersion.c_str()), true));
-					m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/x64", true));
-					break;
-				}
-			case EPlatform::x86:
-				{
-					toolchainPath = vcInstallPath.AppendFragment("bin", true);
-					m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvars32.bat", true);
-					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib", true));
-					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("atlmfc/lib", true));
-					m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x86", latestWindows10KitVersion.c_str()), true));
-					m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/x86", true));
-					break;
-				}
-			case EPlatform::ARM:
-			case EPlatform::ARM64:
-				{
-					if (Platform::IsOperatingSystem64Bit())
-					{
-						toolchainPath = vcInstallPath.AppendFragment("bin/amd64_arm", true);
-						m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvarsamd64_arm.bat", true);
-					}
-					else
-					{
-						toolchainPath = vcInstallPath.AppendFragment("bin/x86_arm", true);
-						m_envVarBatchFilePath = toolchainPath.AppendFragment("vcvarsx86_arm.bat", true);
-					}
-					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/arm", true));
-					m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("atlmfc/lib/arm", true));
-					m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/arm", latestWindows10KitVersion.c_str()), true));
-					m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/arm", true));
-					break;
-				}
-			default:
-				{
-					assert(false);
-					break;
-				}
-			}
-
-			m_compilerPath = toolchainPath.AppendFragment("cl.exe", true);
-			m_linkerPath = toolchainPath.AppendFragment("link.exe", true);
-			m_archiverPath = toolchainPath.AppendFragment("lib.exe", true);
-			
-			if (Platform::IsOperatingSystem64Bit())
-			{
-				m_resourceCompilerPath = windowsKitsRoot81Path.AppendFragment("/bin/x64/rc.exe", true);
-			}
-			else
-			{
-				m_resourceCompilerPath = windowsKitsRoot81Path.AppendFragment("/bin/x86/rc.exe", true);
-			}
-
-			m_version = "Toolset v140";
-
 			break;
 		}
 	default:
@@ -695,42 +844,163 @@ void Toolchain_Microsoft::GetArchiveArguments(const std::vector<BuilderFileInfo>
 	}
 }
 
-void Toolchain_Microsoft::ExtractDependencies(const BuilderFileInfo& file, const std::string& input, std::string& rawInput, std::vector<Platform::Path>& dependencies)
+bool Toolchain_Microsoft::ParseDependencyOutput(BuilderFileInfo& file, std::string& input)
 {
-	MB_UNUSED_PARAMETER(file);
-
 	std::string startTag = "\r\nNote: including file:";
 	std::string endTag = "\r\n";
 
-	rawInput = input;
-
 	while (true)
 	{
-		size_t startOffset = rawInput.find(startTag);
+		size_t startOffset = input.find(startTag);
 		if (startOffset == std::string::npos)
 		{
 			break;
 		}
-		size_t endOffset = rawInput.find(endTag, startOffset + startTag.size());
+		size_t endOffset = input.find(endTag, startOffset + startTag.size());
 		if (endOffset == std::string::npos)
 		{
 			break;;
 		}
-		
-		std::string extracted = rawInput.substr(startOffset + startTag.size(), endOffset - (startOffset + startTag.size()));
+
+		std::string extracted = input.substr(startOffset + startTag.size(), endOffset - (startOffset + startTag.size()));
 		extracted = Strings::Trim(extracted);
 
-		size_t extractedSize =  (endOffset - startOffset);
-		rawInput = rawInput.erase(startOffset, extractedSize);
+		size_t extractedSize = (endOffset - startOffset);
+		input = input.erase(startOffset, extractedSize);
 
-		dependencies.push_back(extracted);
+		file.OutputDependencyPaths.push_back(extracted);
 	}
-	
-	size_t endOffset = rawInput.find(endTag);
-	if (endOffset != std::string::npos)
+
+	/*
+	size_t endOffset = input.find(endTag);
+	if (endOffset <= 3 && endOffset != std::string::npos)
 	{
-		rawInput = rawInput.substr(endOffset + endTag.size());		
+		input = input.substr(endOffset + endTag.size());
+	}*/
+
+	return true;
+}
+
+bool Toolchain_Microsoft::ParseMessageOutput(BuilderFileInfo& file, std::string& input)
+{
+	// Attempts to extract messages in the following formats:
+	// Rather ugly ...
+
+	// origin(Line): [subcategory] fatal/error/warning/message ErrorNumber: Text
+	// origin(Line,Col): [subcategory] fatal/error/warning/message ErrorNumber: Text
+	// origin(Line-Line): [subcategory] fatal/error/warning/message ErrorNumber: Text
+	// origin(Line-Col): [subcategory] fatal/error/warning/message ErrorNumber: Text
+	// origin(Line,Col-Col): [subcategory] fatal/error/warning/message ErrorNumber: Text
+	// origin(Line,Col,Line,Col): [subcategory] fatal/error/warning/message ErrorNumber: Text
+
+	size_t startOffset = 0;
+	while (startOffset < input.size())
+	{
+		size_t endOffset = input.find("\r\n", startOffset);
+		if (endOffset == std::string::npos)
+		{
+			break;
+		}
+
+		std::string line = input.substr(startOffset, endOffset - startOffset);
+
+		size_t colonIndex = line.find(':', 3 /* Skip drive colon */);
+		if (colonIndex != std::string::npos)
+		{
+			std::string origin;
+			std::string message;
+			Strings::SplitOnIndex(line, colonIndex, origin, message);
+
+			colonIndex = message.find(':');
+			if (colonIndex != std::string::npos)
+			{
+				std::string errorType;
+				Strings::SplitOnIndex(message, colonIndex, errorType, message);
+
+				message = Strings::Trim(message);
+				errorType = Strings::Trim(errorType);
+
+				std::vector<std::string> errorTypeSplit = Strings::Split(' ', errorType, false, true);
+				if (errorTypeSplit.size() >= 2)
+				{
+					BuilderFileMessage fileMessage;
+					fileMessage.Identifier = errorTypeSplit[errorTypeSplit.size() - 1];
+					fileMessage.Text = message;
+
+					// Figure out what error level this message is.
+					std::string typeIdentifier = Strings::ToLowercase(errorTypeSplit[errorTypeSplit.size() - 2]);
+					if (typeIdentifier == "error" ||
+						typeIdentifier == "fatal")
+					{
+						fileMessage.Type = EBuilderFileMessageType::Error;
+					}
+					else if (typeIdentifier == "warning")
+					{
+						fileMessage.Type = EBuilderFileMessageType::Warning;
+					}
+					else if (typeIdentifier == "info" ||
+							 typeIdentifier == "message")
+					{
+						fileMessage.Type = EBuilderFileMessageType::Info;
+					}
+
+					// Try and extract line/colum information from origin.
+					if (origin[origin.size() - 1] == ')')
+					{
+						size_t openBraceOffset = origin.find_last_of('(');
+						std::string lineText = origin.substr(openBraceOffset + 1, origin.size() - openBraceOffset - 2);
+						origin = origin.substr(0, openBraceOffset);
+
+						// For the line number format this we're going to stick to only supporting:
+						// Line
+						// Line-Line
+						// Line,Offset
+						// As the other ones don't actually appear to be used anywhere I've seen.
+
+						size_t spacerOffset = lineText.find(',');
+						if (spacerOffset == std::string::npos)
+						{
+							spacerOffset = lineText.find('-');
+						}
+						if (spacerOffset == std::string::npos)
+						{
+							fileMessage.Line = CastFromString<int>(lineText);
+							fileMessage.Column = 1;
+						}
+						else
+						{
+							fileMessage.Line = CastFromString<int>(lineText.substr(0, spacerOffset));
+							fileMessage.Column = CastFromString<int>(lineText.substr(spacerOffset + 1));
+						}
+					}
+
+					fileMessage.Origin = origin;
+					file.AddMessage(fileMessage);
+				}
+			}
+		}
+
+		startOffset = endOffset + 2;
 	}
+
+	return true;
+}
+
+bool Toolchain_Microsoft::ParseOutput(BuilderFileInfo& file, std::string& input)
+{
+	if (!Toolchain::ParseOutput(file, input))
+	{
+		return false;
+	}
+	if (!ParseDependencyOutput(file, input))
+	{
+		return false;
+	}
+	if (!ParseMessageOutput(file, input))
+	{
+		return false;
+	}
+	return true;
 }
 
 bool Toolchain_Microsoft::Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)

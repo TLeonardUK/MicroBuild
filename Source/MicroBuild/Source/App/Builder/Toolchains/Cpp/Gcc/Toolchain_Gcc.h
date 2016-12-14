@@ -46,6 +46,9 @@ protected:
 
 #endif
 
+	// Parse message information from the stdout.
+	bool ParseMessageOutput(BuilderFileInfo& file, std::string& input);
+
 	// Attempts to locate the toolchain on the users computer, returns true
 	// if its found and available for use, otherwise false.
 	virtual bool FindToolchain();
@@ -66,11 +69,13 @@ protected:
 	virtual void GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args) override;	
 	
 	// Splits an stdout capture int dependencies and raw data.
-	virtual void ExtractDependencies(const BuilderFileInfo& file, const std::string& input, std::string& rawInput, std::vector<Platform::Path>& dependencies) override;
+	virtual bool ParseOutput(BuilderFileInfo& file, std::string& output) override;
 
 public:
 	Toolchain_Gcc(ProjectFile& file, uint64_t configurationHash);
 	
+	static bool ParseDependencyFile(BuilderFileInfo& file, std::string& input);
+
 	virtual bool Init() override;
 	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo) override;
 

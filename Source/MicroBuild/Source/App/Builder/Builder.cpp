@@ -173,6 +173,8 @@ bool Builder::Build(WorkspaceFile& workspaceFile, ProjectFile& project, bool bRe
 	configurationHash = Strings::Hash64(Strings::Format("%llu", project.Get_Project_File().GetModifiedTime()), configurationHash);
 	configurationHash = Strings::Hash64(Strings::Format("%llu", workspaceFile.Get_Workspace_File().GetModifiedTime()), configurationHash);
 
+	Log(LogSeverity::Verbose, "Configuration Hash: %llu\n", configurationHash);
+
 	// Make sure output directories exists.
 	Platform::Path outDir = project.Get_Project_OutputDirectory();
 	Platform::Path intDir = project.Get_Project_IntermediateDirectory();
@@ -469,7 +471,8 @@ Toolchain* Builder::GetToolchain(ProjectFile& project, uint64_t configurationHas
 						return new Toolchain_Gcc(project, configurationHash);
 					}
 #if defined(MB_PLATFORM_WINDOWS)
-					else if (project.Get_Build_PlatformToolset() == EPlatformToolset::MSBuild_v140)
+					else if (project.Get_Build_PlatformToolset() == EPlatformToolset::MSBuild_v140 ||
+							 project.Get_Build_PlatformToolset() == EPlatformToolset::MSBuild_v141)
 					{
 						return new Toolchain_Microsoft(project, configurationHash);
 					}

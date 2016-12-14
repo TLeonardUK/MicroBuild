@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Builder/Toolchains/Cpp/Nintendo3ds/Toolchain_Nintendo3ds.h"
+#include "App/Builder/Toolchains/Cpp/Gcc/Toolchain_Gcc.h"
 #include "Core/Platform/Process.h"
 #include "Core/Platform/Platform.h"
 #include "Core/Helpers/Strings.h"
@@ -151,6 +152,8 @@ void Toolchain_Nintendo3ds::GetBaseCompileArguments(const BuilderFileInfo& file,
 {
 	MB_UNUSED_PARAMETER(file);
 	MB_UNUSED_PARAMETER(args);
+
+	args.push_back("--no_wrap_diagnostics");
 
 	// CPU definitions for 3ds.
 	args.push_back("--apcs=/interwork");
@@ -357,7 +360,9 @@ void Toolchain_Nintendo3ds::GetLinkArguments(const std::vector<BuilderFileInfo>&
 	MB_UNUSED_PARAMETER(args);
 
 	Platform::Path outputPath = GetOutputPath();
-	
+
+	args.push_back("--no_wrap_diagnostics");
+
 	// Required arguments
 	args.push_back("--datacompressor=off");
 	args.push_back("--keep=nnMain");
@@ -473,6 +478,8 @@ void Toolchain_Nintendo3ds::GetArchiveArguments(const std::vector<BuilderFileInf
 	Platform::Path pchPath = GetPchPath();
 	Platform::Path pchObjectPath = GetPchObjectPath();
 
+	args.push_back("--no_wrap_diagnostics");
+
 	args.push_back("--create");	
 	args.push_back(Strings::Quoted(outputPath.ToString()).c_str());	
 	
@@ -489,43 +496,115 @@ void Toolchain_Nintendo3ds::GetArchiveArguments(const std::vector<BuilderFileInf
 	}
 }
 
-void Toolchain_Nintendo3ds::ExtractDependencies(const BuilderFileInfo& file, const std::string& input, std::string& rawInput, std::vector<Platform::Path>& dependencies)
+bool Toolchain_Nintendo3ds::ParseMessageOutput(BuilderFileInfo& file, std::string& input)
 {
-	MB_UNUSED_PARAMETER(input);
-	MB_UNUSED_PARAMETER(rawInput);
-	
-	// We read the .d dependency file we forced gcc to dump out earlier during the compile
-	// to extract dependencies.
+	MB_UNUSED_PARAMETER(file);
 
-	rawInput = input;
+	// Attempts to extract messages in the following formats:
+	// Rather ugly ...
 
-	Platform::Path depsFile = file.OutputPath.ChangeExtension("d");
-	if (depsFile.Exists())
+	// "D:\Git\Ludo\Tools\MicroBuild\Tests\Projects\Cpp_Exe\Project\Source\File.cpp", line 34: Error:  #20: identifier "zyx" is undefined
+
+	size_t startOffset = 0;
+	while (startOffset < input.size())
 	{
-		std::string rawDeps;
-		if (!Strings::ReadFile(depsFile, rawDeps))
+		size_t endOffset = input.find("\r\n", startOffset);
+		if (endOffset == std::string::npos)
 		{
-			return;
+			break;
 		}
 
-		rawDeps = Strings::Replace(rawDeps, "\\\n", " ");
+		std::string line = input.substr(startOffset, endOffset - startOffset);
 
-		std::vector<std::string> lines = Strings::Split('\n', rawDeps);
-		for (std::string& line : lines)
+		size_t colonIndex = line.find(':', 3 /* Skip drive colon */);
+		if (colonIndex != std::string::npos)
 		{
-			std::vector<std::string> lineSplit = Strings::Split(' ', line, true, true);
+			std::string origin;
+			std::string message;
+			Strings::SplitOnIndex(line, colonIndex, origin, message);
 
-			for (auto& dep : lineSplit)
+			colonIndex = message.find(':');
+			if (colonIndex != std::string::npos)
 			{
-				std::string depStripped = Strings::Trim(dep);
-				if (depStripped[depStripped.size() - 1] == ':')
+				std::string errorType;
+				Strings::SplitOnIndex(message, colonIndex, errorType, message);
+
+				message = Strings::Trim(message);
+				errorType = Strings::Trim(errorType);
+
+				colonIndex = message.find(':');
+				if (colonIndex != std::string::npos)
 				{
-					depStripped = depStripped.substr(0, depStripped.size() - 1);
+					std::string errorIdentifier;
+					Strings::SplitOnIndex(message, colonIndex, errorIdentifier, message);
+
+					message = Strings::Trim(message);
+					errorIdentifier = Strings::Trim(errorIdentifier);
+
+					if (errorIdentifier[0] == '#')
+					{
+						BuilderFileMessage fileMessage;
+						fileMessage.Identifier = errorIdentifier;
+						fileMessage.Text = message;
+
+						errorType = Strings::ToLowercase(errorType);
+						if (errorType == "error" ||
+							errorType == "fatal")
+						{
+							fileMessage.Type = EBuilderFileMessageType::Error;
+						}
+						else if (errorType == "warning")
+						{
+							fileMessage.Type = EBuilderFileMessageType::Warning;
+						}
+						else if (errorType == "info" ||
+								 errorType == "message")
+						{
+							fileMessage.Type = EBuilderFileMessageType::Info;
+						}
+
+						// Try and extract line/colum information from origin.
+						if (origin[0] == '"')
+						{
+							size_t closeQuoteOffset = origin.find_last_of('"');
+							std::string lineText = Strings::Trim(origin.substr(closeQuoteOffset + 1));
+							origin = Strings::StripQuotes(origin.substr(0, closeQuoteOffset + 1));
+					
+							if (lineText.substr(0, 6) == ", line")
+							{
+								fileMessage.Line = CastFromString<int>(lineText.substr(6));
+								fileMessage.Column = 1;
+							}
+						}
+
+						fileMessage.Origin = origin;
+						file.AddMessage(fileMessage);
+					}
 				}
-				dependencies.push_back(depStripped);
 			}
 		}
+
+		startOffset = endOffset + 2;
 	}
+
+	return true;
+}
+
+bool Toolchain_Nintendo3ds::ParseOutput(BuilderFileInfo& file, std::string& input)
+{
+	if (!Toolchain::ParseOutput(file, input))
+	{
+		return false;
+	}
+	if (!Toolchain_Gcc::ParseDependencyFile(file, input))
+	{
+		return false;
+	}
+	if (!ParseMessageOutput(file, input))
+	{
+		return false;
+	}
+	return true;
 }
 
 }; // namespace MicroBuild

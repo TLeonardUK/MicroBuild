@@ -35,6 +35,39 @@ public:
 
 };
 
+// Type of builder file messages.
+enum class EBuilderFileMessageType
+{
+	Info,
+	Warning,
+	Error
+};
+
+// Stores information on a message emitted while building a file.
+struct BuilderFileMessage
+{
+public:
+
+	// File or tool that this message originated from.
+	Platform::Path			Origin;
+
+	// Line number this messaged originated on.
+	int						Line;
+
+	// Column number this messaged originated on.
+	int						Column;
+
+	// Internal identifier of this message (per-toolchain), eg. C4001 for msbuild
+	std::string				Identifier;
+
+	// Type of message - Error/Warning/etc.
+	EBuilderFileMessageType	Type;
+
+	// The main text of this message.
+	std::string				Text;
+
+};
+
 // Stores information on an individual file that needs to 
 // have meta data generated for it.
 struct BuilderFileInfo 
@@ -67,6 +100,24 @@ public:
 	// Keeps track of the hashes and paths to all other files the
 	// source file is dependent on.
 	std::vector<BuilderDependencyInfo>	Dependencies;
+
+	// List of dependency paths that were extracted from the stdout.
+	std::vector<Platform::Path>			OutputDependencyPaths;
+
+	// Messages that occured while trying to build the file.
+	std::vector<BuilderFileMessage>		Messages;
+
+	// How many messages in the above array are errors.
+	int ErrorCount;
+
+	// How many messages in the above array are warnings.
+	int WarningCount;
+
+	// How many messages in the above array are informational.
+	int InfoCount;
+
+	// Adds a message to the file info.
+	void AddMessage(const BuilderFileMessage& message);
 
 	// Loads hash and dependency data from the manifest file.
 	bool LoadManifest();

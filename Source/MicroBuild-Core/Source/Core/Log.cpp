@@ -33,6 +33,11 @@ void LogSetVerbose(bool bVerbose)
 	g_logVerboseOn = bVerbose;
 }
 
+bool LogGetVerbose()
+{
+	return g_logVerboseOn;
+}
+
 void LogSetSilent(bool bSilent)
 {
 	g_logSilentOn = bSilent;

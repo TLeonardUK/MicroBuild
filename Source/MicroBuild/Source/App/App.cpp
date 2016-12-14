@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Ides/IdeType.h"
 
 #include "App/Ides/MSBuild/Versions/VisualStudio_2015.h"
+#include "App/Ides/MSBuild/Versions/VisualStudio_2017.h"
 #include "App/Ides/Make/Make.h"
 #include "App/Ides/XCode/XCode.h"
 
@@ -78,6 +79,7 @@ App::App(int argc, char* argv[])
 	FreeImage_Initialise(false);
 
 	m_ides.push_back(new Ide_VisualStudio_2015());
+	m_ides.push_back(new Ide_VisualStudio_2017());
 	m_ides.push_back(new Ide_Make());
 	m_ides.push_back(new Ide_XCode());
 

@@ -102,5 +102,8 @@ bool IsMatch(const std::string& input, const std::string& pattern);
 // Replaces a string withing a string.
 std::string Replace(const std::string& context, const std::string& from, const std::string& to);
 
+// Returns true if the given string is made up of purely numbers.
+bool IsNumeric(const std::string& input);
+
 }; // namespace StringHelper
 }; // namespace MicroBuild

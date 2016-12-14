@@ -47,6 +47,7 @@ START_ENUM(EPlatformToolset)
 
 	// MSBuild
 	ENUM_KEY(MSBuild_v140)
+	ENUM_KEY(MSBuild_v141)
 
 	// XCode	
 	ENUM_KEY(XCode)

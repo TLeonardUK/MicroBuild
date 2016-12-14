@@ -31,7 +31,27 @@ std::mutex BuilderFileInfo::m_fileCacheLock;
 BuilderFileInfo::BuilderFileInfo()
 	: bOutOfDate(false)
 	, Hash(0)
+	, ErrorCount(0)
+	, WarningCount(0)
+	, InfoCount(0)
 {
+}
+
+void BuilderFileInfo::AddMessage(const BuilderFileMessage& message)
+{
+	if (message.Type == EBuilderFileMessageType::Error)
+	{
+		ErrorCount++;
+	}
+	else if (message.Type == EBuilderFileMessageType::Warning)
+	{
+		WarningCount++;
+	}
+	else if (message.Type == EBuilderFileMessageType::Info)
+	{
+		InfoCount++;
+	}
+	Messages.push_back(message);
 }
 
 bool BuilderFileInfo::LoadManifest()
@@ -147,7 +167,7 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info, uint64_t configurati
 		 !GetCachedPathExists(info.OutputPath)))
 	{
 		info.bOutOfDate = true;
-		//Log(LogSeverity::Warning, "[%s] Out of date because cached paths non-existant.\n", info.SourcePath.GetFilename().c_str());
+		Log(LogSeverity::Verbose, "[%s] Out of date because cached paths non-existant.\n", info.SourcePath.GetFilename().c_str());
 	}
 	else
 	{
@@ -156,11 +176,11 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info, uint64_t configurati
 		if (!bNoIntermediateFiles && !info.LoadManifest())
 		{
 			info.bOutOfDate = true;
-			//Log(LogSeverity::Warning, "[%s] Could not load manifest.\n", info.SourcePath.ToString().c_str());
+			Log(LogSeverity::Verbose, "[%s] Out of date because could not load manifest.\n", info.SourcePath.ToString().c_str());
 		}
 		else if (!info.SourcePath.IsEmpty() && info.Hash != currentHash)
 		{
-			//Log(LogSeverity::Warning, "[%s] Hash was different.\n", info.SourcePath.ToString().c_str());
+			Log(LogSeverity::Verbose, "[%s] Out of date because file hash was different.\n", info.SourcePath.ToString().c_str());
 			info.bOutOfDate = true;
 			info.Hash = currentHash;
 		}
@@ -173,13 +193,13 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info, uint64_t configurati
 				if (!GetCachedPathExists(dependencyInfo.SourcePath) ||
 					 dependencyInfo.Hash != dependencyHash)
 				{
-				/*	Log(LogSeverity::Warning, "[%s] Dependency out of date (hash=%i exists=%i): %s.\n", 
+					Log(LogSeverity::Verbose, "[%s] Out of date because dependency was out of date (hash=%i exists=%i): %s.\n",
 						info.SourcePath.GetFilename().c_str(),
 						dependencyInfo.Hash != dependencyHash,
 						GetCachedPathExists(dependencyInfo.SourcePath),
 						 dependencyInfo.SourcePath.ToString().c_str()
 					);
-				*/
+				
 					info.bOutOfDate = true;
 					break;
 				}
