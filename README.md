@@ -60,6 +60,27 @@ We currently support building code for the following platforms. Support for each
 | Xbox 360                 | In Progress                                  |
 | Xbox One                 | In Progress                                  |
 
+## Packaging Support
+We currently support packaging projects for the following targets:
+
+| Target IDE                 | Status                                       |
+| -------------------------- | -------------------------------------------- |
+| Desktop Zip Package        | In Progress                                  |
+| Desktop Installer Package  | In Progress                                  |
+| Steam Depot                | In Progress                                  |
+| MacOS AppStore             | In Progress                                  |
+| iOS AppStore               | In Progress                                  |
+| HTML5 Webpage              | In Progress                                  |
+| Android Apk                | In Progress                                  |
+| Linux .deb Package         | In Progress                                  |
+| Nintendo 3ds ROM           | In Progress                                  |
+| Nintendo WiU ROM           | In Progress                                  |
+| Playstation 3 PKG          | In Progress                                  |
+| Playstation 4 PKG          | In Progress                                  |
+| Playstation Vita PKG       | In Progress                                  |
+| Xbox 360 ISO               | In Progress                                  |
+| Xbox One ISO               | In Progress                                  |
+
 ## Documentation
 Extensive documentation is available on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
 
