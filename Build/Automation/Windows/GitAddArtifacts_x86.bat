@@ -1,8 +1,8 @@
 git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild.exe
 git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild.pdb
 git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-Core.lib
-git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-Core.lib
-git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-FreeImage.pdb
+git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-Core.pdb
+git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-FreeImage.lib
 git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-FreeImage.pdb
 git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-LibJpeg.lib
 git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-LibJpeg.pdb
@@ -24,6 +24,8 @@ git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-Schemas.lib
 git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-Schemas.pdb
 git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-Zlib.lib
 git add -f ../../../Binaries/Windows/Shipping_x86/MicroBuild-Zlib.pdb
+
+
 
 
 
