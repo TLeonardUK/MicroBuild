@@ -43,19 +43,22 @@ We currently support generating project and workspace files for the following ID
 ## Supported Platforms
 We currently support building code for the following platforms. Support for each platform depends on the the toolchain being available on the host platform (eg. Console platforms are unlikely to be available on non-windows platforms).
 
-| Target IDE             | Status                                       |
-| ---------------------- | -------------------------------------------- |
-| Desktop (x86/x64/ARM)  | Supported; Using Clang, GCC or MSBuild       |
-| HTML5 (Emscripten)     | Supported                                    |
-| Android (NDK)          | Supported                                    |
-| Nintendo 3DS           | Supported                                    |
-| Nintendo WiiU          | Supported                                    |
-| iOS                    | In Progress                                  |
-| Playstation 3          | In Progress                                  |
-| Playstation 4          | In Progress                                  |
-| Playstation Vita       | In Progress                                  |
-| Xbox 360               | In Progress                                  |
-| Xbox One               | In Progress                                  |
+| Target IDE               | Status                                       |
+| ------------------------ | -------------------------------------------- |
+| Windows (x86/x64)        | Supported; Using Clang, GCC or MSBuild       |
+| Windows RT (x86/x64/ARM) | In Progress                                  |
+| Linux (x86/x64)          | Supported; Using Clang or GCC                |
+| MacOS (x86/x64)          | Supported; Using Clang or GCC                |
+| HTML5 (Emscripten)       | Supported                                    |
+| Android (NDK)            | Supported                                    |
+| Nintendo 3DS             | Supported                                    |
+| Nintendo WiiU            | Supported                                    |
+| iOS                      | In Progress                                  |
+| Playstation 3            | In Progress                                  |
+| Playstation 4            | In Progress                                  |
+| Playstation Vita         | In Progress                                  |
+| Xbox 360                 | In Progress                                  |
+| Xbox One                 | In Progress                                  |
 
 ## Documentation
 Extensive documentation is available on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
