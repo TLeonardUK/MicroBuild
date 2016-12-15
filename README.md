@@ -23,7 +23,7 @@ Microbuild takes all its configuration from simple and intuitive INI style files
 Its primary aims are:
 
 + __Fast__ - Generation and build times should be minimal, at its core MicroBuild should act as a wrapper for native toolchains and should take no longer to build or generate files than building them natively would take.
-+ __No Dependencies__ - Should be compilable off the bat on any standard-compliant C++11 compiler, the project should also be capable of being distribued as a single dependency-less executable.
++ __Minimal Dependencies__ - Should be compilable off the bat on any standard-compliant C++11 compiler, the project should also be capable of being distribued as a single executable.
 + __Intuitive__ - Project configuration should be quick and intuitive, the user should never have to spend any degree of time fine-tuning configuration files.
 + __Cross Platform__ - Should be compilable and usable on any standard desktop architecture - Windows/Linux/MacOS.
 + __Plugin Support__ - Shared libraries using a plugin framework can be easily created and loaded into microbuild, allow for extensions to the build system. This is used in other projects for doing things such as generating meta-data, or syntax checking.
