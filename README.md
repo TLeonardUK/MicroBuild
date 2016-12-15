@@ -37,6 +37,8 @@ We currently support generating project and workspace files for the following ID
 | Visual Studio 2017     | Supported       |
 | GNU Makefiles          | Supported       |
 | XCode                  | Supported       |
+| MonoDevelop            | In Progress     |
+| Code::Blocks           | In Progress     |
 
 ## Supported Platforms
 We currently support building code for the following platforms. Support for each platform depends on the the toolchain being available on the host platform (eg. Console platforms are unlikely to be available on non-windows platforms).
