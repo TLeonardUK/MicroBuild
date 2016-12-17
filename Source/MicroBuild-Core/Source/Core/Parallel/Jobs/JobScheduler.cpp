@@ -24,7 +24,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+// thread_local not supported on mac with older versions of xcode, not
+// really used at the moment so ignore.
+#if 0 
 thread_local int g_jobSchedulerthreadId = -1;
+#endif
 
 JobScheduler::JobScheduler(int ThreadCount)
 	: m_JobVersionCounter(-1)
@@ -44,7 +48,9 @@ JobScheduler::JobScheduler(int ThreadCount)
 		std::string ThreadName = Strings::Format("Job Pool Thread %i", i);
 		
 		m_Threads.push_back(new std::thread([this, i]() {
+#if 0
 			g_jobSchedulerthreadId = i + 1;
+#endif
 			ThreadEntryPoint();
 		}));
 	}
@@ -237,7 +243,11 @@ void JobScheduler::ThreadEntryPoint()
 
 int JobScheduler::GetThreadId()
 {
+#if 1
+	return 0;
+#else
 	return g_jobSchedulerthreadId;
+#endif
 }
 
 void JobScheduler::PrintJobTree()
