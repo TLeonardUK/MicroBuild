@@ -28,6 +28,7 @@ Toolchain_Gcc::Toolchain_Gcc(ProjectFile& file, uint64_t configurationHash)
 	, m_microsoftToolchain(file, m_configurationHash, true)
 #endif
 {
+	m_useStartEndGroup = true;
 }
 
 bool Toolchain_Gcc::Init() 
@@ -559,8 +560,11 @@ void Toolchain_Gcc::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceF
 		}
 	}
 
-	args.push_back("-Wl,--start-group");
-	
+	if (m_useStartEndGroup)
+	{
+		args.push_back("-Wl,--start-group");
+	}
+
 	// Libraries.
 	for (auto& library : m_projectFile.Get_Libraries_Library())
 	{
@@ -574,7 +578,10 @@ void Toolchain_Gcc::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceF
 		}
 	}
 
-	args.push_back("-Wl,--end-group");
+	if (m_useStartEndGroup)
+	{
+		args.push_back("-Wl,--end-group");
+	}
 }
 
 void Toolchain_Gcc::GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args) 
