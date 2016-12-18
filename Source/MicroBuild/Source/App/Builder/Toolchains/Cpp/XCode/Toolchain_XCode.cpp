@@ -25,6 +25,7 @@ namespace MicroBuild {
 Toolchain_XCode::Toolchain_XCode(ProjectFile& file, uint64_t configurationHash)
 	: Toolchain_Clang(file, configurationHash)
 {
+	m_useStartEndGroup = false;
 }
 
 bool Toolchain_XCode::Init() 
@@ -35,22 +36,36 @@ bool Toolchain_XCode::Init()
 	return m_bAvailable;
 }
 
+bool Toolchain_XCode::FindXCodeExe(const std::string& exeName, Platform::Path& output)
+{	
+	Platform::Process process;
+
+	std::vector<std::string> args;
+	args.push_back("-find");
+	args.push_back(exeName);
+
+	if (!process.Open("/usr/bin/xcodebuild", "/usr/bin", args, true))
+	{
+		return false;
+	}
+
+	output = Strings::Trim(process.ReadToEnd());
+	return output.Exists();
+}
+
 bool Toolchain_XCode::FindToolchain()
 {
-	std::vector<Platform::Path> additionalDirs;
-
-	additionalDirs.push_back("/Applications/Xcode.app/Contents/Developer/usr/bin");
-
-	if (!Platform::Path::FindFile("clang++", m_compilerPath, additionalDirs))
+	if (!FindXCodeExe("clang++", m_compilerPath))
 	{
+		Log(LogSeverity::Warning, "Could not find clang++ in xcode toolchain.\n");
+		return false;
+	}
+	if (!FindXCodeExe("ar", m_archiverPath))
+	{
+		Log(LogSeverity::Warning, "Could not find ar in xcode toolchain.\n");
 		return false;
 	}
 
-	if (!Platform::Path::FindFile("llvm-ar", m_archiverPath, additionalDirs))
-	{
-		return false;
-	}
-	
 	m_linkerPath = m_compilerPath;
 
 	Platform::Process process;
@@ -59,6 +74,7 @@ bool Toolchain_XCode::FindToolchain()
 	args.push_back("--version");
 	if (!process.Open(m_compilerPath, m_compilerPath.GetDirectory(), args, true))
 	{
+		Log(LogSeverity::Warning, "Could not execute clang++ to gain version number.\n");
 		return false;
 	}
 
@@ -75,6 +91,32 @@ bool Toolchain_XCode::FindToolchain()
 		}
 	}	
 
+	// Find the base include and library paths for the toolchain.
+	Platform::Path baseUsrPath = m_compilerPath.GetDirectory().GetDirectory();
+	m_standardIncludePaths.push_back(baseUsrPath.AppendFragment("include", true));
+	m_standardLibraryPaths.push_back(baseUsrPath.AppendFragment("lib", true));
+
+	// Find the platform sdk specific include and library paths.
+	Platform::Path baseDeveloperPath = baseUsrPath.GetDirectory().GetDirectory().GetDirectory();
+	Platform::Path basePlatformsPath = baseDeveloperPath.AppendFragment("Platforms", true);
+
+	// TODO: ios sdk etc support.
+	Platform::Path platformPath = basePlatformsPath.AppendFragment("MacOSX.platform", true);
+	Platform::Path sdkPath = platformPath.AppendFragment("Developer/SDKs/MacOSX.sdk", true);
+	m_standardIncludePaths.push_back(sdkPath.AppendFragment("usr/include", true));
+	m_standardLibraryPaths.push_back(sdkPath.AppendFragment("usr/lib", true));
+
+	m_isysRoot = sdkPath;
+
 	return true;
 }
+
+void Toolchain_XCode::GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args)
+{
+	Toolchain_Gcc::GetBaseCompileArguments(file, args);
+
+	args.push_back("-isysroot");
+	args.push_back(m_isysRoot.ToString());
+}
+
 }; // namespace MicroBuild

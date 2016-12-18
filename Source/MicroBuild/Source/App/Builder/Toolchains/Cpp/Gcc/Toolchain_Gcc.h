@@ -30,6 +30,8 @@ class Toolchain_Gcc
 protected:
 	std::string m_version;
 
+	bool m_useStartEndGroup;
+
 	Platform::Path m_windowsResourceCompilerPath;
 
 #if defined(MB_PLATFORM_WINDOWS)

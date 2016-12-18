@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // todo: project dependencies
 
 #include "PCH.h"
+#include "App/Ides/Make/Make_SolutionFile.h"
 #include "App/Ides/XCode/XCode_SolutionFile.h"
 #include "Core/Helpers/TextStream.h"
 #include "Core/Helpers/XmlNode.h"
@@ -145,6 +146,18 @@ bool XCode_SolutionFile::Generate(
         projectFiles
 	);
     
+    // Generate the makefile which the xcode project will invoke.
+    Make_SolutionFile makeFile;
+
+    if (!makeFile.Generate(
+        databaseFile,
+        workspaceFile,
+        projectFiles,
+        buildMatrix))
+    {
+        return false;
+    }
+
 	// Generate result.
 	if (!databaseFile.StoreFile(
 		workspaceFile,

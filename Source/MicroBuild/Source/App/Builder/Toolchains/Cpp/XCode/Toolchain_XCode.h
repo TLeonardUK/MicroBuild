@@ -29,12 +29,20 @@ class Toolchain_XCode
 {
 protected:
 	std::string m_version;
+	Platform::Path m_isysRoot;
 
 protected:	
 	
 	// Attempts to locate the toolchain on the users computer, returns true
 	// if its found and available for use, otherwise false.
 	virtual bool FindToolchain() override;
+
+	// Attempts to find an executable thats part of the xcode toolchain. Returns true
+	// if found, and available for use, otherwise false.
+	bool FindXCodeExe(const std::string& exeName, Platform::Path& output);
+	
+	// Gets all the generic arguments required to compile a file.
+	virtual void GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args) override;
 	
 public:
 	Toolchain_XCode(ProjectFile& file, uint64_t configurationHash);
