@@ -16,6 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// TODO: ios sdk etc support.
+// TODO: Framework support
+// TODO: -arch support
+// TODO: -mios-simulation-version-min=?? etc support
+
 #include "PCH.h"
 #include "App/Builder/Toolchains/Cpp/XCode/Toolchain_XCode.h"
 #include "Core/Platform/Process.h"
@@ -100,7 +105,6 @@ bool Toolchain_XCode::FindToolchain()
 	Platform::Path baseDeveloperPath = baseUsrPath.GetDirectory().GetDirectory().GetDirectory();
 	Platform::Path basePlatformsPath = baseDeveloperPath.AppendFragment("Platforms", true);
 
-	// TODO: ios sdk etc support.
 	Platform::Path platformPath = basePlatformsPath.AppendFragment("MacOSX.platform", true);
 	Platform::Path sdkPath = platformPath.AppendFragment("Developer/SDKs/MacOSX.sdk", true);
 	m_standardIncludePaths.push_back(sdkPath.AppendFragment("usr/include", true));

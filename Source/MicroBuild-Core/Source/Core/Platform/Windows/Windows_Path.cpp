@@ -136,7 +136,10 @@ bool Path::CreateAsDirectory() const
 
 	if (!ParentDir.IsEmpty() && !ParentDir.IsDirectory())
 	{
-		ParentDir.CreateAsDirectory();
+		if (!ParentDir.CreateAsDirectory())
+		{
+			return false;
+		}
 	}
 
 	BOOL Ret = CreateDirectoryA(m_raw.c_str(), NULL);

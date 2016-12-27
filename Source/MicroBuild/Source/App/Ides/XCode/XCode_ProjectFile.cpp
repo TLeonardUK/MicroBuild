@@ -1244,7 +1244,7 @@ bool XCode_ProjectFile::Generate(
 	// Root object value.
 	root.Node("rootObject").Value("%s", projectId.c_str());
 
-    // If we are a C# project, we also need to generate the makefile which will call mono to compile.
+    // Generate the makefile which the xcode project will invoke.
     Make_ProjectFile makeFile;
 
     if (!makeFile.Generate(
