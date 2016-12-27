@@ -143,6 +143,11 @@ bool Path::CreateAsDirectory() const
 	}
 
 	BOOL Ret = CreateDirectoryA(m_raw.c_str(), NULL);
+	if (Ret == 0)
+	{
+		DWORD error = GetLastError();
+		Log(LogSeverity::Warning, "Failed to make directory '%s' with error 0x%08x (%i).", m_raw.c_str(), error, error);
+	}
 	return (Ret != 0);
 }
 
