@@ -206,20 +206,23 @@ bool Path::CreateAsDirectory() const
 		}
 	}
 
-	int result = mkdir(m_raw.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	Log(LogSeverity::Warning, "Creating: '%s'\n", m_raw.c_str());
+
+	int result = mkdir(m_raw.c_str(), S_IRWXU | S_IXUSR);
 	if (result != 0)
 	{
-		Log(LogSeverity::Warning, "Failed to make directory '%s' with error 0x%08x (%i).", m_raw.c_str(), result, result);
+		int error = errno;
+		Log(LogSeverity::Warning, "Failed to make directory '%s' with error 0x%08x (%i).", m_raw.c_str(), error, error);
 	}	
 	return (result == 0);
 }
-
+ 
 bool Path::CreateAsFile() const
 {
 	int fd = open(
 		m_raw.c_str(), 
 		O_CREAT | O_RDWR,  
-		S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH
+		S_IRWXU | S_IXUSR
 	);
 	if (fd <= 0)
 	{
