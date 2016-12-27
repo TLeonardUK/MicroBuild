@@ -207,6 +207,10 @@ bool Path::CreateAsDirectory() const
 	}
 
 	int result = mkdir(m_raw.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	if (result != 0)
+	{
+		Log(LogSeverity::Warning, "Failed to make directory '%s' with error 0x%08x (%i).", m_raw.c_str(), result, result);
+	}
 	return (result == 0);
 }
 
