@@ -196,6 +196,16 @@ bool Path::IsDirectory() const
 
 bool Path::CreateAsDirectory() const
 {
+	Path ParentDir = GetDirectory();
+
+	if (!ParentDir.IsEmpty() && !ParentDir.IsDirectory())
+	{
+		if (!ParentDir.CreateAsDirectory())
+		{
+			return false;
+		}
+	}
+
 	int result = mkdir(m_raw.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	return (result == 0);
 }
