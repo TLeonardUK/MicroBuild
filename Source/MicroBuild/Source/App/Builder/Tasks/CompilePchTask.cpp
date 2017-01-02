@@ -48,7 +48,10 @@ bool CompilePchTask::Execute()
 
 	if (bResult)
 	{
-		assert(m_file.OutputPath.Exists());
+		// Our output path is not the same as the pch/gch path (confusingly), because
+		// a pch compile can produce a pch/gch file and (optionally) and object file.
+		// The m_file.OutputPath is set to the ObjectPath, so just use the toolchain gch path for checking.
+		assert(m_toolchain->GetPchPath().Exists());
 	}
 	return bResult;
 }
