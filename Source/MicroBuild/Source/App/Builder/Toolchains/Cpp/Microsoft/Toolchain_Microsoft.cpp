@@ -759,7 +759,7 @@ void Toolchain_Microsoft::GetLinkArguments(const std::vector<BuilderFileInfo>& s
 	}
 
 	// Link PCH.
-	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+	if (!pchObjectPath.IsEmpty() && !m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
 		args.push_back(Strings::Quoted(pchObjectPath.ToString()));
 	}
@@ -838,7 +838,7 @@ void Toolchain_Microsoft::GetArchiveArguments(const std::vector<BuilderFileInfo>
 	}
 	
 	// Link PCH.
-	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+	if (!pchObjectPath.IsEmpty() && !m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
 		args.push_back(Strings::Quoted(pchObjectPath.ToString()));
 	}

@@ -235,7 +235,7 @@ std::vector<BuilderFileInfo> BuilderFileInfo::GetMultipleFileInfos(
 
 		Platform::Path baseDirectory = info.OutputPath.GetDirectory();
 		//if (!baseDirectory.Exists())
-		if (GetCachedPathExists(baseDirectory))
+		if (!GetCachedPathExists(baseDirectory))
 		{
 			baseDirectory.CreateAsDirectory();
 		}

@@ -29,6 +29,7 @@ Toolchain_Gcc::Toolchain_Gcc(ProjectFile& file, uint64_t configurationHash)
 #endif
 {
 	m_useStartEndGroup = true;
+	m_bGeneratesPchObject = false;
 }
 
 bool Toolchain_Gcc::Init() 
@@ -600,7 +601,7 @@ void Toolchain_Gcc::GetArchiveArguments(const std::vector<BuilderFileInfo>& sour
 	}
 	
 	// Link PCH.
-	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+	if (!pchObjectPath.IsEmpty() && !m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
 		args.push_back(Strings::Quoted(pchObjectPath.ToString()));
 	}

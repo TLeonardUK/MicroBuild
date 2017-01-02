@@ -206,7 +206,7 @@ bool Path::CreateAsDirectory() const
 		}
 	}
 	 
-	Log(LogSeverity::Warning, "Creating: '%s'\n", m_raw.c_str());
+	//Log(LogSeverity::Warning, "Creating: '%s'\n", m_raw.c_str());
 
 	int result = mkdir(m_raw.c_str(), S_IRWXU | S_IXUSR);
 	if (result != 0)

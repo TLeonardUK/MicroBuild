@@ -36,6 +36,7 @@ protected:
 	bool m_bAvailable;
 	bool m_bRequiresCompileStep;
 	bool m_bRequiresVersionInfo;
+	bool m_bGeneratesPchObject;
 	std::string m_description;
 	ProjectFile& m_projectFile;
 	

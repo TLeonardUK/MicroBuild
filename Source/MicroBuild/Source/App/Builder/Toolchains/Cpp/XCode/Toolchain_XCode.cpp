@@ -90,9 +90,9 @@ bool Toolchain_XCode::FindToolchain()
 	{
 		std::string versionLine = lines[0];
 		std::vector<std::string> split = Strings::Split(' ', versionLine);
-		if (split.size() >= 3)
+		if (split.size() > 4)
 		{
-			m_version = split[2];
+			m_version = split[3];
 		}
 	}	
 

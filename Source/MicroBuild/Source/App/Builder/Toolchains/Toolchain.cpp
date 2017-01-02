@@ -34,6 +34,7 @@ Toolchain::Toolchain(ProjectFile& file, uint64_t configurationHash)
 	: m_bAvailable(false)
 	, m_bRequiresCompileStep(true)
 	, m_bRequiresVersionInfo(false)
+	, m_bGeneratesPchObject(true)
 	, m_description("")
 	, m_projectFile(file)
 	, m_configurationHash(configurationHash)
@@ -610,8 +611,15 @@ Platform::Path Toolchain::GetPchPath()
 
 Platform::Path Toolchain::GetPchObjectPath()
 {
-	return m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("o").GetFilename(), true);
+	if (m_bGeneratesPchObject)
+	{
+		return m_projectFile.Get_Project_IntermediateDirectory()
+			.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("o").GetFilename(), true);
+	}
+	else
+	{
+		return "";
+	}
 }
 
 Platform::Path Toolchain::GetVersionInfoObjectPath()
