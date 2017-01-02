@@ -134,7 +134,7 @@ bool Make_SolutionFile::Generate(
 	}
 	stream.WriteLine("");
 	stream.WriteLine("");
-	stream.WriteLine(".PHONY: all clean help $(PROJECTS)");
+	stream.WriteLine(".PHONY: all build rebuild clean help $(PROJECTS)");
 	stream.WriteLine("");
 	stream.WriteLine("all: $(PROJECTS)");
 

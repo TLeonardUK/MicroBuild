@@ -542,7 +542,10 @@ void Toolchain_Gcc::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceF
 		{
 			args.push_back("-m64");
 #if !defined(MB_PLATFORM_WINDOWS)
-			args.push_back("-L/usr/lib64");
+			if (Platform::Path("/usr/lib64").Exists())
+			{
+				args.push_back("-L/usr/lib64");
+			}
 #endif
 			break;
 		}
@@ -550,7 +553,10 @@ void Toolchain_Gcc::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceF
 		{
 			args.push_back("-m32");
 #if !defined(MB_PLATFORM_WINDOWS)
-			args.push_back("-L/usr/lib32");
+			if (Platform::Path("/usr/lib32").Exists())
+			{
+				args.push_back("-L/usr/lib32");
+			}
 #endif
 			break;
 		}
@@ -650,6 +656,7 @@ bool Toolchain_Gcc::ParseMessageOutput(BuilderFileInfo& file, std::string& input
 	// Rather ugly ...
 
 	// MyFile.cpp:100:100: error: variable or field 'f' declared void
+	// ld: warning: xxxx
 
 	size_t startOffset = 0;
 	while (startOffset < input.size())
@@ -662,7 +669,7 @@ bool Toolchain_Gcc::ParseMessageOutput(BuilderFileInfo& file, std::string& input
 
 		std::string line = Strings::Trim(input.substr(startOffset, endOffset - startOffset));
 
-		size_t colonIndex = line.find(':', 3 /* Skip drive colon */);
+		size_t colonIndex = line.find(':', 2 /* Skip drive colon */);
 		if (colonIndex != std::string::npos)
 		{
 			std::string origin;
@@ -675,7 +682,15 @@ bool Toolchain_Gcc::ParseMessageOutput(BuilderFileInfo& file, std::string& input
 				std::string lineValue;
 				Strings::SplitOnIndex(message, colonIndex, lineValue, message);
 
+				std::string unprefixedMessageType = lineValue;
+				std::string unprefixedMessage = message;
+
 				lineValue = Strings::Trim(lineValue);
+
+				// If the rest of the line starts with number:number: bleh
+				// then we are looking at a file position following, otherwise
+				// we are looking at an error without a position.
+				bool bHasLineNumber = false;
 
 				if (Strings::IsNumeric(lineValue))
 				{
@@ -689,6 +704,8 @@ bool Toolchain_Gcc::ParseMessageOutput(BuilderFileInfo& file, std::string& input
 
 						if (Strings::IsNumeric(columnValue))
 						{
+							bHasLineNumber = true;
+
 							colonIndex = message.find(':');
 							if (colonIndex != std::string::npos)
 							{
@@ -729,6 +746,43 @@ bool Toolchain_Gcc::ParseMessageOutput(BuilderFileInfo& file, std::string& input
 								}
 							}
 						}
+					}
+				}
+
+				// No line number? Probably a non-positional message.
+				if (!bHasLineNumber)
+				{
+					unprefixedMessageType = Strings::Trim(unprefixedMessageType);
+					unprefixedMessage = Strings::Trim(unprefixedMessage);
+
+					BuilderFileMessage fileMessage;
+					fileMessage.Identifier = "";
+					fileMessage.Text = unprefixedMessage;
+					fileMessage.Column = 0;
+					fileMessage.Line = 0;
+					fileMessage.Origin = origin;
+
+					bool bValid = false;
+
+					if (unprefixedMessageType == "error" || unprefixedMessageType == "fatal")
+					{
+						fileMessage.Type = EBuilderFileMessageType::Error;
+						bValid = true;
+					}
+					else if (unprefixedMessageType == "warning")
+					{
+						fileMessage.Type = EBuilderFileMessageType::Warning;
+						bValid = true;
+					}
+					else if (unprefixedMessageType == "note" || unprefixedMessageType == "message")
+					{
+						fileMessage.Type = EBuilderFileMessageType::Info;
+						bValid = true;
+					}
+					
+					if (bValid)
+					{
+						file.AddMessage(fileMessage);
 					}
 				}
 			}

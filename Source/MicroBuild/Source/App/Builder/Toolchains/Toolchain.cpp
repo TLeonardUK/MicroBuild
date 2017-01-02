@@ -275,14 +275,27 @@ void Toolchain::PrintMessages(BuilderFileInfo& file)
 			}
 		}
 
-		printf("%s(%i,%i): %s %s: %s\n",
-			msg.Origin.ToString().c_str(),
-			msg.Line,
-			msg.Column,
-			typeString.c_str(),
-			msg.Identifier.c_str(),
-			msg.Text.c_str()
-		);
+		std::string message;
+		message += msg.Origin.ToString();
+		if (msg.Line != 0 || msg.Column != 0)
+		{
+			message += "(";
+			message += CastToString(msg.Line);
+			message += ",";
+			message += CastToString(msg.Column); 
+			message += ")";
+		}
+		message += ": ";
+		message += typeString;
+		if (msg.Identifier.size() > 0)
+		{
+				message += " ";
+				message += msg.Identifier;
+		}
+		message += ": ";
+		message += msg.Text.c_str();
+
+		printf("%s\n", message.c_str());
 	}
 }
 
