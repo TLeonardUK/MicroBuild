@@ -30,12 +30,14 @@ struct TimedScope
 	{
 		m_scope = "";
 		m_start = std::chrono::high_resolution_clock::now();
+		m_bIsVerbose = true;
 	}
 
-	TimedScope(const std::string& name)
+	TimedScope(const std::string& name, bool bIsVerbose = true)
 	{
 		m_scope = name;
 		m_start = std::chrono::high_resolution_clock::now();
+		m_bIsVerbose = bIsVerbose;
 	}
 
 	~TimedScope()
@@ -44,7 +46,7 @@ struct TimedScope
 		{
 			float elapsedMs = GetElapsed();
 
-			Log(LogSeverity::Verbose, "%s took %.2f ms.\n",
+			Log(m_bIsVerbose ? LogSeverity::Verbose : LogSeverity::Warning, "%s took %.2f ms.\n",
 				m_scope.c_str(), elapsedMs);
 		}
 	}
@@ -60,6 +62,7 @@ struct TimedScope
 private:
 	std::string m_scope;
 	std::chrono::high_resolution_clock::time_point m_start;
+	bool m_bIsVerbose;
 
 };
 

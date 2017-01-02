@@ -490,7 +490,7 @@ void Toolchain_Nintendo3ds::GetArchiveArguments(const std::vector<BuilderFileInf
 	}
 	
 	// Link PCH.
-	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+	if (!pchObjectPath.IsEmpty() && !m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
 		args.push_back(Strings::Quoted(pchObjectPath.ToString()));
 	}

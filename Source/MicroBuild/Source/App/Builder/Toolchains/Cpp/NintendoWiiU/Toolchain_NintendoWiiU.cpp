@@ -484,7 +484,7 @@ void Toolchain_NintendoWiiU::GetLinkArguments(const std::vector<BuilderFileInfo>
 	}
 	
 	// Link PCH.
-	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+	if (!pchObjectPath.IsEmpty() && !m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
 		args.push_back(Strings::Quoted(pchObjectPath.ToString()));
 	}
@@ -540,7 +540,7 @@ void Toolchain_NintendoWiiU::GetArchiveArguments(const std::vector<BuilderFileIn
 	}
 	
 	// Link PCH.
-	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+	if (!pchObjectPath.IsEmpty() && !m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
 		args.push_back(Strings::Quoted(pchObjectPath.ToString()));
 	}
@@ -674,7 +674,7 @@ bool Toolchain_NintendoWiiU::RplExportAll(std::vector<BuilderFileInfo>& files, B
 	}
 	
 	// Link PCH.
-	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+	if (!pchObjectPath.IsEmpty() && !m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
 		arguments.push_back(Strings::Quoted(pchObjectPath.ToString()));
 	}
@@ -767,7 +767,7 @@ bool Toolchain_NintendoWiiU::PrepRPL(std::vector<BuilderFileInfo>& files, Builde
 	}
 	
 	// Link PCH.
-	if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+	if (!pchObjectPath.IsEmpty() && !m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
 		arguments.push_back(Strings::Quoted(pchObjectPath.ToString()));
 	}
