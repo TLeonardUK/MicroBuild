@@ -46,26 +46,18 @@ std::string Process::ReadToEnd()
 	std::vector<char> buffer;
 	buffer.resize(bufferSize);
 
-	//Log(LogSeverity::Warning, "ReadToEnd...\n");
-
 	while (!AtEnd())
 	{
-		//Log(LogSeverity::Warning, "Reading....\n");
-
 		size_t bytesToRead =  bufferSize - 1;
 		size_t readBytes = Read(buffer.data(), bytesToRead);
 		buffer[readBytes] = '\0';
 		stream << buffer.data();
-
-		//Log(LogSeverity::Warning, "Reading(%i) %i left\n", readBytes, (int)BytesLeft());
 
 		if (readBytes == 0)
 		{
 			break;
 		}
 	}
-
-	//Log(LogSeverity::Warning, "Waiting...\n");
 
 	Wait();
 

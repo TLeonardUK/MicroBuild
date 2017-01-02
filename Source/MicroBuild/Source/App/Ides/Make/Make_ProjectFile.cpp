@@ -94,7 +94,7 @@ bool Make_ProjectFile::Generate(
 	stream.Undent();
 	stream.WriteLine("endif");
 	stream.WriteLine("");
-	stream.WriteLine(".PHONY: clean");
+	stream.WriteLine(".PHONY: build clean rebuild");
 	stream.WriteLine("");
 
 	// Generate configuration/platform unique settings.

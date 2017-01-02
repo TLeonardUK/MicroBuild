@@ -106,11 +106,15 @@ bool Toolchain_Clang::CompileVersionInfo(BuilderFileInfo& fileInfo)
 
 #elif defined(MB_PLATFORM_LINUX)
 
-	// todo: Generate desktop entry object.	
+	// We could generate a desktop entry file here, but this
+	// seems more something to do during packaging as it adds files
+	// rather than modifies existing executables.
 
 #elif defined(MB_PLATFORM_MACOS)
 
-	// todo: Generate iconset and embed it.
+	// On MacOS we want to generate a plist/iconset and embed
+	// it within the application package. This is better done during packaging
+	// rather than during compilation.
 
 #endif
 

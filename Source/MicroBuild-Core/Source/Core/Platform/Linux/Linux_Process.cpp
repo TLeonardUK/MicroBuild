@@ -99,7 +99,8 @@ bool Process::Open(
 	posix_spawn_file_actions_init(&data->m_spawn_action);
 	posix_spawn_file_actions_addclose(&data->m_spawn_action, data->m_cout_pipe[0]);
 	posix_spawn_file_actions_adddup2(&data->m_spawn_action, data->m_cout_pipe[1], STDOUT_FILENO);
-
+	posix_spawn_file_actions_adddup2(&data->m_spawn_action, data->m_cout_pipe[1], STDERR_FILENO);
+ 
 	// Create process.
 	
 	// We have to change the working directory as posix_spawn inherits
