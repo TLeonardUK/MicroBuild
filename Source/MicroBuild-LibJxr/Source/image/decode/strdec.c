@@ -429,7 +429,7 @@ static _FORCEINLINE void inverseConvert (PixelI iF, U8 *pRGB, U8 *pE)
     }
 }
 
-#ifdef __ANSI__
+#if defined(__ANSI__) && !defined(max)
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #endif // __ANSI__
 

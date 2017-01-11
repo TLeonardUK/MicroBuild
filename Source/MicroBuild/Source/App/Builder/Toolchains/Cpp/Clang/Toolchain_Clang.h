@@ -40,7 +40,7 @@ public:
 	Toolchain_Clang(ProjectFile& file, uint64_t configurationHash);
 
 	virtual bool Init() override;
-	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo) override;
+	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) override;
 
 }; 
 

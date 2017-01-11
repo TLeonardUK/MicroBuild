@@ -813,14 +813,15 @@ bool Toolchain_Gcc::ParseOutput(BuilderFileInfo& file, std::string& input)
 
 #if defined(MB_PLATFORM_WINDOWS)
 	
-bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo) 
+bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
 {	
 	 MB_UNUSED_PARAMETER(fileInfo);
+	 MB_UNUSED_PARAMETER(versionInfo);
 	 
 	Platform::Path iconPath = fileInfo.OutputPath.ChangeExtension("ico");
 	Platform::Path rcScriptPath = fileInfo.OutputPath.ChangeExtension("rc");
 
-	if (!m_microsoftToolchain.CreateVersionInfoScript(iconPath, rcScriptPath))
+	if (!m_microsoftToolchain.CreateVersionInfoScript(iconPath, rcScriptPath, versionInfo))
 	{
 		return false;
 	}
@@ -861,7 +862,7 @@ bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo)
 
 #elif defined(MB_PLATFORM_LINUX)
 	
-bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo) 
+bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
 {	
 	// todo: Generate desktop entry object.	
 	return false;
@@ -870,7 +871,7 @@ bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo)
 #elif defined(MB_PLATFORM_MACOS)
 
 	
-bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo) 
+bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
 {	
 	// todo: Generate iconset and embed it.
 	return false;

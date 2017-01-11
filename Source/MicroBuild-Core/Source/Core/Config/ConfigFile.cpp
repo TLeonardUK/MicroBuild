@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Config/ConfigFile.h"
 #include "Core/Config/ConfigTokenizer.h"
 #include "Core/Platform/Path.h"
+#include "Core/Platform/Platform.h"
 #include "Core/Helpers/Strings.h"
 #include "Core/Helpers/Time.h"
 
@@ -650,7 +651,8 @@ std::vector<ConfigFileValue*> ConfigFile::SetOrAddValue_Internal(
 	const std::string& group,
 	const std::string& key,
 	const std::vector<std::string>& values,
-	bool bOverwrite)
+	bool bOverwrite,
+	bool bAddAtStart)
 {
 	// Create group if it dosen't exist.
 	auto iter = m_groups.find(group);
@@ -698,9 +700,18 @@ std::vector<ConfigFileValue*> ConfigFile::SetOrAddValue_Internal(
 			keyIter->second->Values.clear();
 		}
 
-		keyIter->second->Values.insert(
-			keyIter->second->Values.end(), keyValues.begin(), keyValues.end()
-		);
+		if (bAddAtStart)
+		{
+			keyIter->second->Values.insert(
+				keyIter->second->Values.begin(), keyValues.begin(), keyValues.end()
+			);
+		}
+		else
+		{
+			keyIter->second->Values.insert(
+				keyIter->second->Values.end(), keyValues.begin(), keyValues.end()
+			);
+		}
 	}
 
 	return keyValues;
@@ -802,8 +813,16 @@ std::string ConfigFile::ReplaceTokens(
 
 			if (!res)
 			{
-				// todo: emit a warning here?
-				resolvedToken = "[Invalid Token Expansion]";
+				std::string envVar = Platform::GetEnvironmentVariable(key);
+				if (!envVar.empty())
+				{
+					resolvedToken = envVar;
+				}
+				else
+				{
+					// todo: emit a warning here?
+					resolvedToken = "[Invalid Token Expansion]";
+				}	
 			}
 
 			result.erase(
@@ -1072,6 +1091,15 @@ void ConfigFile::Resolve()
 		{
 			for (auto keyIter : groupIter.second->Keys)
 			{
+				if (!keyIter.second->HasResolvedName)
+				{
+					keyIter.second->HasResolvedName = true;
+					keyIter.second->Name = ReplaceTokens(
+						keyIter.second->Name,
+						groupIter.second->Name
+					);
+				}
+
 				for (auto valueIter : keyIter.second->Values)
 				{
 					if (!valueIter->HasResolvedValue)
@@ -1101,12 +1129,15 @@ std::vector<ConfigFile::KeyValuePair> ConfigFile::GetPairs(
 		{
 			for (auto value : key.second->Values)
 			{
-				ConfigFile::KeyValuePair pair(
-					key.first,
-					value->ResolvedValue
-				);
+				if (value->ConditionResult)
+				{
+					ConfigFile::KeyValuePair pair(
+						key.second->Name,
+						value->ResolvedValue
+					);
 
-				result.push_back(pair);
+					result.push_back(pair);
+				}
 			}
 		}
 	}
@@ -1242,7 +1273,9 @@ void ConfigFile::Merge(const ConfigFile& file)
 
 				std::vector<ConfigFileValue*> result = SetOrAddValue_Internal(groupIter.second->Name,
 					keyIter.second->Name,
-					values);
+					values,
+					false,
+					true);
 				
 				for (ConfigFileValue* value : result)
 				{

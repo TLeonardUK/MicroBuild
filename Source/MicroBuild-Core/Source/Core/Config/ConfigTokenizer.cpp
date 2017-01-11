@@ -407,21 +407,41 @@ bool ConfigTokenizer::ReadToken()
 	}
 
 	// Literal value or variable assignment.
-	else if (IsLiteralChar(chr))
+	else if (IsLiteralChar(chr) || chr == '$')
 	{
+		// If this line contains an equal sign, then parse it as an assignment rather than just a literal.
+		size_t equalOffset = m_data.find('=', m_offset + 1);
+		size_t newlineOffset = m_data.find('\n', m_offset + 1);
+		bool bIsAssignment = (equalOffset < newlineOffset && m_data[equalOffset + 1] != '=');
+
 		// Read in the literal value.
 		std::string lit(1, chr);
 		while (!EndOfCharacters())
 		{
 			char la = PeekChar();
-			if (IsLiteralChar(la))
+			if (bIsAssignment)
 			{
-				ReadChar();
-				lit += la;
+				if (la != '=')
+				{
+					ReadChar();
+					lit += la;
+				}
+				else
+				{
+					break;
+				}
 			}
 			else
 			{
-				break;
+				if (IsLiteralChar(la))
+				{
+					ReadChar();
+					lit += la;
+				}
+				else
+				{
+					break;
+				}
 			}
 		}
 

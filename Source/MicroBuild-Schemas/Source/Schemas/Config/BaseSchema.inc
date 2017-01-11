@@ -235,6 +235,16 @@ END_OPTION()
 // ---------------------------------------------------------------------------
 
 START_OPTION(
+	std::string,
+	Target,
+	Packager,
+	"Automatically defined to the type of packager being used to package."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
 	Platform::Path,
 	Target,
 	PackageDirectory,
@@ -251,17 +261,3 @@ START_OPTION(
 	"Automatically defined to the path of the microbuild executable building this."
 )
 END_OPTION()
-
-// ---------------------------------------------------------------------------
-// Package
-// ---------------------------------------------------------------------------
-START_ARRAY_OPTION(
-	std::string,
-	Package,
-	Command,
-	"Defines an individual command to run while packaging. When packaging all "
-	"project commands are ran first, then the workspace commands ran after."
-)
-OPTION_RULE_ORDER_IMPORTANT()
-OPTION_RULE_NO_INHERIT()
-END_ARRAY_OPTION()

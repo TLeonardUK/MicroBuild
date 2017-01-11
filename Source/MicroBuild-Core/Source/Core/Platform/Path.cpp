@@ -864,7 +864,7 @@ std::vector<Path> MatchFilter_r(
 
 	std::string matchType = matches[0];
 	
-	Log(LogSeverity::Verbose, "[MatchFilter_r] %s\n", base.ToString().c_str());
+	//Log(LogSeverity::Verbose, "[MatchFilter_r] %s\n", base.ToString().c_str());
 
 	// Nothing to match again? Game over.
 	if (matches.size() == 0)
@@ -895,7 +895,7 @@ std::vector<Path> MatchFilter_r(
 			frag.isDirectory = true;
 			potentialMatches.push_back(frag);
 
-			Log(LogSeverity::Verbose, "[Contains] Dir:%s\n", path.c_str());
+			//Log(LogSeverity::Verbose, "[Contains] Dir:%s\n", path.c_str());
 		}
 
 		for (std::string& path : files)
@@ -907,7 +907,7 @@ std::vector<Path> MatchFilter_r(
 			frag.isDirectory = false;
 			potentialMatches.push_back(frag);
 
-			Log(LogSeverity::Verbose, "[Contains] File:%s\n", path.c_str());
+			//Log(LogSeverity::Verbose, "[Contains] File:%s\n", path.c_str());
 		}
 		
 		bool bFinished = false;
@@ -1179,7 +1179,7 @@ void TrimMatchStackDownToFirstWildcard(
 
 std::vector<Path> Path::MatchFilter(const Path& path)
 {
-	Time::TimedScope scope("Match Filter");
+	//Time::TimedScope scope("Match Filter");
 
 	std::vector<Path> result;
 
@@ -1198,11 +1198,11 @@ std::vector<Path> Path::MatchFilter(const Path& path)
 		return result;
 	}
 
-	Log(LogSeverity::Verbose, "=== MatchFilter(%s) ===\n", path.m_raw.c_str());
+	/*Log(LogSeverity::Verbose, "=== MatchFilter(%s) ===\n", path.m_raw.c_str());
 	for (auto str : matchStack)
 	{
 		Log(LogSeverity::Verbose, "[Stack] %s\n", str.c_str());
-	}
+	}*/
 
 	// If we only have one split, we are done.
 	if (matchStack.size() == 1)
@@ -1468,7 +1468,7 @@ bool Path::Matches(const Path& other, Path* matched)
 		if (m_raw.size() < basePath.size() || 
 			m_raw.substr(0, basePath.size()) == basePath)
 		{
-			std::string remaining = m_raw.substr(basePath.size());
+			std::string remaining = (m_raw.size() < basePath.size() ? "" : m_raw.substr(basePath.size()));
 
 			std::string matchedStr = "";
 			std::string matchedSegmentStr = "";

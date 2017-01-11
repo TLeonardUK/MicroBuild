@@ -23,19 +23,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Commands/Package.h"
 #include "App/Commands/Build.h"
 #include "Schemas/Database/DatabaseFile.h"
-#include "App/Packager/Packager.h"
+#include "App/Packager/PackagerType.h"
 
 #include "Core/Commands/CommandLineParser.h"
 #include "Core/Commands/CommandComboArgument.h"
 #include "Core/Commands/CommandPathArgument.h"
 #include "Core/Commands/CommandFlagArgument.h"
 #include "Core/Commands/CommandStringArgument.h"
+#include "Core/Commands/CommandMapArgument.h"
 #include "Core/Helpers/Time.h"
 
 namespace MicroBuild {
 
 PackageCommand::PackageCommand(App* app)
 	: m_rebuild(false)
+	, m_app(app)
 {
 	MB_UNUSED_PARAMETER(app);
 
@@ -43,6 +45,13 @@ PackageCommand::PackageCommand(App* app)
 	SetShortName("p");
 	SetDescription("Packages the project for the given configuration and "
 				   "platform");
+
+	std::vector<std::string> packagerOptions;
+	std::vector<PackagerType*> ideTypes = m_app->GetPackagers();
+	for (auto ide : ideTypes)
+	{
+		packagerOptions.push_back(ide->GetShortName());
+	}
 
 	CommandPathArgument* workspaceFile = new CommandPathArgument();
 	workspaceFile->SetName("WorkspaceFile");
@@ -67,6 +76,25 @@ PackageCommand::PackageCommand(App* app)
 	packageDirectory->SetPositional(true);
 	packageDirectory->SetOutput(&m_packageDirectoryPath);
 	RegisterArgument(packageDirectory);
+
+	CommandComboArgument* format = new CommandComboArgument();
+	format->SetName("Target");
+	format->SetShortName("t");
+	format->SetDescription("Defines what target packager / format to use when packaging.");
+	format->SetRequired(true);
+	format->SetPositional(true);
+	format->SetOptions(packagerOptions);
+	format->SetOutput(&m_targetPackager);
+	RegisterArgument(format);
+
+	CommandStringArgument* projectFile = new CommandStringArgument();
+	projectFile->SetName("ProjectFile");
+	projectFile->SetShortName("j");
+	projectFile->SetDescription("The name of the project to build.");
+	projectFile->SetRequired(true);
+	projectFile->SetPositional(true);
+	projectFile->SetOutput(&m_projectName);
+	RegisterArgument(projectFile);
 
 	CommandFlagArgument* rebuild = new CommandFlagArgument();
 	rebuild->SetName("Rebuild");
@@ -100,6 +128,17 @@ PackageCommand::PackageCommand(App* app)
 	platform->SetDefault("");
 	platform->SetOutput(&m_platform);
 	RegisterArgument(platform);
+
+
+	CommandMapArgument* setArguments = new CommandMapArgument();
+	setArguments->SetName("Defines");
+	setArguments->SetShortName("set");
+	setArguments->SetDescription("Defines a key-value pair that is defined as a variable "
+								 "when workspace and project files are parsed.");
+	setArguments->SetRequired(false);
+	setArguments->SetPositional(false);
+	setArguments->SetOutput(&m_setArguments);
+	RegisterArgument(setArguments);
 }
 
 bool PackageCommand::Invoke(CommandLineParser* parser)
@@ -107,6 +146,8 @@ bool PackageCommand::Invoke(CommandLineParser* parser)
 	MB_UNUSED_PARAMETER(parser);
 
 	Time::TimedScope timingScope;
+
+	PackagerType* packager = m_app->GetPackagerByShortName(m_targetPackager);
 
 	// Load the workspace.
 	std::vector<Platform::Path> includePaths;
@@ -140,7 +181,13 @@ bool PackageCommand::Invoke(CommandLineParser* parser)
 				m_workspaceFile.Set_Target_Configuration(m_configuration);
 				m_workspaceFile.Set_Target_Platform(platformId);
 				m_workspaceFile.Set_Target_PlatformName(IdeHelper::ResolvePlatformName(platformId));
-				m_workspaceFile.Set_Target_PackageDirectory(m_packageDirectoryPath);
+				m_workspaceFile.Set_Target_PackageDirectory(packager->GetContentDirectory(m_packageDirectoryPath));
+				m_workspaceFile.Set_Target_Packager(m_targetPackager);
+
+				for (auto& pair : m_setArguments)
+				{
+					m_workspaceFile.SetOrAddValue("", pair.first, pair.second, true);
+				}
 
 				m_workspaceFile.Resolve();
 
@@ -166,6 +213,8 @@ bool PackageCommand::Invoke(CommandLineParser* parser)
 				std::vector<ProjectFile> projectFiles;
 				projectFiles.resize(projectPaths.size());
 
+				ProjectFile* buildProjectFile = nullptr;
+
 				for (unsigned int i = 0; i < projectPaths.size(); i++)
 				{
 					std::vector<Platform::Path> subIncludePaths;
@@ -182,9 +231,15 @@ bool PackageCommand::Invoke(CommandLineParser* parser)
 						projectFiles[i].Set_Target_IDE(databaseFile.Get_Target_IDE());
 						projectFiles[i].Set_Target_Configuration(m_configuration);
 						projectFiles[i].Set_Target_Platform(platformId);
-						m_workspaceFile.Set_Target_PlatformName(IdeHelper::ResolvePlatformName(platformId));
-						m_workspaceFile.Set_Target_PackageDirectory(m_packageDirectoryPath);
-						
+						projectFiles[i].Set_Target_PlatformName(IdeHelper::ResolvePlatformName(platformId));
+						projectFiles[i].Set_Target_PackageDirectory(packager->GetContentDirectory(m_packageDirectoryPath));
+						projectFiles[i].Set_Target_Packager(m_targetPackager);
+
+						for (auto& pair : m_setArguments)
+						{
+							m_workspaceFile.SetOrAddValue("", pair.first, pair.second, true);
+						}
+
 						projectFiles[i].Resolve();
 
 						if (!projectFiles[i].Validate())
@@ -192,6 +247,10 @@ bool PackageCommand::Invoke(CommandLineParser* parser)
 							return false;
 						}
 
+						if (projectFiles[i].Get_Project_Name() == m_projectName)
+						{
+							buildProjectFile = &projectFiles[i];
+						}
 					}
 					else
 					{
@@ -199,46 +258,56 @@ bool PackageCommand::Invoke(CommandLineParser* parser)
 					}
 				}
 
-				// Generate the package command list.
-				std::vector<std::string> packageCommands = 
-					m_workspaceFile.Get_Package_Command();
-
-				for (unsigned int i = 0; i < projectPaths.size(); i++)
+				if (buildProjectFile != nullptr)
 				{
-					std::vector<std::string> projectCommands = 
-						projectFiles[i].Get_Package_Command();
+					// Delete the folder we are packaging if it exists.
+					if (m_packageDirectoryPath.Exists())
+					{
+						if (!m_packageDirectoryPath.Delete())
+						{
+							Log(LogSeverity::Warning,
+								"Failed to delete package folder '%s'.\n",
+								m_packageDirectoryPath.ToString().c_str());
 
-					packageCommands.insert(
-						packageCommands.begin(), 
-						projectCommands.begin(),
-						projectCommands.end()
-					);
-				}
+							return false;
+						}
+					}
 
-				// Delete the folder we are packaging if it exists.
-				if (m_packageDirectoryPath.Exists())
-				{
-					if (!m_packageDirectoryPath.Delete())
+					// todo: Run pre-package commands.
+
+					// Now do packaging commands.
+					if (buildProjectFile->Get_Packager_RequiresBuild())
+					{
+						Log(LogSeverity::SilentInfo, "Compiling project before packaging, using configuration %s_%s ...\n\n", m_configuration.c_str(), m_platform.c_str());
+
+						BuildCommand buildCommand(m_app);
+						if (!buildCommand.IndirectInvoke(parser, m_workspaceFilePath, m_projectName, m_rebuild, true, m_configuration, m_platform))
+						{
+							Log(LogSeverity::Warning,
+								"Failed to compile workspace.\n");
+
+							return false;
+						}
+					}
+
+					Log(LogSeverity::SilentInfo, "\nPackaging project for %s ...\n\n", packager->GetShortName().c_str());
+					if (packager->Package(*buildProjectFile, m_packageDirectoryPath))
 					{
 						Log(LogSeverity::Warning,
-							"Failed to delete package folder '%s'.\n", 
-							m_packageDirectoryPath.ToString().c_str());
-
-						return false;
+							"Failed to package workspace.\n");
 					}
+
+					// todo: Run post-package commands.
+
+					return true;
 				}
-
-				// Now do packaging commands.
-				Packager packager;
-				if (!packager.Package(m_packageDirectoryPath, packageCommands))
+				else
 				{
-					Log(LogSeverity::Warning,
-						"Failed to build package.\n");
-
+					Log(LogSeverity::Fatal,
+						"Failed to find project '%s' in workspace.",
+						m_projectName.c_str());
 					return false;
 				}
-
-				return true;
 			}
 			else
 			{

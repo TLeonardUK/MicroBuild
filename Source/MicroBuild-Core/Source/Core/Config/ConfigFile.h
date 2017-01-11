@@ -114,7 +114,13 @@ struct ConfigFileValue
 struct ConfigFileKey
 {
 	std::string Name;
+	bool HasResolvedName;
 	std::vector<ConfigFileValue*> Values;
+
+	ConfigFileKey()
+		: HasResolvedName(false)
+	{
+	}
 };
 
 // An individual group of config keys.
@@ -269,7 +275,8 @@ protected:
 		const std::string& group,
 		const std::string& key,
 		const std::vector<std::string>& values,
-		bool bOverwrite = false);
+		bool bOverwrite = false,
+		bool bAddAtStart = false);
 
 	void Clear();
 

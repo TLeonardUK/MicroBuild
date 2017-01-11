@@ -135,13 +135,66 @@ std::string StripQuotes(const std::string& input, bool bThroughout)
 			lastChr = chr;
 		}
 
-		Log(LogSeverity::Info, "StripQuotes() = %s\n", result.c_str());
-
 		return result;
 	}
 	else
 	{
 		if (input.size() >= 2 && input[0] == '\"' && input[input.size() - 1] == '\"')
+		{
+			return input.substr(1, input.size() - 2);
+		}
+		else
+		{
+			return input;
+		}
+	}
+}
+
+std::string StripSingleQuotes(const std::string& input, bool bThroughout)
+{
+	if (bThroughout)
+	{
+		bool bInPair = false;
+		bool bQuotesRequired = false;
+		char lastChr = '\0';
+		size_t startPosition = 0;
+
+		std::string result = input;
+
+		for (size_t i = 0; i < result.size(); i++)
+		{
+			char chr = result[i];
+			if (chr == '\'' && lastChr != '\\')
+			{
+				if (bInPair)
+				{
+					if (!bQuotesRequired)
+					{
+						result.erase(startPosition, 1);
+						i--;
+						result.erase(i, 1);
+						i--;
+					}
+				}
+				else
+				{
+					bInPair = true;
+					bQuotesRequired = false;
+					startPosition = i;
+				}
+			}
+			else if (chr == ' ')
+			{
+				bQuotesRequired = true;
+			}
+			lastChr = chr;
+		}
+
+		return result;
+	}
+	else
+	{
+		if (input.size() >= 2 && input[0] == '\'' && input[input.size() - 1] == '\'')
 		{
 			return input.substr(1, input.size() - 2);
 		}
@@ -272,10 +325,22 @@ bool WriteFile(const Platform::Path& path, const std::string& data)
 
 std::string Format(std::string format, ...)
 {
+
+#if defined(MB_PLATFORM_WINDOWS)
+#pragma warning( push )
+// non-portable use of class 'std::basic_string<char,std::char_traits<char>,std::allocator<char>>' as an argument to a variadic function
+// Not sure this is valid, from what I can see this should be valid and portable? Need to investigate, currently works on all platforms though (undefined behaviour fun!)
+#pragma warning( disable : 4840 ) 
+#endif
+
 	va_list args;
 	va_start(args, format);
 	std::string result = FormatVa(format, args);
 	va_end(args);
+
+#if defined(MB_PLATFORM_WINDOWS)
+#pragma warning( pop )
+#endif
 
 	return result;
 }

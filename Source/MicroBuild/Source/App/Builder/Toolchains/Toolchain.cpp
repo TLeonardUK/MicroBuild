@@ -71,7 +71,7 @@ bool Toolchain::RequiresVersionInfo()
 	return false;
 }
 
-std::vector<std::shared_ptr<BuildTask>> Toolchain::GetTasks(std::vector<BuilderFileInfo>& files, uint64_t configurationHash, BuilderFileInfo& outputFile)
+std::vector<std::shared_ptr<BuildTask>> Toolchain::GetTasks(std::vector<BuilderFileInfo>& files, uint64_t configurationHash, BuilderFileInfo& outputFile, VersionNumberInfo& versionInfo)
 {
 	std::vector<std::shared_ptr<BuildTask>> tasks;
 
@@ -131,11 +131,11 @@ std::vector<std::shared_ptr<BuildTask>> Toolchain::GetTasks(std::vector<BuilderF
 		versionInfoFile.OutputPath			= m_projectFile.Get_Project_IntermediateDirectory().AppendFragment(Strings::Format("%s_VersionInfo.generated.o", m_projectFile.Get_Project_Name().c_str()), true);
 		versionInfoFile.ManifestPath		= m_projectFile.Get_Project_IntermediateDirectory().AppendFragment(Strings::Format("%s_VersionInfo.generated.manifest", m_projectFile.Get_Project_Name().c_str()), true);
 		versionInfoFile.Hash				= 0;
-		versionInfoFile.bOutOfDate			= BuilderFileInfo::CheckOutOfDate(versionInfoFile, configurationHash, false);
+		versionInfoFile.bOutOfDate			= BuilderFileInfo::CheckOutOfDate(versionInfoFile, Strings::Hash64(CastToString(versionInfo.TotalChangelists), configurationHash), false);
 
 		if (versionInfoFile.bOutOfDate)
 		{
-			std::shared_ptr<CompileVersionInfoTask> task = std::make_shared<CompileVersionInfoTask>(this, m_projectFile, versionInfoFile);
+			std::shared_ptr<CompileVersionInfoTask> task = std::make_shared<CompileVersionInfoTask>(this, m_projectFile, versionInfoFile, versionInfo);
 			tasks.push_back(task);
 		}
 	}	
@@ -295,7 +295,8 @@ void Toolchain::PrintMessages(BuilderFileInfo& file)
 		message += ": ";
 		message += msg.Text.c_str();
 
-		printf("%s\n", message.c_str());
+		Log(LogSeverity::SilentInfo, "%s\n", message.c_str());
+		//printf("%s\n", message.c_str());
 	}
 }
 
@@ -416,9 +417,10 @@ bool Toolchain::Compile(BuilderFileInfo& fileInfo, BuilderFileInfo& pchFileInfo)
 }
 
 
-bool Toolchain::CompileVersionInfo(BuilderFileInfo& fileInfo)
+bool Toolchain::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
 {
 	MB_UNUSED_PARAMETER(fileInfo);
+	MB_UNUSED_PARAMETER(versionInfo);
 
 	// Not implemented in most toolchains, mainly for windows icons/version-info.
 	return false;

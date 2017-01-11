@@ -29,6 +29,15 @@ namespace MicroBuild {
 	
 class BuildTask;
 
+// Stores some general version number information that the builder embeds in the output file.
+struct VersionNumberInfo
+{
+	std::string Changelist;
+	std::string ShortString;
+	std::time_t LastChangeTime;
+	int			TotalChangelists;
+};
+
 // Base class for all internal builder toolchains.
 class Toolchain
 {
@@ -103,7 +112,7 @@ public:
 	bool RequiresVersionInfo();
 
 	// Gets all the build tasks required to buidl the current project.
-	virtual std::vector<std::shared_ptr<BuildTask>> GetTasks(std::vector<BuilderFileInfo>& files, uint64_t configurationHash, BuilderFileInfo& outputFile);
+	virtual std::vector<std::shared_ptr<BuildTask>> GetTasks(std::vector<BuilderFileInfo>& files, uint64_t configurationHash, BuilderFileInfo& outputFile, VersionNumberInfo& versionInfo);
 
 	// Attempts to find the toolchain files, returns true if everything is available,	
 	// otherwise false.
@@ -116,7 +125,7 @@ public:
 	virtual bool Compile(BuilderFileInfo& fileInfo, BuilderFileInfo& pchFileInfo);
 	
 	// Compiles any files required to output version information.
-	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo);
+	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo);
 
 	// Archives all the source files provided into a single lib.
 	virtual bool Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);

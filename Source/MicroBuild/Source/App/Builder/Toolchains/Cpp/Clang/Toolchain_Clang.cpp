@@ -92,14 +92,14 @@ bool Toolchain_Clang::FindToolchain()
 	return true;
 }
 
-bool Toolchain_Clang::CompileVersionInfo(BuilderFileInfo& fileInfo) 
+bool Toolchain_Clang::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
 {	
 	 MB_UNUSED_PARAMETER(fileInfo);
 
 #if defined(MB_PLATFORM_WINDOWS)
 	
 	// Use microsoft toolchain to generate the version info file which we can link in to the exe.
-	if (!m_microsoftToolchain.CompileVersionInfo(fileInfo))
+	if (!m_microsoftToolchain.CompileVersionInfo(fileInfo, versionInfo))
 	{
 		return false;
 	}
