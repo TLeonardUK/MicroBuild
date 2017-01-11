@@ -43,7 +43,15 @@ private:
 	std::string m_configuration;
 	std::string m_platform;
 
+	std::string m_targetPackager;
+
+	std::string m_projectName;
+
+	std::map<std::string, std::string> m_setArguments;
+
 	bool m_rebuild;
+
+	App* m_app;
 
 };
 

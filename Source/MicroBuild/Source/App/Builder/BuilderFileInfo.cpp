@@ -167,7 +167,14 @@ bool BuilderFileInfo::CheckOutOfDate(BuilderFileInfo& info, uint64_t configurati
 		 !GetCachedPathExists(info.OutputPath)))
 	{
 		info.bOutOfDate = true;
-		Log(LogSeverity::Verbose, "[%s] Out of date because cached paths non-existant.\n", info.SourcePath.GetFilename().c_str());
+		if (!GetCachedPathExists(info.ManifestPath))
+		{
+			Log(LogSeverity::Verbose, "[%s] Out of date because manifest path is non-existant.\n", info.SourcePath.GetFilename().c_str());
+		}
+		else if (!GetCachedPathExists(info.OutputPath))
+		{
+			Log(LogSeverity::Verbose, "[%s] Out of date because output path is non-existant.\n", info.SourcePath.GetFilename().c_str());
+		}
 	}
 	else
 	{

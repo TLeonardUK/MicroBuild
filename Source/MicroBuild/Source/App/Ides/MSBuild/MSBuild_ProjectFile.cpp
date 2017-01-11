@@ -100,7 +100,6 @@ bool MSBuild_ProjectFile::Generate(
 	for (auto matrix : buildMatrix)
 	{
 		std::string platformId = MSBuild::GetPlatformID(matrix.platform);
-		platformId = IdeHelper::GetPlatformHumanReadableId(matrix.platform);
 
 		XmlNode& buildConfig =
 			projectConfig.Node("ProjectConfiguration")
@@ -134,7 +133,6 @@ bool MSBuild_ProjectFile::Generate(
 	for (auto matrix : buildMatrix)
 	{
 		std::string platformId = MSBuild::GetPlatformID(matrix.platform);
-		platformId = IdeHelper::GetPlatformHumanReadableId(matrix.platform);
 
 		XmlNode& propertyGroup =
 			project.Node("PropertyGroup")
@@ -163,6 +161,9 @@ bool MSBuild_ProjectFile::Generate(
 		case EPlatformToolset::MSBuild_v140:
 			propertyGroup.Node("PlatformToolset").Value("v140");
 			break;
+		case EPlatformToolset::MSBuild_v141:
+			propertyGroup.Node("PlatformToolset").Value("v141");
+			break;
 		default:
 			// Anny others will be dealt with on a per-platform basis, eg, AnyCPU etc.
 			break;
@@ -187,8 +188,14 @@ bool MSBuild_ProjectFile::Generate(
 		.Attribute("Label", "PropertySheets");
 
 	propSheetsNode.Node("Import")
-		.Attribute("Project", "$(UserRootDir)\\Microsoft.Cpp.Win32.user.props") // Forcing win32 because we don't care about platform specific config for this.
-		.Attribute("Label", "LocalAppDataPlatform");
+		.Attribute("Project", "$(UserRootDir)\\Microsoft.Cpp.$(Platform).user.props")
+		.Attribute("Label", "LocalAppDataPlatform")
+		.Attribute("Condition", "Exists('$(UserRootDir)\\Microsoft.Cpp.$(Platform).user.props')");
+	
+	propSheetsNode.Node("Import")
+		.Attribute("Project", "$(UserRootDir)\\Microsoft.Cpp.Win32.user.props")
+		.Attribute("Label", "LocalAppDataPlatform")
+		.Attribute("Condition", "!Exists('$(UserRootDir)\\Microsoft.Cpp.$(Platform).user.props')");
 	
 	// Macros
 	project.Node("ImportGroup")
@@ -198,7 +205,6 @@ bool MSBuild_ProjectFile::Generate(
 	for (auto matrix : buildMatrix)
 	{
 		std::string platformId = MSBuild::GetPlatformID(matrix.platform);
-		platformId = IdeHelper::GetPlatformHumanReadableId(matrix.platform);
 
 		Platform::Path outDir = matrix.projectFile.Get_Project_OutputDirectory();
 		Platform::Path intDir = matrix.projectFile.Get_Project_IntermediateDirectory();

@@ -33,6 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Ides/Make/Make.h"
 #include "App/Ides/XCode/XCode.h"
 
+#include "Packager/Packagers/Steamworks/Steamworks_Packager.h"
+
 #include "Core/Config/ConfigFile.h"
 #include "Core/Helpers/Time.h"
 #include "Core/Helpers/Strings.h"
@@ -83,6 +85,8 @@ App::App(int argc, char* argv[])
 	m_ides.push_back(new Ide_Make());
 	m_ides.push_back(new Ide_XCode());
 
+	m_packagers.push_back(new Steamworks_Packager());
+
 	m_commandLineParser.RegisterCommand(new GenerateCommand(this));
 	m_commandLineParser.RegisterCommand(new BuildCommand(this));
 	m_commandLineParser.RegisterCommand(new PackageCommand(this));
@@ -115,9 +119,26 @@ std::vector<IdeType*> App::GetIdes() const
 	return m_ides;
 }
 
+std::vector<PackagerType*> App::GetPackagers() const
+{
+	return m_packagers;
+}
+
 IdeType* App::GetIdeByShortName(const std::string& shortName) const
 {
 	for (IdeType* type : m_ides)
+	{
+		if (Strings::CaseInsensitiveEquals(shortName, type->GetShortName()))
+		{
+			return type;
+		}
+	}
+	return nullptr;
+}
+
+PackagerType* App::GetPackagerByShortName(const std::string& shortName) const
+{
+	for (PackagerType* type : m_packagers)
 	{
 		if (Strings::CaseInsensitiveEquals(shortName, type->GetShortName()))
 		{

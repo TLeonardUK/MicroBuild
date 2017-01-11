@@ -21,10 +21,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Schemas/Project/ProjectFile.h"
 #include "App/Builder/Toolchains/Toolchain.h"
 #include "App/Builder/Tasks/BuildTask.h"
+#include "App/Builder/SourceControl/SourceControlProvider.h"
 #include "App/App.h"
 
 namespace MicroBuild {
-	
+
 // Internal builder. Takes a project configuration and builds the file as it specifies.
 class Builder
 {
@@ -36,7 +37,7 @@ public:
 	bool Clean(WorkspaceFile& workspaceFile, ProjectFile& project);
 
 	// Builds the project in the configuration the project file defines.
-	bool Build(WorkspaceFile& workspaceFile, ProjectFile& project, bool bRebuild);
+	bool Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> projectFiles, ProjectFile& project, bool bRebuild, bool bBuildDependencies);
 
 protected:
 
@@ -53,6 +54,36 @@ protected:
 		bool& bFailureFlag,
 		int* totalJobs,
 		std::atomic<int>* currentJobIndex);
+
+	// Generates a dependency list which needs to be satisifed in order to build the output. Build order and dependencies
+	// are usually handled by the IDE, but there are a handful of cases where we need to do it ourselves.
+	void BuildDependencyList(
+		WorkspaceFile& workspaceFile, 
+		std::vector<ProjectFile*> projectFiles,
+		ProjectFile& project, 
+		std::vector<ProjectFile*>& dependencyList, 
+		std::vector<ProjectFile*>& processedList);
+
+	// Attempts to extract version number information for use in the build. This usually results in a source-control call.
+	bool CalculateVersionNumber(
+		ProjectFile& project,
+		VersionNumberInfo& info
+	);
+
+	// Gets a source control provider and connects to it, the returned pointer can be used to query and manipulate
+	// the source control server.
+	bool GetSourceControlProvider(
+		ProjectFile& project,
+		std::shared_ptr<ISourceControlProvider>& provider
+	);
+
+	// Writes versioning information to a source file which is (assumed to be) used in the builder process.
+	bool WriteVersionNumberSource(
+		ProjectFile& project,
+		Platform::Path& hppPath,
+		Platform::Path cppPath,
+		VersionNumberInfo& info
+	);
 
 private:
 	App* m_app;

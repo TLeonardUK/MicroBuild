@@ -77,6 +77,16 @@ BuildCommand::BuildCommand(App* app)
 	rebuild->SetOutput(&m_rebuild);
 	RegisterArgument(rebuild);
 
+	CommandFlagArgument* builddeps = new CommandFlagArgument();
+	builddeps->SetName("BuildDependencies");
+	builddeps->SetShortName("r");
+	builddeps->SetDescription("All project dependencies will be built as well as well.");
+	builddeps->SetRequired(false);
+	builddeps->SetPositional(false);
+	builddeps->SetDefault(false);
+	builddeps->SetOutput(&m_buildDependencies);
+	RegisterArgument(builddeps);
+
 	CommandStringArgument* configuration = new CommandStringArgument();
 	configuration->SetName("Configuration");
 	configuration->SetShortName("c");
@@ -98,6 +108,25 @@ BuildCommand::BuildCommand(App* app)
 	platform->SetDefault("");
 	platform->SetOutput(&m_platform);
 	RegisterArgument(platform);
+}
+
+bool BuildCommand::IndirectInvoke(
+	CommandLineParser* parser,
+	const Platform::Path& workspacePath,
+	const std::string& projectName,
+	bool bRebuild,
+	bool bBuildDependencies,
+	const std::string& configuration,
+	const std::string& platform)
+{
+	m_workspaceFilePath = workspacePath;
+	m_projectName = projectName;
+	m_rebuild = bRebuild;
+	m_buildDependencies = bBuildDependencies;
+	m_configuration = configuration;
+	m_platform = platform;
+
+	return Invoke(parser);
 }
 
 bool BuildCommand::Invoke(CommandLineParser* parser)
@@ -224,7 +253,7 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 					}
 
 					Builder builder(m_app);
-					if (builder.Build(m_workspaceFile, *buildProjectFile, m_rebuild))
+					if (builder.Build(m_workspaceFile, configProjectFiles, *buildProjectFile, m_rebuild, m_buildDependencies))
 					{
 						return true;
 					}

@@ -32,6 +32,17 @@ class BuildCommand : public Command
 public:
 	BuildCommand(App* app);
 
+
+	// Indirectly invokes this command with the given parameters.
+	bool IndirectInvoke(
+		CommandLineParser* parser,
+		const Platform::Path& workspacePath,
+		const std::string& projectName,
+		bool bRebuild,
+		bool bBuildDependencies,
+		const std::string& configuration,
+		const std::string& platform);
+
 protected:
 	virtual bool Invoke(CommandLineParser* parser) override;
 
@@ -47,6 +58,7 @@ private:
 	std::string m_platform;
 
 	bool m_rebuild;
+	bool m_buildDependencies;
 
 };
 

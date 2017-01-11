@@ -926,6 +926,8 @@ bool Toolchain_Microsoft::ParseMessageOutput(BuilderFileInfo& file, std::string&
 					BuilderFileMessage fileMessage;
 					fileMessage.Identifier = errorTypeSplit[errorTypeSplit.size() - 1];
 					fileMessage.Text = message;
+					fileMessage.Line = 0;
+					fileMessage.Column = 0;
 
 					// Figure out what error level this message is.
 					std::string typeIdentifier = Strings::ToLowercase(errorTypeSplit[errorTypeSplit.size() - 2]);
@@ -1043,7 +1045,7 @@ bool Toolchain_Microsoft::Link(std::vector<BuilderFileInfo>& files, BuilderFileI
 	return true;
 }
 
-bool Toolchain_Microsoft::CreateVersionInfoScript(Platform::Path iconPath, Platform::Path rcScriptPath)
+bool Toolchain_Microsoft::CreateVersionInfoScript(Platform::Path iconPath, Platform::Path rcScriptPath, VersionNumberInfo versionInfo)
 {
 	// Convert icon png into icon file format.	
 	Image::Ptr icon = Image::CreateIcon(m_projectFile.Get_ProductInfo_Icon());
@@ -1054,7 +1056,7 @@ bool Toolchain_Microsoft::CreateVersionInfoScript(Platform::Path iconPath, Platf
 	}
 
 	// Write script file for resource compiler.
-	std::string stringVersion = Strings::Replace(m_projectFile.Get_ProductInfo_Version(), ".", ",");
+	std::string stringVersion = "1.0.0.0";
 
 	TextStream stream;
 	stream.WriteLine("#include \"windows.h\"");
@@ -1083,12 +1085,12 @@ bool Toolchain_Microsoft::CreateVersionInfoScript(Platform::Path iconPath, Platf
 			stream.Indent();
 				stream.WriteLine("VALUE \"CompanyName\", %s",		Strings::Quoted(m_projectFile.Get_ProductInfo_Company(), true).c_str());
 				stream.WriteLine("VALUE \"FileDescription\", %s",	Strings::Quoted(m_projectFile.Get_ProductInfo_Description(), true).c_str());
-				stream.WriteLine("VALUE \"FileVersion\", %s",		Strings::Quoted(m_projectFile.Get_ProductInfo_Version(), true).c_str());
+				stream.WriteLine("VALUE \"FileVersion\", %s",		Strings::Quoted(versionInfo.ShortString, true).c_str());
 				stream.WriteLine("VALUE \"InternalName\", %s",		Strings::Quoted(m_projectFile.Get_ProductInfo_Name(), true).c_str());
 				stream.WriteLine("VALUE \"LegalCopyright\", %s",	Strings::Quoted(m_projectFile.Get_ProductInfo_Copyright(), true).c_str());
 				stream.WriteLine("VALUE \"OriginalFilename\", %s",	Strings::Quoted(m_projectFile.Get_Project_OutputName(), true).c_str());
 				stream.WriteLine("VALUE \"ProductName\", %s",		Strings::Quoted(m_projectFile.Get_ProductInfo_Name(), true).c_str());
-				stream.WriteLine("VALUE \"ProductVersion\", %s",	Strings::Quoted(m_projectFile.Get_ProductInfo_Version(), true).c_str());
+				stream.WriteLine("VALUE \"ProductVersion\", %s",	Strings::Quoted(versionInfo.ShortString, true).c_str());
 			stream.Undent();
 			stream.WriteLine("END");
 		stream.Undent();
@@ -1113,12 +1115,12 @@ bool Toolchain_Microsoft::CreateVersionInfoScript(Platform::Path iconPath, Platf
 	return true;
 }
 
-bool Toolchain_Microsoft::CompileVersionInfo(BuilderFileInfo& fileInfo) 
+bool Toolchain_Microsoft::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
 {	
 	Platform::Path iconPath = fileInfo.OutputPath.ChangeExtension("ico");
 	Platform::Path rcScriptPath = fileInfo.OutputPath.ChangeExtension("rc");
 
-	if (!CreateVersionInfoScript(iconPath, rcScriptPath))
+	if (!CreateVersionInfoScript(iconPath, rcScriptPath, versionInfo))
 	{
 		return false;
 	}

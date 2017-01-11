@@ -101,6 +101,12 @@ public:
 	{
 	}
 
+	CommandArgument()
+		: CommandArgumentBase()
+		, m_output(nullptr)
+	{
+	}
+
 	virtual ~CommandArgument()
 	{
 	}

@@ -99,6 +99,20 @@ START_ENUM(EWarningLevel)
 	ENUM_KEY(Verbose)
 END_ENUM()
 
+START_ENUM(ESourceControlType)
+	ENUM_KEY(None)
+	ENUM_KEY(Git)
+END_ENUM()
+
+START_ENUM(EVersionNumberSource)
+	ENUM_KEY(None)
+	ENUM_KEY(SourceControl)
+END_ENUM()
+
+START_ENUM(EVersionFormat)
+	ENUM_KEY(Changelist)
+END_ENUM()
+
 // ---------------------------------------------------------------------------
 // Project
 // ---------------------------------------------------------------------------
@@ -144,7 +158,7 @@ START_OPTION(
 	"Determines if the project should be deployed, use in conjunction with if "
 	"statements to disable building projects in different configurations."
 )
-OPTION_RULE_DEFAULT(true)
+OPTION_RULE_DEFAULT(false)
 END_OPTION()
 
 // ---------------------------------------------------------------------------
@@ -684,6 +698,49 @@ END_OPTION()
 // ---------------------------------------------------------------------------
 
 START_OPTION(
+	EVersionNumberSource,
+	ProductInfo,
+	VersionSource,
+	"Where the version number should be sourced from, if none, just hard code "
+	"the version property."
+)
+OPTION_RULE_DEFAULT(EVersionNumberSource::None)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	EVersionFormat,
+	ProductInfo,
+	VersionFormat,
+	"What format to use for the version-number string."
+)
+OPTION_RULE_DEFAULT(EVersionFormat::Changelist)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	Platform::Path,
+	ProductInfo,
+	VersionHpp,
+	"If set the version number will be dumped to this file before building."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	Platform::Path,
+	ProductInfo,
+	VersionCpp,
+	"If set the version number will be dumped to this file before building."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
 	std::string,
 	ProductInfo,
 	Copyright,
@@ -705,6 +762,27 @@ START_ARRAY_OPTION(
 END_ARRAY_OPTION()
 
 // ---------------------------------------------------------------------------
+// Source Control
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	ESourceControlType,
+	SourceControl,
+	Type,
+	"Type of source control this project uses (if any)."
+)
+OPTION_RULE_DEFAULT(ESourceControlType::None)
+END_OPTION()
+
+START_OPTION(
+	Platform::Path,
+	SourceControl,
+	Root,
+	"Root folder that is controled by source control."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Platform Specific Information
@@ -723,4 +801,10 @@ END_ARRAY_OPTION()
 #include "Schemas/Project/Platforms/WindowsRT.inc"
 #include "Schemas/Project/Platforms/Xbox360.inc"
 #include "Schemas/Project/Platforms/XboxOne.inc"
+
+// ---------------------------------------------------------------------------
+// Packager Specific Information
+// ---------------------------------------------------------------------------
+#include "Schemas/Project/Packagers/Base.inc"
+#include "Schemas/Project/Packagers/Steamworks.inc"
 

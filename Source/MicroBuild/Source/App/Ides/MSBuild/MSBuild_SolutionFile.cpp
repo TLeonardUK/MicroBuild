@@ -181,11 +181,11 @@ bool MSBuild_SolutionFile::Generate(
 		for (EPlatform& platform : platforms)
 		{
 			std::string platformStr = MSBuild::GetPlatformID(platform);
-			platformStr = IdeHelper::GetPlatformHumanReadableId(platform);
+			std::string humanReadablePlatformStr = IdeHelper::GetPlatformHumanReadableId(platform);
 
 			globalConfigPreSolutionNode
-				.Single("%s|%s", config.c_str(), platformStr.c_str())
-				.Value(false, "%s|%s", config.c_str(), platformStr.c_str());
+				.Single("%s|%s", config.c_str(), humanReadablePlatformStr.c_str())
+				.Value(false, "%s|%s", config.c_str(), humanReadablePlatformStr.c_str());
 		}
 	}
 
@@ -205,22 +205,22 @@ bool MSBuild_SolutionFile::Generate(
 			});
 
 			std::string platformStr = MSBuild::GetPlatformID(pair.platform);
-			platformStr = IdeHelper::GetPlatformHumanReadableId(pair.platform);
+			std::string humanReadablePlatformStr = IdeHelper::GetPlatformHumanReadableId(pair.platform);
 
 			globalConfigPostSolutionNode
-				.Single("%s.%s|%s.ActiveCfg", projectGuid.c_str(), pair.config.c_str(), platformStr.c_str())
+				.Single("%s.%s|%s.ActiveCfg", projectGuid.c_str(), pair.config.c_str(), humanReadablePlatformStr.c_str())
 				.Value(false, "%s|%s", pair.config.c_str(), platformStr.c_str());
 
 			if (pair.shouldBuild)
 			{
 				globalConfigPostSolutionNode
-					.Single("%s.%s|%s.Build.0", projectGuid.c_str(), pair.config.c_str(), platformStr.c_str())
+					.Single("%s.%s|%s.Build.0", projectGuid.c_str(), pair.config.c_str(), humanReadablePlatformStr.c_str())
 					.Value(false, "%s|%s", pair.config.c_str(), platformStr.c_str());
 			}
 			if (pair.shouldDeploy)
 			{
 				globalConfigPostSolutionNode
-					.Single("%s.%s|%s.Deploy.0", projectGuid.c_str(), pair.config.c_str(), platformStr.c_str())
+					.Single("%s.%s|%s.Deploy.0", projectGuid.c_str(), pair.config.c_str(), humanReadablePlatformStr.c_str())
 					.Value(false, "%s|%s", pair.config.c_str(), platformStr.c_str());
 			}
 		}

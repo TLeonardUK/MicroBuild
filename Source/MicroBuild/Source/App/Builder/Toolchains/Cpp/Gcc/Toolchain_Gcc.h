@@ -79,7 +79,7 @@ public:
 	static bool ParseDependencyFile(BuilderFileInfo& file, std::string& input);
 
 	virtual bool Init() override;
-	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo) override;
+	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) override;
 
 }; 
 

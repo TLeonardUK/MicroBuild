@@ -23,10 +23,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-CompileVersionInfoTask::CompileVersionInfoTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file)
+CompileVersionInfoTask::CompileVersionInfoTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file, VersionNumberInfo versionInfo)
 	: BuildTask(BuildStage::PreBuild, true, true)
 	, m_toolchain(toolchain)
 	, m_file(file)
+	, m_versionInfo(versionInfo)
 {
 	MB_UNUSED_PARAMETER(project);
 }
@@ -38,7 +39,7 @@ bool CompileVersionInfoTask::Execute()
 	
 	TaskLog(LogSeverity::SilentInfo, "Compiling Version Info\n");
 
-	return m_toolchain->CompileVersionInfo(m_file);
+	return m_toolchain->CompileVersionInfo(m_file, m_versionInfo);
 }
 
 }; // namespace MicroBuild

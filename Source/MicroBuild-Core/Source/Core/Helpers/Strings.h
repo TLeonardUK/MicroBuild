@@ -95,6 +95,9 @@ std::string SpacesEscaped(const std::string& input);
 // is set, all quote-pairs that do not have a space between them will be stripped.
 std::string StripQuotes(const std::string& input, bool bThroughout = false);
 
+// Same as StripQuotes, but performed on single quotes rather than double.
+std::string StripSingleQuotes(const std::string& input, bool bThroughout = false);
+
 // Checks if a string matches the given pattern that can contain several
 // wildcards.
 bool IsMatch(const std::string& input, const std::string& pattern);

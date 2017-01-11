@@ -78,9 +78,9 @@ public:
 	virtual bool Init() override;
 	virtual bool Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
 	virtual bool Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
-	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo) override;
+	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) override;
 
-	bool CreateVersionInfoScript(Platform::Path iconPath, Platform::Path rcScriptPath);
+	bool CreateVersionInfoScript(Platform::Path iconPath, Platform::Path rcScriptPath, VersionNumberInfo versionInfo);
 
 }; 
 

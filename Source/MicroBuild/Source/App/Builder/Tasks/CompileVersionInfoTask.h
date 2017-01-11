@@ -31,9 +31,10 @@ class CompileVersionInfoTask
 private:
 	Toolchain* m_toolchain;
 	BuilderFileInfo m_file;
+	VersionNumberInfo m_versionInfo;
 
 public:
-	CompileVersionInfoTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file);
+	CompileVersionInfoTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file, VersionNumberInfo versionInfo);
 
 	virtual bool Execute() override;
 

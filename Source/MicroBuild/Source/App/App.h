@@ -25,6 +25,7 @@ namespace MicroBuild {
 
 class IdeType;
 class PlatformType;
+class PackagerType;
 
 // Base class that reads command line input and dispatching the commands to
 // the correct places.
@@ -39,8 +40,14 @@ public:
 	// Gets a list of all supported ides we can generated files for.
 	std::vector<IdeType*> GetIdes() const;
 
+	// Gets a list of all supported packagers we can package projects for.
+	std::vector<PackagerType*> GetPackagers() const;
+
 	// Gets an ide given its short name.
 	IdeType* GetIdeByShortName(const std::string& shortName) const;
+
+	// Gets a packager given its short name.
+	PackagerType* GetPackagerByShortName(const std::string& shortName) const;
 
 	// Gets the plugin manager the app is currently being used.
 	PluginManager* GetPluginManager();
@@ -59,6 +66,7 @@ private:
 	PluginManager m_pluginManager;
 
 	std::vector<IdeType*> m_ides;
+	std::vector<PackagerType*> m_packagers;
 
 }; 
 
