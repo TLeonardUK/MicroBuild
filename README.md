@@ -61,9 +61,9 @@ We currently support packaging projects for the following targets:
 
 | Target IDE                 | Status                                       |
 | -------------------------- | -------------------------------------------- |
+| Steam Depot                | Supported                                    |
 | Desktop Zip Package        | In Progress                                  |
 | Desktop Installer Package  | In Progress                                  |
-| Steam Depot                | In Progress                                  |
 | MacOS AppStore             | In Progress                                  |
 | iOS AppStore               | In Progress                                  |
 | HTML5 Webpage              | In Progress                                  |
