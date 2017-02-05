@@ -2,15 +2,11 @@
 Microbuild is a simple, fast, cross platform, build system.
 
 # Build State
-<a href="https://scan.coverity.com/projects/tleonarduk-microbuild">
-  <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/9720/badge.svg?flat=1"/>
-</a>
-<a href="https://travis-ci.org/TLeonardUK/MicroBuild">
+<a href="https://travis-ci.org/TwinDrills/MicroBuild">
   <img alt="Travis CI"
-       src="https://travis-ci.org/TLeonardUK/MicroBuild.svg?branch=master"/>
+       src="https://travis-ci.org/TwinDrills/MicroBuild.svg?branch=master"/>
 </a>
-<a href="https://ci.appveyor.com/project/TLeonardUK/microbuild">
+<a href="https://ci.appveyor.com/project/TwinDrills/microbuild">
   <img alt="AppVeyor"
        src="https://ci.appveyor.com/api/projects/status/dufpylwdhvinr7m7?svg=true"/>
 </a>
