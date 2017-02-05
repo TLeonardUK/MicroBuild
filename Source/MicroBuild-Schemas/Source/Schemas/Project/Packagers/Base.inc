@@ -28,6 +28,36 @@ START_OPTION(
 OPTION_RULE_DEFAULT(true)
 END_OPTION()
 
+START_OPTION(
+	bool,
+	Packager,
+	BuildChangelog,
+	"If set to true, when the project is packaged a changelog is created from "
+	"source control history and saved in the file path referenced by ChangelogFile. "
+	"The changelog is made by tallying all Text after the [ChangeLog] tag in SCM commit "
+	"messages. Once the changelog is built, and differs from the last changelog, "
+	"it is checked into SCM. "
+)
+OPTION_RULE_DEFAULT(false)
+END_OPTION()
+
+START_OPTION(
+	Platform::Path,
+	Packager,
+	ChangelogFile,
+	"File path to save changelog to if BuildChangelog is set to true."
+)
+END_OPTION()
+
+START_ARRAY_OPTION(
+	std::string,
+	Packager,
+	BuildProject,
+	"Defines a project to build when this project is packaged. If none are defined "
+	"the the current project is built on its own."
+)
+END_ARRAY_OPTION()
+
 // ---------------------------------------------------------------------------
 // PrePackageCommands
 // ---------------------------------------------------------------------------

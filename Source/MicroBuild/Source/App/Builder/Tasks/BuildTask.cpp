@@ -86,13 +86,13 @@ void BuildTask::TaskLog(LogSeverity Severity, const char* format, ...)
 	
 	if (m_jobIndex == -1)
 	{	
-		Log(Severity, "(-   /-   ) %s", 
+		Log(Severity, "[-   /-   ] %s", 
 			message.c_str()
 		);
 	}
 	else
 	{
-		Log(Severity, "(%4i/%4i) %s", 
+		Log(Severity, "[%4i/%4i] %s", 
 			m_jobIndex,
 			m_totalJobs,
 			message.c_str()

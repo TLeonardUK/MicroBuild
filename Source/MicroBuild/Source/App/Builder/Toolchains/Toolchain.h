@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Schemas/Project/ProjectFile.h"
 #include "App/Builder/Tasks/BuildTask.h"
 #include "App/Builder/BuilderFileInfo.h"
+#include "Core/Platform/Process.h"
 
 #include <string>
 #include <memory>
@@ -92,11 +93,18 @@ protected:
 
 	// Updates the output files dependencies based on a linking operation.
 	virtual void UpdateLinkDependencies(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
+
+	// Writes the arguments into a response file and starts the process using the response file.
+	bool OpenResponseFileProcess(Platform::Process& process, const Platform::Path& responseFilePath, const Platform::Path& exePath, const Platform::Path& workingDir, const std::vector<std::string>& arguments, bool bRedirectStdout = false);
 	
 public:
 
 	// Constructor.
 	Toolchain(ProjectFile& file, uint64_t configurationHash);
+
+	// Overrides the project info  this toolchain was originally constructed with, useful so you can recycle toolchain instances and avoid
+	// some of the initialization cost.
+	void SetProjectInfo(ProjectFile& file, uint64_t configurationHash);
 
 	// Returns a description that describes this toolchain and its version.
 	std::string GetDescription();

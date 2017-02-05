@@ -37,7 +37,7 @@ public:
 	bool Clean(WorkspaceFile& workspaceFile, ProjectFile& project);
 
 	// Builds the project in the configuration the project file defines.
-	bool Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> projectFiles, ProjectFile& project, bool bRebuild, bool bBuildDependencies);
+	bool Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> projectFiles, ProjectFile& project, bool bRebuild, bool bBuildDependencies, bool bBuildPackageFiles);
 
 protected:
 
@@ -64,10 +64,18 @@ protected:
 		std::vector<ProjectFile*>& dependencyList, 
 		std::vector<ProjectFile*>& processedList);
 
+	// Attempts to generate a changelog file from source control commit messages.
+	bool BuildChangelog(
+		ProjectFile& project,
+		VersionNumberInfo& info,
+		std::shared_ptr<ISourceControlProvider> provider
+	);
+
 	// Attempts to extract version number information for use in the build. This usually results in a source-control call.
 	bool CalculateVersionNumber(
 		ProjectFile& project,
-		VersionNumberInfo& info
+		VersionNumberInfo& info,
+		std::shared_ptr<ISourceControlProvider> provider
 	);
 
 	// Gets a source control provider and connects to it, the returned pointer can be used to query and manipulate

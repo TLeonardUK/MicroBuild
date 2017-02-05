@@ -32,8 +32,13 @@ public:
 	
 	virtual bool Connect(const Platform::Path& rootPath) override;
 	virtual bool GetChangelist(const Platform::Path& path, SourceControlChangelist& changelistId) override;
-	virtual bool GetTotalChangelists(const Platform::Path& path, int& totalChangelists) override;
+	virtual bool GetTotalChangelists(int& totalChangelists) override;
 	virtual bool GetHistory(const Platform::Path& path, std::vector<SourceControlChangelist>& history, int count, int offset) override;
+	virtual bool Checkout(const Platform::Path& path) override;
+	virtual bool Commit(const std::vector<Platform::Path>& files, const std::string& commitMessage) override;
+	virtual bool Exists(const Platform::Path& path, bool& bExists) override;
+	virtual bool Add(const Platform::Path& path) override;
+	virtual bool Sync() override;
 
 private:
 

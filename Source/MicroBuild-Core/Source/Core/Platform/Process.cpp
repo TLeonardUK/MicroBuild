@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "Core/Platform/Process.h"
+#include "Core/Helpers/Time.h"
 
 #include <cstdlib>
 #include <sstream>
@@ -38,19 +39,27 @@ std::string GetEnvironmentVariable(const std::string& tag)
 	}
 }
 
-std::string Process::ReadToEnd()
+std::string Process::ReadToEnd(bool bPrintOutput)
 {
+	//Time::TimedScope scope("ReadToEnd:%s", false);
+
 	std::stringstream stream;
 
-	const int bufferSize = 1024;
+	const int bufferSize = 128;
 	std::vector<char> buffer;
 	buffer.resize(bufferSize);
 
 	while (!AtEnd())
 	{
-		size_t bytesToRead =  bufferSize - 1;
+		size_t bytesToRead = bufferSize - 1;
 		size_t readBytes = Read(buffer.data(), bytesToRead);
 		buffer[readBytes] = '\0';
+
+		if (bPrintOutput)
+		{
+			Log(LogSeverity::Info, "%s", buffer.data());
+		}
+
 		stream << buffer.data();
 
 		if (readBytes == 0)

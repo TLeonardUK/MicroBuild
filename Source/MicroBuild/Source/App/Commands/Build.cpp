@@ -39,6 +39,7 @@ namespace MicroBuild {
 BuildCommand::BuildCommand(App* app)
 	: m_app(app)
 	, m_rebuild(false)
+	, m_buildPackageFiles(false)
 {
 	SetName("build");
 	SetShortName("b");
@@ -79,11 +80,11 @@ BuildCommand::BuildCommand(App* app)
 
 	CommandFlagArgument* builddeps = new CommandFlagArgument();
 	builddeps->SetName("BuildDependencies");
-	builddeps->SetShortName("r");
+	builddeps->SetShortName("d");
 	builddeps->SetDescription("All project dependencies will be built as well as well.");
 	builddeps->SetRequired(false);
 	builddeps->SetPositional(false);
-	builddeps->SetDefault(false);
+	builddeps->SetDefault(true);
 	builddeps->SetOutput(&m_buildDependencies);
 	RegisterArgument(builddeps);
 
@@ -117,7 +118,8 @@ bool BuildCommand::IndirectInvoke(
 	bool bRebuild,
 	bool bBuildDependencies,
 	const std::string& configuration,
-	const std::string& platform)
+	const std::string& platform,
+	bool bBuildPackageFiles)
 {
 	m_workspaceFilePath = workspacePath;
 	m_projectName = projectName;
@@ -125,6 +127,7 @@ bool BuildCommand::IndirectInvoke(
 	m_buildDependencies = bBuildDependencies;
 	m_configuration = configuration;
 	m_platform = platform;
+	m_buildPackageFiles = bBuildPackageFiles;
 
 	return Invoke(parser);
 }
@@ -253,7 +256,7 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 					}
 
 					Builder builder(m_app);
-					if (builder.Build(m_workspaceFile, configProjectFiles, *buildProjectFile, m_rebuild, m_buildDependencies))
+					if (builder.Build(m_workspaceFile, configProjectFiles, *buildProjectFile, m_rebuild, m_buildDependencies, m_buildPackageFiles))
 					{
 						return true;
 					}

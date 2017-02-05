@@ -70,8 +70,8 @@ bool MSBuild_ProjectFile::Generate(
 	// Files.
 	std::vector<std::string> allFiles;
 
-
-	for (Platform::Path& path : projectFile.Get_Files_File())
+	std::vector<Platform::Path> baseFiles = projectFile.Get_Files_File();
+	for (Platform::Path& path : baseFiles)
 	{
 		std::string relativePath = "$(SolutionDir)" +
 			solutionDirectory.RelativeTo(path).ToString();

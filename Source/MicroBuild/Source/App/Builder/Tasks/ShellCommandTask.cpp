@@ -34,16 +34,22 @@ bool ShellCommandTask::Execute()
 	std::vector<std::string> arguments = Strings::Crack(m_command, ' ', true);
 	std::string executable = Strings::StripQuotes(arguments[0]);
 	arguments.erase(arguments.begin());
-	
+
 	//TaskLog(LogSeverity::SilentInfo, "Executing: %s\n", m_command.c_str());
 
+	Platform::Path rootPath = Platform::Path(executable).GetDirectory();
+	if (rootPath.IsRelative())
+	{
+		rootPath = Platform::Path::GetExecutablePath().GetDirectory();
+	}
+
 	Platform::Process process;
-	if (!process.Open(executable, Platform::Path::GetExecutablePath().GetDirectory(), arguments, false))
+	if (!process.Open(executable, rootPath, arguments, true))
 	{
 		return false;
 	}
 
-	process.Wait();
+	process.ReadToEnd(true);
 	return (process.GetExitCode() == 0);
 }
 

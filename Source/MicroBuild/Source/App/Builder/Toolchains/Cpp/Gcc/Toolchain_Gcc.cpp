@@ -589,6 +589,12 @@ void Toolchain_Gcc::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceF
 	{
 		args.push_back("-Wl,--end-group");
 	}
+
+#if !defined(MB_PLATFORM_LINUX)
+	// Allow shared libraries to be loaded from the binary folder.
+	args.push_back(" -Wl,-R,'$$ORIGIN'");
+#endif
+
 }
 
 void Toolchain_Gcc::GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args) 

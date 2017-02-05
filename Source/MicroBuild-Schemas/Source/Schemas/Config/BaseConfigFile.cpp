@@ -261,9 +261,16 @@ bool BaseConfigFile::ExpandPath(Platform::Path path,
 	std::vector<Platform::Path> matches =
 		Platform::Path::MatchFilter(resolved);
 
+	size_t originalResultsSize = results.size();
+	int validCount = 0;
+
 	for (Platform::Path& match : matches)
 	{
-		results.push_back(match.ToString());
+		if (match.IsFile())
+		{
+			results.push_back(match.ToString());
+			validCount++;
+		}
 	}
 
 	if (bCanCache)
@@ -271,11 +278,14 @@ bool BaseConfigFile::ExpandPath(Platform::Path path,
 		m_cachedExpandedPaths.resize(m_cachedExpandedPaths.size() + 1);
 		
 		CachedExpandedPaths& cache = *m_cachedExpandedPaths.rbegin();
-		cache.expanded.insert(
-			cache.expanded.begin(),
-			results.end() - matches.size(),
-			results.end()
-		);
+		if (validCount > 0)
+		{
+			cache.expanded.insert(
+				cache.expanded.begin(),
+				results.begin() + originalResultsSize,
+				results.end()
+			);
+		}
 		cache.path = path;
 	}
 

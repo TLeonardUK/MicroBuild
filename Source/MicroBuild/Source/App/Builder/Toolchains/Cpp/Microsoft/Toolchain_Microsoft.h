@@ -37,6 +37,10 @@ private:
 
 	bool m_bUseDefaultToolchain;
 
+	bool m_toolchainFound;
+	EPlatformToolset m_foundToolchainToolset;
+	EPlatform m_foundToolchainPlatform;
+
 protected:
 
 	// Attempts to locate the toolchain on the users computer, returns true

@@ -79,6 +79,8 @@ bool Process::Open(
 	Windows_Process* data = reinterpret_cast<Windows_Process*>(m_impl);
 	assert(!IsAttached());
 
+	//Log(LogSeverity::Info, "Process::Open(%s %s)\n", command.ToString().c_str(), Strings::Join(arguments, " ").c_str());
+
 	// Escape and pack arguments into a single command line incase it has spaces!
 	std::string commandLine = Strings::Quoted(command.ToString());
 
