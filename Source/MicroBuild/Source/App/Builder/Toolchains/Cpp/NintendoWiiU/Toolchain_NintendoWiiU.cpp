@@ -681,7 +681,8 @@ bool Toolchain_NintendoWiiU::RplExportAll(std::vector<BuilderFileInfo>& files, B
 
 	// Run the app and hope for the best!
 	Platform::Process process;
-	if (!process.Open(m_rplExportAllPath, m_rplExportAllPath.GetDirectory(), arguments, true))
+	Platform::Path responseFilePath = outputFile.OutputPath.AppendFragment(".rsp", false);
+	if (!OpenResponseFileProcess(process, responseFilePath, m_rplExportAllPath, m_rplExportAllPath.GetDirectory(), arguments, true))
 	{
 		return false;
 	}
@@ -774,7 +775,8 @@ bool Toolchain_NintendoWiiU::PrepRPL(std::vector<BuilderFileInfo>& files, Builde
 
 	// Run the app and hope for the best!
 	Platform::Process process;
-	if (!process.Open(m_prepRplPath, m_prepRplPath.GetDirectory(), arguments, true))
+	Platform::Path responseFilePath = outputFile.OutputPath.AppendFragment(".rsp", false);
+	if (!OpenResponseFileProcess(process, responseFilePath, m_prepRplPath, m_prepRplPath.GetDirectory(), arguments, true))
 	{
 		return false;
 	}
@@ -866,7 +868,8 @@ bool Toolchain_NintendoWiiU::Link(std::vector<BuilderFileInfo>& files, BuilderFi
 	GetLinkArguments(files, arguments);
 
 	Platform::Process process;
-	if (!process.Open(m_linkerPath, m_linkerPath.GetDirectory(), arguments, true))
+	Platform::Path responseFilePath = outputFile.ManifestPath.AppendFragment(".rsp", false);
+	if (!OpenResponseFileProcess(process, responseFilePath, m_linkerPath, m_linkerPath.GetDirectory(), arguments, true))
 	{
 		return false;
 	}

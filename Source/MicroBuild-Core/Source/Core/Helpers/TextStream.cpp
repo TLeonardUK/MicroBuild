@@ -109,20 +109,32 @@ bool TextStream::WriteToFile(Platform::Path& path, bool bOnlyWriteIfDifferent)
 
 	if (bOnlyWriteIfDifferent)
 	{
-		if (path.Exists())
+		if (!IsDifferentFromFile(path))
 		{
-			std::string existingValue = "";
-			if (Strings::ReadFile(path, existingValue))
-			{
-				if (result == existingValue)
-				{
-					return true;
-				}
-			}
+			return true;
 		}
 	}
 
 	return Strings::WriteFile(path, result);
+}
+
+bool TextStream::IsDifferentFromFile(Platform::Path& path)
+{
+	std::string result = m_stream.str();
+
+	if (path.Exists())
+	{
+		std::string existingValue = "";
+		if (Strings::ReadFile(path, existingValue))
+		{
+			if (result == existingValue)
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 std::string TextStream::ToString()

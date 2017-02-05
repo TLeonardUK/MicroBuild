@@ -44,7 +44,7 @@ struct TimedScope
 	{
 		if (!m_scope.empty())
 		{
-#if 0
+#if 1
 			float elapsedMs = GetElapsed();
 			Log(m_bIsVerbose ? LogSeverity::Verbose : LogSeverity::Warning, "%s took %.2f ms.\n",
 				m_scope.c_str(), elapsedMs);

@@ -86,7 +86,7 @@ public:
 	uint64_t BytesLeft();
 
 	// Reads all stdout out until the process ends and then returns it.
-	std::string ReadToEnd();
+	std::string ReadToEnd(bool bPrintOutput = false);
 
 };
 

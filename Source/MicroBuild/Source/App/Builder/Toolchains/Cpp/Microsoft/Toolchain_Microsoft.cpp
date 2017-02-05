@@ -35,6 +35,7 @@ Toolchain_Microsoft::Toolchain_Microsoft(ProjectFile& file, uint64_t configurati
 	: Toolchain(file, configurationHash)
 	, m_bUseDefaultToolchain(bUseDefaultToolchain)
 {
+	m_toolchainFound = false;
 }
 
 bool Toolchain_Microsoft::Init() 
@@ -308,6 +309,15 @@ bool Toolchain_Microsoft::FindToolchain()
 	{
 		toolset = EPlatformToolset::Default;
 	}
+
+	if (m_toolchainFound && toolset == m_foundToolchainToolset && m_projectFile.Get_Target_Platform() == m_foundToolchainPlatform)
+	{
+		return true;
+	}
+
+	m_toolchainFound = true;
+	m_foundToolchainToolset = toolset;
+	m_foundToolchainPlatform = m_projectFile.Get_Target_Platform();
 
 	switch (toolset)
 	{

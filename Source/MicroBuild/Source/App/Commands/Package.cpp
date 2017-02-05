@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Commands/CommandStringArgument.h"
 #include "Core/Commands/CommandMapArgument.h"
 #include "Core/Helpers/Time.h"
+#include "Core/Platform/Process.h"
 
 namespace MicroBuild {
 
@@ -139,6 +140,41 @@ PackageCommand::PackageCommand(App* app)
 	setArguments->SetPositional(false);
 	setArguments->SetOutput(&m_setArguments);
 	RegisterArgument(setArguments);
+}
+
+bool PackageCommand::ExecuteCommand(const std::string& command, ProjectFile* projectFile)
+{
+	MB_UNUSED_PARAMETER(projectFile);
+
+	std::vector<std::string> arguments = Strings::Crack(command, ' ', true);
+	Platform::Path executable = Strings::StripQuotes(arguments[0]);
+	arguments.erase(arguments.begin());
+
+	Platform::Path baseDir = executable.GetDirectory();
+	if (baseDir.IsRelative())
+	{
+		baseDir = Platform::Path::GetExecutablePath().GetDirectory();
+	}
+
+	Platform::Process process;
+	if (!process.Open(executable, baseDir, arguments, false))
+	{
+		Log(LogSeverity::Fatal, "Failed to run command: %s\n", executable.ToString().c_str());
+		return false;
+	}
+
+	process.Wait();
+	int exitCode = process.GetExitCode();
+	if (exitCode == 0)
+	{
+		return true;
+	}
+	else
+	{
+		Log(LogSeverity::Fatal, "Failed to run command (exited with code %i): %s\n", exitCode, executable.ToString().c_str());
+	}
+
+	return false;
 }
 
 bool PackageCommand::Invoke(CommandLineParser* parser)
@@ -273,31 +309,61 @@ bool PackageCommand::Invoke(CommandLineParser* parser)
 						}
 					}
 
-					// todo: Run pre-package commands.
-
 					// Now do packaging commands.
 					if (buildProjectFile->Get_Packager_RequiresBuild())
 					{
 						Log(LogSeverity::SilentInfo, "Compiling project before packaging, using configuration %s_%s ...\n\n", m_configuration.c_str(), m_platform.c_str());
 
-						BuildCommand buildCommand(m_app);
-						if (!buildCommand.IndirectInvoke(parser, m_workspaceFilePath, m_projectName, m_rebuild, true, m_configuration, m_platform))
+						std::vector<std::string> buildProjects = buildProjectFile->Get_Packager_BuildProject();
+						if (buildProjects.size() == 0)
 						{
-							Log(LogSeverity::Warning,
-								"Failed to compile workspace.\n");
+							buildProjects.push_back(m_projectName);
+						}
 
+						for (auto& proj : buildProjects)
+						{
+							BuildCommand buildCommand(m_app);
+							if (!buildCommand.IndirectInvoke(parser, m_workspaceFilePath, proj, m_rebuild, true, m_configuration, m_platform, true))
+							{
+								Log(LogSeverity::Warning,
+									"Failed to compile workspace.\n");
+
+								return false;
+							}
+						}
+					}
+
+					// Run pre-package commands.
+					std::vector<std::string> commands = buildProjectFile->Get_PrePackageCommands_Command();
+					for (auto& command : commands)
+					{
+						if (!ExecuteCommand(command, buildProjectFile))
+						{
 							return false;
 						}
 					}
 
 					Log(LogSeverity::SilentInfo, "\nPackaging project for %s ...\n\n", packager->GetShortName().c_str());
-					if (packager->Package(*buildProjectFile, m_packageDirectoryPath))
+					if (!packager->Package(*buildProjectFile, m_packageDirectoryPath))
 					{
 						Log(LogSeverity::Warning,
-							"Failed to package workspace.\n");
+							"Failed to package project.\n");
+
+						return false;
 					}
 
-					// todo: Run post-package commands.
+					// Run post-package commands.
+					commands = buildProjectFile->Get_PostPackageCommands_Command();
+					for (auto& command : commands)
+					{
+						if (!ExecuteCommand(command, buildProjectFile))
+						{
+							return false;
+						}
+					}
+					
+					Log(LogSeverity::SilentInfo,
+						"Successfully packaged project.\n");
 
 					return true;
 				}

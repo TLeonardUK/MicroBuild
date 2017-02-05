@@ -30,17 +30,22 @@ GitSourceControlProvider::GitSourceControlProvider()
 	std::vector<std::string> formatTags;
 	formatTags.push_back("%h");		// abbreviated commit hash.
 	formatTags.push_back("%an");	// author name.
-	formatTags.push_back("%b");		// body.
+	formatTags.push_back("%B");		// body.
 	formatTags.push_back("%at");	// author time.
 
-	std::string seperator = "%x1e"; // Record-seperator, can be anything, just needs to be something that won't be in a changelist log.
+	std::string seperator = "%x01"; // Record-seperator, can be anything, just needs to be something that won't be in a changelist log.
 
-	m_logFormat = Strings::Join(formatTags, seperator);
+	m_logFormat = "";
+	for (auto& tag : formatTags)
+	{
+		m_logFormat += tag;
+		m_logFormat += seperator;
+	}
 }
 
 bool GitSourceControlProvider::ParseChangelists(const std::string& output, std::vector<SourceControlChangelist>& changelists)
 {
-	std::vector<std::string> splitValues = Strings::Split('\x1e', output, false, false);
+	std::vector<std::string> splitValues = Strings::Split('\x01', output, false, false);
 	for (int i = 0; i < (int)splitValues.size() - 3; i += 4)
 	{
 		SourceControlChangelist list;
@@ -48,7 +53,7 @@ bool GitSourceControlProvider::ParseChangelists(const std::string& output, std::
 		list.Author = splitValues[i + 1];
 		list.Description = splitValues[i + 2];
 
-		// TODO: Reliant on undefined behaviour, please fix asap.
+		// TODO: Reliant on undefined behaviour (time_t is not assured to be a long), please fix asap.
 		list.Date = (time_t)strtol(splitValues[i + 3].c_str(), nullptr, 10);
 
 		changelists.push_back(list);
@@ -86,14 +91,14 @@ bool GitSourceControlProvider::Connect(const Platform::Path& rootPath)
 	// Check that path is a git folder.
 	if (!m_rootPath.AppendFragment(".git", true).Exists())
 	{
-		Log(LogSeverity::Warning, "Folder does not appear to be a git respository: %s.", m_rootPath.ToString().c_str());
+		Log(LogSeverity::Warning, "Folder does not appear to be a git respository: %s.\n", m_rootPath.ToString().c_str());
 		return false;
 	}
 
 	// Check git is installed.
 	if (!RunGitCommand({ "--version" }, rootPath))
 	{
-		Log(LogSeverity::Warning, "Git does not appear to be installed.");
+		Log(LogSeverity::Warning, "Git does not appear to be installed.\n");
 		return false;
 	}
 
@@ -113,9 +118,9 @@ bool GitSourceControlProvider::GetChangelist(const Platform::Path& path, SourceC
 
 	std::string output = "";
 
-	if (!RunGitCommand(arguments, path, &output))
+	if (!RunGitCommand(arguments, m_rootPath, &output))
 	{
-		Log(LogSeverity::Warning, "Failed to execute git command.");
+		Log(LogSeverity::Warning, "Failed to execute git command.\n");
 		return false;
 	}
 
@@ -136,7 +141,7 @@ bool GitSourceControlProvider::GetChangelist(const Platform::Path& path, SourceC
 	return true;
 }
 
-bool GitSourceControlProvider::GetTotalChangelists(const Platform::Path& path, int& totalChangelists)
+bool GitSourceControlProvider::GetTotalChangelists(int& totalChangelists)
 {
 	std::vector<std::string> arguments;
 
@@ -146,9 +151,9 @@ bool GitSourceControlProvider::GetTotalChangelists(const Platform::Path& path, i
 
 	std::string output = "";
 
-	if (!RunGitCommand(arguments, path, &output))
+	if (!RunGitCommand(arguments, m_rootPath, &output))
 	{
-		Log(LogSeverity::Warning, "Failed to execute git command.");
+		Log(LogSeverity::Warning, "Failed to execute git command.\n");
 		return false;
 	}
 
@@ -170,14 +175,97 @@ bool GitSourceControlProvider::GetHistory(const Platform::Path& path, std::vecto
 
 	std::string output = "";
 
-	if (!RunGitCommand(arguments, path, &output))
+	if (!RunGitCommand(arguments, m_rootPath, &output))
 	{
-		Log(LogSeverity::Warning, "Failed to execute git command.");
+		Log(LogSeverity::Warning, "Failed to execute git command.\n");
 		return false;
 	}
 
 	if (!ParseChangelists(output, history))
 	{
+		return false;
+	}
+
+	return true;
+}
+
+bool GitSourceControlProvider::Checkout(const Platform::Path& path)
+{
+	MB_UNUSED_PARAMETER(path);
+
+	// git doesn't have to do anything here.
+
+	return true;
+}
+
+bool GitSourceControlProvider::Commit(const std::vector<Platform::Path>& files, const std::string& commitMessage)
+{
+	std::vector<std::string> arguments;
+
+	arguments.push_back("commit");
+	arguments.push_back("-m");
+	arguments.push_back(Strings::Quoted(commitMessage, true));
+	for (auto& file : files)
+	{
+		arguments.push_back(file.ToString());
+	}
+
+	if (!RunGitCommand(arguments, m_rootPath))
+	{
+		Log(LogSeverity::Warning, "Failed to execute git command.\n");
+		return false;
+	}
+
+	return true;
+}
+
+bool GitSourceControlProvider::Exists(const Platform::Path& path, bool& bExists)
+{
+	std::vector<std::string> arguments;
+
+	arguments.push_back("status");
+	arguments.push_back(path.ToString());
+	arguments.push_back("--porcelain");
+
+	std::string output = "";
+
+	if (!RunGitCommand(arguments, m_rootPath, &output))
+	{
+		Log(LogSeverity::Warning, "Failed to execute git command.\n");
+		return false;
+	}
+
+	bExists = (output.size() != 0);
+	return true;
+}
+
+bool GitSourceControlProvider::Add(const Platform::Path& path)
+{
+	std::vector<std::string> arguments;
+
+	arguments.push_back("add");
+	arguments.push_back(path.ToString());
+
+	if (!RunGitCommand(arguments, m_rootPath))
+	{
+		Log(LogSeverity::Warning, "Failed to execute git command.\n");
+		return false;
+	}
+
+	return true;
+}
+
+bool GitSourceControlProvider::Sync()
+{
+	if (!RunGitCommand({ "pull" }, m_rootPath))
+	{
+		Log(LogSeverity::Warning, "Failed to execute git command.\n");
+		return false;
+	}
+
+	if (!RunGitCommand({ "push" }, m_rootPath))
+	{
+		Log(LogSeverity::Warning, "Failed to execute git command.\n");
 		return false;
 	}
 

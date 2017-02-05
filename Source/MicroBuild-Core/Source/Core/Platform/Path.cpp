@@ -1061,7 +1061,7 @@ std::vector<Path> MatchFilter_r(
 			for (unsigned int i = 0; i < potentialMatches.size(); i++)
 			{
 				PathMatchFragment& frag = potentialMatches[i];
-				if (frag.remaining.empty() && frag.valid/* && !frag.isDirectory*/)
+				if (frag.remaining.empty() && frag.valid/*&& !frag.isDirectory*/)
 				{
 					result.push_back(base.AppendFragment(frag.full, true));
 				}

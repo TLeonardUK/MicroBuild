@@ -150,6 +150,7 @@ bool Make_SolutionFile::Generate(
 		Platform::Path relativeLocation =
 			solutionDirectory.RelativeTo(projectLocation);
 
+		/*
 		std::vector<std::string> dependencyNames;
 		for (std::string dependency : file.Get_Dependencies_Dependency())
 		{
@@ -166,9 +167,11 @@ bool Make_SolutionFile::Generate(
 
 			dependencyNames.push_back(projectDependency->Get_Project_Name());
 		}
+		*/
 
 		stream.WriteLine("");
-		stream.WriteLine("%s: %s", projectName.c_str(), Strings::Join(dependencyNames, " ").c_str());
+		//stream.WriteLine("%s: %s", projectName.c_str(), Strings::Join(dependencyNames, " ").c_str());
+		stream.WriteLine("%s: ", projectName.c_str());
 		stream.WriteLine("ifneq (,$(%s_config))", projectName.c_str());
 		stream.WriteLine("\t@echo \"==== Building %s ($(%s_config)) ====\"", projectName.c_str(), projectName.c_str());
 		stream.WriteLine("\t@${MAKE} --no-print-directory -C %s -f %s config=$(%s_config)", 					

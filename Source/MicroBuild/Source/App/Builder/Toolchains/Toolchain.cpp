@@ -42,6 +42,12 @@ Toolchain::Toolchain(ProjectFile& file, uint64_t configurationHash)
 	MB_UNUSED_PARAMETER(file);
 }
 
+void Toolchain::SetProjectInfo(ProjectFile& file, uint64_t configurationHash)
+{
+	m_configurationHash = configurationHash;
+	m_projectFile = file;
+}
+
 bool Toolchain::IsAvailable()
 {
 	return m_bAvailable;
@@ -432,7 +438,8 @@ bool Toolchain::Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& ou
 	GetArchiveArguments(files, arguments);
 
 	Platform::Process process;
-	if (!process.Open(m_archiverPath, m_archiverPath.GetDirectory(), arguments, true))
+	Platform::Path responseFilePath = outputFile.ManifestPath.AppendFragment(".rsp", false);
+	if (!OpenResponseFileProcess(process, responseFilePath, m_archiverPath, m_archiverPath.GetDirectory(), arguments, true))
 	{
 		return false;
 	}
@@ -582,7 +589,8 @@ bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outpu
 //	}	
 
 	Platform::Process process;
-	if (!process.Open(m_linkerPath, m_linkerPath.GetDirectory(), arguments, true))
+	Platform::Path responseFilePath = outputFile.ManifestPath.AppendFragment(".rsp", false);
+	if (!OpenResponseFileProcess(process, responseFilePath, m_linkerPath, m_linkerPath.GetDirectory(), arguments, true))
 	{
 		return false;
 	}
@@ -610,6 +618,18 @@ bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outpu
 	outputFile.StoreManifest();
 
 	return true;
+}
+
+bool Toolchain::OpenResponseFileProcess(Platform::Process& process, const Platform::Path& responseFilePath, const Platform::Path& exePath, const Platform::Path& workingDir, const std::vector<std::string>& arguments, bool bRedirectStdout)
+{
+	std::string data = Strings::Join(arguments, "\n");
+
+	if (!Strings::WriteFile(responseFilePath, data))
+	{
+		return false;
+	}
+
+	return process.Open(exePath, workingDir, { "@" + responseFilePath.ToString() }, bRedirectStdout);
 }
 
 Platform::Path Toolchain::GetOutputPath()

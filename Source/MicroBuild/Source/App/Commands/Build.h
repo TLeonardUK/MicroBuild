@@ -41,7 +41,8 @@ public:
 		bool bRebuild,
 		bool bBuildDependencies,
 		const std::string& configuration,
-		const std::string& platform);
+		const std::string& platform,
+		bool bBuildPackageFiles);
 
 protected:
 	virtual bool Invoke(CommandLineParser* parser) override;
@@ -59,6 +60,8 @@ private:
 
 	bool m_rebuild;
 	bool m_buildDependencies;
+
+	bool m_buildPackageFiles;
 
 };
 

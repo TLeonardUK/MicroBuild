@@ -120,11 +120,13 @@ bool Steamworks_Packager::Package(
 
 	// Run steamcmd!
 	std::vector<std::string> arguments;
+	arguments.push_back("+set_steam_guard_code");
+	arguments.push_back(projectFile.Get_Steamworks_GuardCode());
 	arguments.push_back("+login");
 	arguments.push_back(projectFile.Get_Steamworks_Username());
 	arguments.push_back(projectFile.Get_Steamworks_Password());
 	arguments.push_back("+run_app_build_http");
-	arguments.push_back("-preview");
+//	arguments.push_back("-preview");
 	arguments.push_back(appVdf.ToString());
 	arguments.push_back("+quit");
 
@@ -189,8 +191,11 @@ bool Steamworks_Packager::GenerateAppVdf(
 	appbuildRoot.Node("desc").Value("%s", projectFile.Get_Steamworks_BuildDescription().c_str());
 	appbuildRoot.Node("buildoutput").Value("%s", scriptsPath.RelativeTo(outputPath).ToString().c_str());
 	appbuildRoot.Node("contentroot").Value("%s", scriptsPath.RelativeTo(contentPath).ToString().c_str());
-	appbuildRoot.Node("setlive").Value("0");
-	appbuildRoot.Node("preview").Value("1");
+
+	if (projectFile.Get_Steamworks_SetLive())
+	{
+		appbuildRoot.Node("setlive").Value("%s", projectFile.Get_Steamworks_Branch().c_str());
+	}
 
 	VdfNode& depotsRoot = appbuildRoot.Node("depots");
 	depotsRoot.Node("%i", projectFile.Get_Steamworks_DepotId()).Value("%s", depotVdfPath.GetFilename().c_str());

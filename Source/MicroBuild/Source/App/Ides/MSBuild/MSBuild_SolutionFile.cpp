@@ -111,6 +111,9 @@ bool MSBuild_SolutionFile::Generate(
 			.Attribute(false, "ProjectDependencies")
 			.Value(false, "postProject");
 
+		MB_UNUSED_PARAMETER(depsNode);
+
+		/*
 		for (std::string dependency : file.Get_Dependencies_Dependency())
 		{
 			ProjectFile* projectDependency = nullptr;
@@ -132,6 +135,7 @@ bool MSBuild_SolutionFile::Generate(
 			depsNode.Single(depGuid.c_str())
 				.Value(false, "%s", depGuid.c_str());
 		}
+		*/
 	}
 
 	for (IdeHelper::ProjectGroupFolder& folder : folders)

@@ -38,6 +38,22 @@ END_OPTION()
 START_OPTION(
 	std::string,
 	Steamworks,
+	Branch,
+	"Steam branch to upload build to."
+)
+END_OPTION()
+
+START_OPTION(
+	bool,
+	Steamworks,
+	SetLive,
+	"If true this build will be uploaded and made live on the previously specified branch."
+)
+END_OPTION()
+
+START_OPTION(
+	std::string,
+	Steamworks,
 	BuildDescription,
 	"Description of build uploaded to steam."
 )
@@ -57,5 +73,13 @@ START_OPTION(
 	Steamworks,
 	Password,
 	"Password for account to upload package builds with."
+)
+END_OPTION()
+
+START_OPTION(
+	std::string,
+	Steamworks,
+	GuardCode,
+	"Code for account if protected by Steam Guard."
 )
 END_OPTION()

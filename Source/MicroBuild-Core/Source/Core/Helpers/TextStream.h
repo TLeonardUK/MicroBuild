@@ -41,6 +41,7 @@ public:
 	void WriteLine(const char* format, ...);
 
 	bool WriteToFile(Platform::Path& path, bool bOnlyWriteIfDifferent = false);
+	bool IsDifferentFromFile(Platform::Path& path);
 
 	std::string ToString();
 

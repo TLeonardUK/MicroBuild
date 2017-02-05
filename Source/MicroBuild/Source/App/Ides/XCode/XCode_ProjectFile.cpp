@@ -1109,6 +1109,8 @@ bool XCode_ProjectFile::Generate(
 	IdeHelper::BuildProjectMatrix& buildMatrix
 )
 {
+	MB_UNUSED_PARAMETER(projectFiles);
+
 	Platform::Path solutionDirectory =
 		workspaceFile.Get_Workspace_Location();
 
@@ -1177,6 +1179,7 @@ bool XCode_ProjectFile::Generate(
     
     // Get dependency list.
     std::vector<ProjectFile*> dependencies;
+	/*
     for (std::string dependency : projectFile.Get_Dependencies_Dependency())
     {
         ProjectFile* projectDependency = nullptr;
@@ -1191,7 +1194,7 @@ bool XCode_ProjectFile::Generate(
         }
         
         dependencies.push_back(projectDependency);
-    }
+    }*/
 
 	// Add header.
 	PlistNode root;

@@ -46,11 +46,27 @@ public:
 	virtual bool GetChangelist(const Platform::Path& path, SourceControlChangelist& changelist) = 0;
 
 	// Queries the path for all changelists that effect it, including sub-paths.
-	virtual bool GetTotalChangelists(const Platform::Path& path, int& totalChangelists) = 0;
+	virtual bool GetTotalChangelists(int& totalChangelists) = 0;
 
 	// Queries the history for a given path. Returns true on success. Offset and Count can be
 	// used to page through the history in chunks.
 	virtual bool GetHistory(const Platform::Path& path, std::vector<SourceControlChangelist>& history, int count, int offset) = 0;
+
+	// Attempts to checkout the given file. File is checked out to the default changelist.
+	virtual bool Checkout(const Platform::Path& path) = 0;
+
+	// Attempts to commit the given list of files with the given commit message.
+	virtual bool Commit(const std::vector<Platform::Path>& files, const std::string& commitMessage) = 0;
+
+	// Attempts to check if the given file exists in source control.
+	virtual bool Exists(const Platform::Path& path, bool& bExists) = 0;
+
+	// Attempts to add the given file to source control.
+	virtual bool Add(const Platform::Path& path) = 0;
+
+	// Attempts to syncronize the local and remote repositories. In git this results in a pull followed
+	// by a push. Fails if there are conflics.
+	virtual bool Sync() = 0;
 
 
 }; 

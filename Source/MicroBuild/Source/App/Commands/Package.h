@@ -34,6 +34,8 @@ public:
 protected:
 	virtual bool Invoke(CommandLineParser* parser) override;
 
+	bool ExecuteCommand(const std::string& command, ProjectFile* projectFile);
+
 private:
 	WorkspaceFile m_workspaceFile;
 	Platform::Path m_workspaceFilePath;
