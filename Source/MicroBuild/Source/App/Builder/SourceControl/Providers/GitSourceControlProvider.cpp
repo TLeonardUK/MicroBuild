@@ -131,7 +131,7 @@ bool GitSourceControlProvider::GetChangelist(const Platform::Path& path, SourceC
 		return false;
 	}	
 
-	if (allChangelists.size() < 0)
+	if (allChangelists.size() == 0)
 	{
 		return false;
 	}
