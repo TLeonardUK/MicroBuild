@@ -1,0 +1,41 @@
+project "MicroBuild-LibRawLite"
+	kind "StaticLib"
+	language "C++"
+	
+	filter "system:windows"
+		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"	 
+	filter "system:linux or system:macos"
+		targetdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"
+	filter {}
+	
+	includedirs
+	{
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source"
+	}
+		
+	files 
+	{ 
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/internal/dcraw_common.cpp",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/internal/dcraw_fileio.cpp",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/internal/demosaic_packs.cpp",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/src/libraw_c_api.cpp",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/src/libraw_cxx.cpp",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/src/libraw_datastream.cpp",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/internal/defines.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/internal/libraw_internal_funcs.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/internal/var_defines.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/libraw/libraw.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/libraw/libraw_alloc.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/libraw/libraw_const.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/libraw/libraw_datastream.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/libraw/libraw_internal.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/libraw/libraw_types.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibRawLite/Source/libraw/libraw_version.h"
+	}
+
+	defines
+	{
+		"LIBRAW_NODLL"
+	}

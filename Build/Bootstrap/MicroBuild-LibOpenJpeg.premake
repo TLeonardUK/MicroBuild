@@ -1,0 +1,72 @@
+project "MicroBuild-LibOpenJpeg"
+	kind "StaticLib"
+	language "C++"
+	
+	filter "system:windows"
+		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"	 
+	filter "system:linux or system:macos"
+		targetdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"
+	filter {}
+	
+	includedirs
+	{
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source"
+	}
+		
+	files 
+	{ 
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/bio.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/cio.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/dwt.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/event.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/function_list.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/image.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/invert.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/j2k.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/jp2.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/mct.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/mqc.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/openjpeg.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/opj_clock.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/pi.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/raw.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/t1.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/t2.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/tcd.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/tgt.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/bio.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/cio.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/dwt.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/event.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/function_list.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/image.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/indexbox_manager.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/invert.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/j2k.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/jp2.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/mct.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/mqc.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/openjpeg.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/opj_clock.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/opj_config.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/opj_config_private.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/opj_includes.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/opj_intmath.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/opj_inttypes.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/opj_malloc.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/opj_stdint.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/pi.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/raw.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/t1.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/t1_luts.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/t2.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/tcd.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibOpenJpeg/Source/tgt.h"
+	}
+
+	defines
+	{
+		"OBJ_STATIC"
+	}

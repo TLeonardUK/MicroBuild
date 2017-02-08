@@ -1,0 +1,72 @@
+project "MicroBuild-LibTiff4"
+	kind "StaticLib"
+	language "C++"
+	
+	filter "system:windows"
+		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"	 
+	filter "system:linux or system:macos"
+		targetdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"
+	filter {}
+	
+	includedirs
+	{
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source",
+		"%{wks.location}/../../../Source/"
+	}
+		
+	files 
+	{ 
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_aux.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_close.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_codec.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_color.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_compress.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_dir.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_dirinfo.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_dirread.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_dirwrite.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_dumpmode.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_error.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_extension.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_fax3.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_fax3sm.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_flush.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_getimage.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_jpeg.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_luv.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_lzma.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_lzw.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_next.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_ojpeg.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_open.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_packbits.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_pixarlog.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_predict.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_print.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_read.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_strip.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_swab.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_thunder.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_tile.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_version.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_warning.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_write.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_zip.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/t4.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_config.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_dir.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_fax3.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tif_predict.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tiff.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tiffconf.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tiffio.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tiffiop.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibTiff4/Source/tiffvers.h"
+	}
+
+	defines
+	{
+		"LIBRAW_NODLL"
+	}

@@ -1,0 +1,68 @@
+project "MicroBuild"
+	kind "ConsoleApp"
+	language "C++"
+	
+	filter "system:windows"
+		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"	 
+	filter "system:linux or system:macos"
+		targetdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"
+	filter {}
+	 
+	dependson
+	{
+		"MicroBuild-ZLib",
+		"MicroBuild-Core",
+		"MicroBuild-Schemas",
+		"MicroBuild-FreeImage",
+		"MicroBuild-LibJpeg",
+		"MicroBuild-LibJxr",
+		"MicroBuild-LibOpenJpeg",
+		"MicroBuild-LibPng",
+		"MicroBuild-LibRawLite",
+		"MicroBuild-LibTiff4",
+		"MicroBuild-LibWebP",
+		"MicroBuild-OpenExr"
+	}
+	includedirs
+	{
+		"%{wks.location}/../../../Source/MicroBuild/Source", 
+		"%{wks.location}/../../../Source/MicroBuild-Schemas/Source", 
+		"%{wks.location}/../../../Source/MicroBuild-Core/Source", 
+		"%{wks.location}/../../../Source/MicroBuild-ZLib/Source", 
+		"%{wks.location}/../../../Source/MicroBuild-FreeImage/Source"
+	}
+		
+	files 
+	{ 
+		"%{wks.location}/../../../Source/MicroBuild/**.h", 
+		"%{wks.location}/../../../Source/MicroBuild/**.hpp", 
+		"%{wks.location}/../../../Source/MicroBuild/**.cpp", 
+		"%{wks.location}/../../../Source/MicroBuild/**.c" 
+	}
+	
+	
+	links
+	{
+		"MicroBuild-ZLib",
+		"MicroBuild-Core",
+		"MicroBuild-Schemas",
+		"MicroBuild-FreeImage",
+		"MicroBuild-LibJpeg",
+		"MicroBuild-LibJxr",
+		"MicroBuild-LibOpenJpeg",
+		"MicroBuild-LibPng",
+		"MicroBuild-LibRawLite",
+		"MicroBuild-LibTiff4",
+		"MicroBuild-LibWebP",
+		"MicroBuild-OpenExr"		
+	}
+	
+	filter "system:windows"
+		links { "Advapi32.lib" }
+		
+	filter "system:linux or system:macos"
+		links { "dl", "pthread" }
+		defines { "_GNU_SOURCE" }
+		

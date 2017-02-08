@@ -1,0 +1,24 @@
+project "MicroBuild-ZLib"
+	kind "StaticLib"
+	language "C++"
+	
+	filter "system:windows"
+		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"	 
+	filter "system:linux or system:macos"
+		targetdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"
+	filter {}
+	
+	includedirs
+	{
+		"%{wks.location}/../../../Source/MicroBuild-ZLib/Source"
+	}
+		
+	files 
+	{ 
+		"%{wks.location}/../../../Source/MicroBuild-ZLib/**.h", 
+		"%{wks.location}/../../../Source/MicroBuild-ZLib/**.hpp", 
+		"%{wks.location}/../../../Source/MicroBuild-ZLib/**.cpp", 
+		"%{wks.location}/../../../Source/MicroBuild-ZLib/**.c" 
+	}

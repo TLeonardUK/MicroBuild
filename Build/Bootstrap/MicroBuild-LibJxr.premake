@@ -1,0 +1,69 @@
+project "MicroBuild-LibJxr"
+	kind "StaticLib"
+	language "C++"
+	
+	filter "system:windows"
+		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"	 
+	filter "system:linux or system:macos"
+		targetdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"
+	filter {}
+	
+	includedirs
+	{
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/common/include",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/jxrgluelib"
+	}
+		
+	files 
+	{ 
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/decode/decode.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/decode/JXRTranscode.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/decode/postprocess.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/decode/segdec.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/decode/strdec.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/decode/strdec_x86.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/decode/strInvTransform.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/decode/strPredQuantDec.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/encode/encode.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/encode/segenc.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/encode/strenc.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/encode/strenc_x86.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/encode/strFwdTransform.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/encode/strPredQuantEnc.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/adapthuff.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/image.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/strcodec.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/strPredQuant.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/strTransform.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/jxrgluelib/JXRGlue.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/jxrgluelib/JXRGlueJxr.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/jxrgluelib/JXRGluePFC.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/jxrgluelib/JXRMeta.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/decode/decode.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/encode/encode.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/ansi.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/common.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/perfTimer.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/strcodec.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/strTransform.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/windowsmediaphoto.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/sys/xplatform_image.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/image/x86/x86.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/common/include/guiddef.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/common/include/wmsal.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/common/include/wmspecstring.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/common/include/wmspecstrings_adt.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/common/include/wmspecstrings_strict.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/common/include/wmspecstrings_undef.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/jxrgluelib/JXRGlue.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJxr/Source/jxrgluelib/JXRMeta.h"
+	}
+
+	defines
+	{
+		"DISABLE_PERF_MEASUREMENT"
+	}
