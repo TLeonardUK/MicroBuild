@@ -1,0 +1,62 @@
+defines { "MB_VERSION=1.1" }
+
+filter "configurations:Debug"
+	defines { "MB_RELEASE_BUILD" }
+	
+filter "configurations:Release"
+	defines { "MB_DEBUG_BUILD" }
+	
+filter "configurations:Shipping"
+	defines { "MB_SHIPPING_BUILD" }
+
+filter "platforms:x32"
+	defines { "MB_ARCHITECTURE_X86" }
+
+filter "platforms:x64"
+	defines { "MB_ARCHITECTURE_X64" }
+
+filter "action:vs*"
+	defines 
+	{ 
+		"WIN32",
+		"_HAS_ITERATOR_DEBUGGING=0", 
+		"_SECURE_SCL=0",
+		"_CRT_SECURE_NO_WARNINGS",
+		"__ANSI__",
+		"_WINDOWS",
+		"WIN32_LEAN_AND_MEAN"
+	}
+	
+filter "kind:StaticLib"
+	defines 
+	{ 
+		"_LIB",
+	}
+
+filter "action:vs*"
+	characterset "MBCS"
+	
+filter {}
+	
+defines { "FREEIMAGE_LIB" }
+defines { "OPJ_STATIC" }
+	
+workspace "MicroBuild"
+	configurations { "Debug", "Release", "Shipping" }
+	platforms { "x32", "x64" }
+	
+	location "ProjectFiles"
+	
+include "MicroBuild.premake"
+include "MicroBuild-Core.premake"
+include "MicroBuild-FreeImage.premake"
+include "MicroBuild-LibJpeg.premake"
+include "MicroBuild-LibJxr.premake"
+include "MicroBuild-LibOpenJpeg.premake"
+include "MicroBuild-LibPng.premake"
+include "MicroBuild-LibRawLite.premake"
+include "MicroBuild-LibTiff4.premake"
+include "MicroBuild-LibWebP.premake"
+include "MicroBuild-OpenExr.premake"
+include "MicroBuild-Schemas.premake"
+include "MicroBuild-ZLib.premake"

@@ -1,0 +1,47 @@
+project "MicroBuild-LibPng"
+	kind "StaticLib"
+	language "C++"
+	
+	filter "system:windows"
+		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"	 
+	filter "system:linux or system:macos"
+		targetdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"
+	filter {}
+	
+	includedirs
+	{
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source",
+		"%{wks.location}/../../../Source/MicroBuild-ZLib/Source",
+	}
+		
+	files 
+	{ 
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/png.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngerror.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngget.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngmem.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngpread.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngread.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngrio.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngrtran.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngrutil.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngset.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngtrans.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngwio.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngwrite.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngwtran.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngwutil.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/png.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngconf.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngdebug.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pnginfo.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pnglibconf.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngpriv.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibPng/Source/pngstruct.h"
+	}
+
+	defines
+	{
+	}

@@ -1,0 +1,26 @@
+project "MicroBuild-Core"
+	kind "StaticLib"
+	language "C++"
+	
+	filter "system:windows"
+		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"	 
+	filter "system:linux or system:macos"
+		targetdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"
+	filter {}
+	
+	includedirs
+	{
+		"%{wks.location}/../../../Source/MicroBuild-Core/Source", 
+		"%{wks.location}/../../../Source/MicroBuild-ZLib/Source", 
+		"%{wks.location}/../../../Source/MicroBuild-FreeImage/Source"
+	}
+		
+	files 
+	{ 
+		"%{wks.location}/../../../Source/MicroBuild-Core/**.h", 
+		"%{wks.location}/../../../Source/MicroBuild-Core/**.hpp", 
+		"%{wks.location}/../../../Source/MicroBuild-Core/**.cpp", 
+		"%{wks.location}/../../../Source/MicroBuild-Core/**.c" 
+	}

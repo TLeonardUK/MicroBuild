@@ -1,0 +1,82 @@
+project "MicroBuild-LibJpeg"
+	kind "StaticLib"
+	language "C++"
+	
+	filter "system:windows"
+		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"	 
+	filter "system:linux or system:macos"
+		targetdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
+		objdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"
+	filter {}
+	
+	includedirs
+	{
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source",
+		"%{wks.location}/../../../Source/MicroBuild-ZLib/Source"
+	}
+		
+	files 
+	{ 
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jaricom.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcapimin.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcapistd.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcarith.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jccoefct.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jccolor.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcdctmgr.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jchuff.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcinit.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcmainct.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcmarker.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcmaster.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcomapi.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcparam.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcprepct.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jcsample.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jctrans.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdapimin.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdapistd.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdarith.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdatadst.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdatasrc.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdcoefct.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdcolor.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jddctmgr.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdhuff.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdinput.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdmainct.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdmarker.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdmaster.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdmerge.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdpostct.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdsample.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdtrans.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jerror.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jfdctflt.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jfdctfst.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jfdctint.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jidctflt.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jidctfst.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jidctint.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jmemmgr.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jmemnobs.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jquant1.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jquant2.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jutils.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/transupp.c",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jconfig.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jdct.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jerror.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jinclude.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jmemsys.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jmorecfg.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jpegint.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jpeglib.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/jversion.h",
+		"%{wks.location}/../../../Source/MicroBuild-LibJpeg/Source/transupp.h"
+	}
+
+	defines
+	{
+	}
