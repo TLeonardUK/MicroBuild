@@ -1,0 +1,6 @@
+Building configurations...
+Running action 'gmake'...
+Done (1103ms).
+==== Building MicroBuild-ZLib (debug_x32) ====
+==== Building MicroBuild-Core (debug_x32) ====
+Command.cpp
