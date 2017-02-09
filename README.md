@@ -6,7 +6,7 @@ Microbuild is a simple, fast, cross platform, build system.
   <img alt="Travis CI"
        src="https://travis-ci.org/TwinDrills/MicroBuild.svg?branch=master"/>
 </a>
-<a href="https://ci.appveyor.com/project/TwinDrills/microbuild">
+<a href="https://ci.appveyor.com/project/TLeonardUK/microbuild">
   <img alt="AppVeyor"
        src="https://ci.appveyor.com/api/projects/status/dufpylwdhvinr7m7?svg=true"/>
 </a>
