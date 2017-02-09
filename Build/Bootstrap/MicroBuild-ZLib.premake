@@ -1,6 +1,6 @@
 project "MicroBuild-ZLib"
 	kind "StaticLib"
-	language "C++"
+	language "C"
 	
 	filter "system:windows"
 		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
@@ -18,7 +18,5 @@ project "MicroBuild-ZLib"
 	files 
 	{ 
 		"%{wks.location}/../../../Source/MicroBuild-ZLib/**.h", 
-		"%{wks.location}/../../../Source/MicroBuild-ZLib/**.hpp", 
-		"%{wks.location}/../../../Source/MicroBuild-ZLib/**.cpp", 
 		"%{wks.location}/../../../Source/MicroBuild-ZLib/**.c" 
 	}

@@ -1,4 +1,6 @@
 defines { "MB_VERSION=1.1" }
+flags { "C++11" }
+linkgroups "On"
 
 filter "configurations:Debug"
 	defines { "MB_RELEASE_BUILD" }
@@ -25,6 +27,12 @@ filter "action:vs*"
 		"__ANSI__",
 		"_WINDOWS",
 		"WIN32_LEAN_AND_MEAN"
+	}
+
+filter "system:linux or system:macos"
+	defines 
+	{ 
+		"__ANSI__" 
 	}
 	
 filter "kind:StaticLib"
