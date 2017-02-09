@@ -12,6 +12,7 @@ branches:
   - master
 compiler:
   - gcc
+dist: trusty
 sudo: required
 install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export CXX="g++-6" CC="gcc-6"; fi
