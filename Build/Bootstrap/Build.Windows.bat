@@ -19,7 +19,7 @@ GOTO ErrorHandler
 :GotVars
 msbuild MicroBuild.sln /t:rebuild /p:Configuration=Release /p:Platform=x64
 if %ERRORLEVEL% NEQ 0 GOTO ErrorHandler
-msbuild MicroBuild.sln /t:rebuild /p:Configuration=Release /p:Platform=x86
+msbuild MicroBuild.sln /t:rebuild /p:Configuration=Release /p:Platform=Win32
 if %ERRORLEVEL% NEQ 0 GOTO ErrorHandler
 
 cd %OriginalDir%

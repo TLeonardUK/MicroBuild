@@ -24,7 +24,6 @@ filter "action:vs*"
 		"_HAS_ITERATOR_DEBUGGING=0", 
 		"_SECURE_SCL=0",
 		"_CRT_SECURE_NO_WARNINGS",
-		"__ANSI__",
 		"_WINDOWS",
 		"WIN32_LEAN_AND_MEAN"
 	}
