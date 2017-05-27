@@ -190,6 +190,7 @@ bool Toolchain_Microsoft::FindV141Toolchain()
 
 	vcInstallPath = vcInstallPath.AppendFragment(vcVersions[vcVersions.size() - 1], true);
 
+/*
 #if defined(MB_ARCHITECTURE_X64)
 	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Wow6432Node/Microsoft/Windows Kits/Installed Roots", "KitsRoot81", windowsKitsRoot81Path))
 #else
@@ -198,6 +199,7 @@ bool Toolchain_Microsoft::FindV141Toolchain()
 	{
 		return false;
 	}
+*/
 
 #if defined(MB_ARCHITECTURE_X64)
 	if (!Platform::Registry::GetValue<Platform::Path>(Platform::ERegistryHive::LocalMachine, "Software/Wow6432Node/Microsoft/Windows Kits/Installed Roots", "KitsRoot10", windowsKitsRoot10Path))
@@ -217,11 +219,19 @@ bool Toolchain_Microsoft::FindV141Toolchain()
 	std::sort(availableWindows10Kits.begin(), availableWindows10Kits.end()); // Sort alphabetically so last is most recent.
 	std::string latestWindows10KitVersion = availableWindows10Kits[availableWindows10Kits.size() - 1];
 
+	Platform::Path windows10KitIncludePath = windowsKitsRoot10Path.AppendFragment(Strings::Format("Include/%s", latestWindows10KitVersion.c_str()), true);
+	Platform::Path windows10KitBinaryPath = windowsKitsRoot10Path.AppendFragment(Strings::Format("bin/%s", latestWindows10KitVersion.c_str()), true);
+	Platform::Path windows10KitLibraryPath = windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s", latestWindows10KitVersion.c_str()), true);
+
 	m_standardIncludePaths.push_back(vcInstallPath.AppendFragment("include", true));
-	m_standardIncludePaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Include/%s/ucrt", latestWindows10KitVersion.c_str()), true));
-	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/um", true));
-	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/shared", true));
-	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/winrt", true));
+	m_standardIncludePaths.push_back(windows10KitIncludePath.AppendFragment("ucrt", true));
+	m_standardIncludePaths.push_back(windows10KitIncludePath.AppendFragment("um", true));
+	m_standardIncludePaths.push_back(windows10KitIncludePath.AppendFragment("shared", true));
+	m_standardIncludePaths.push_back(windows10KitIncludePath.AppendFragment("winrt", true));
+
+//	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/um", true));
+//	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/shared", true));
+//	m_standardIncludePaths.push_back(windowsKitsRoot81Path.AppendFragment("Include/winrt", true));
 
 	switch (m_projectFile.Get_Target_Platform())
 	{
@@ -238,8 +248,13 @@ bool Toolchain_Microsoft::FindV141Toolchain()
 			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvarsx86_amd64.bat", true);
 		}
 		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/x64", true));
-		m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x64", latestWindows10KitVersion.c_str()), true));
-		m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/x64", true));
+
+		//m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x64", latestWindows10KitVersion.c_str()), true));
+		//m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/x64", true));
+
+		m_standardLibraryPaths.push_back(windows10KitLibraryPath.AppendFragment("ucrt/x64", true));
+		m_standardLibraryPaths.push_back(windows10KitLibraryPath.AppendFragment("um/x64", true));
+
 		break;
 	}
 	case EPlatform::x86:
@@ -247,16 +262,21 @@ bool Toolchain_Microsoft::FindV141Toolchain()
 		if (Platform::IsOperatingSystem64Bit())
 		{
 			toolchainPath = vcInstallPath.AppendFragment("bin/HostX64/x86", true);
-			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvars64.bat", true);
+			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvarsamd64_x86.bat", true);
 		}
 		else
 		{
 			toolchainPath = vcInstallPath.AppendFragment("bin/HostX86/x86", true);
-			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvarsx86_amd64.bat", true);
+			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvars32.bat", true);
 		}
 		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/x86", true));
-		m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x86", latestWindows10KitVersion.c_str()), true));
-		m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/x86", true));
+		
+		//m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/x86", latestWindows10KitVersion.c_str()), true));
+		//m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/x86", true));
+
+		m_standardLibraryPaths.push_back(windows10KitLibraryPath.AppendFragment("ucrt/x86", true));
+		m_standardLibraryPaths.push_back(windows10KitLibraryPath.AppendFragment("um/x86", true));
+
 		break;
 	}
 	case EPlatform::ARM:
@@ -265,16 +285,21 @@ bool Toolchain_Microsoft::FindV141Toolchain()
 		if (Platform::IsOperatingSystem64Bit())
 		{
 			toolchainPath = vcInstallPath.AppendFragment("bin/HostX64/arm", true);
-			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvars64.bat", true);
+			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvarsx86_amd64.bat", true);
 		}
 		else
 		{
 			toolchainPath = vcInstallPath.AppendFragment("bin/HostX86/arm", true);
-			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvarsx86_amd64.bat", true);
+			m_envVarBatchFilePath = vsInstallPath.AppendFragment("VC/Auxiliary/Build/vcvars64.bat", true);
 		}
 		m_standardLibraryPaths.push_back(vcInstallPath.AppendFragment("lib/arm", true));
-		m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/arm", latestWindows10KitVersion.c_str()), true));
-		m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/arm", true));
+
+		//m_standardLibraryPaths.push_back(windowsKitsRoot10Path.AppendFragment(Strings::Format("Lib/%s/ucrt/arm", latestWindows10KitVersion.c_str()), true));
+		//m_standardLibraryPaths.push_back(windowsKitsRoot81Path.AppendFragment("lib/winv6.3/um/arm", true));
+
+		m_standardLibraryPaths.push_back(windows10KitLibraryPath.AppendFragment("ucrt/arm", true));
+		m_standardLibraryPaths.push_back(windows10KitLibraryPath.AppendFragment("um/arm", true));
+
 		break;
 	}
 	default:
@@ -290,11 +315,13 @@ bool Toolchain_Microsoft::FindV141Toolchain()
 
 	if (Platform::IsOperatingSystem64Bit())
 	{
-		m_resourceCompilerPath = windowsKitsRoot81Path.AppendFragment("/bin/x64/rc.exe", true);
+		m_resourceCompilerPath = windows10KitBinaryPath.AppendFragment("x64/rc.exe", true);
+		//m_resourceCompilerPath = windowsKitsRoot81Path.AppendFragment("/bin/x64/rc.exe", true);
 	}
 	else
 	{
-		m_resourceCompilerPath = windowsKitsRoot81Path.AppendFragment("/bin/x86/rc.exe", true);
+		m_resourceCompilerPath = windows10KitBinaryPath.AppendFragment("x86/rc.exe", true);
+		//m_resourceCompilerPath = windowsKitsRoot81Path.AppendFragment("/bin/x86/rc.exe", true);
 	}
 
 	m_version = "Toolset v141";

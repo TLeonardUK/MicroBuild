@@ -1,8 +1,7 @@
 os: Visual Studio 2017
 
 platform:
-  - Windows (32 Bit)
-  - Windows (64 Bit)
+  - x86/x64
 
 configuration:
   - Shipping
@@ -12,30 +11,28 @@ before_build:
   # so lets just get rid of them
   # http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
   - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
-  - cd Build
-  - cd Automation
-  - cd Windows
-  - GenerateBootstrap.bat
-  - cd ..
-  - cd ..
-  - cd ..
 
 build:
-  project: Build\ProjectFiles\MicroBuild.sln
-  verbosity: minimal
+  # Implemented in script mode in UI.
+
+after_build:
+  - 7z a MicroBuild-x64-v$(appveyor_build_version).zip Binaries\Windows\Shipping_x64\*
+  - 7z a MicroBuild-x86-v$(appveyor_build_version).zip Binaries\Windows\Shipping_x86\*
+
+artifacts:
+  - path: MicroBuild-x64-v$(appveyor_build_version).zip
+    name: MicroBuild (64 Bit)
+  - path: MicroBuild-x86-v$(appveyor_build_version).zip
+    name: MicroBuild (32 Bit)
   
-on_success: 
-  - git config --global user.email "buildserver@programmingbytim.com"
-  - git config --global user.name "Build Server"
-  - cd Build
-  - cd Automation
-  - cd Windows
-  - ps: if ($env:PLATFORM -eq "Windows (64 Bit)") { ./GitAddArtifacts_x64.bat }
-  - ps: if ($env:PLATFORM -eq "Windows (32 Bit)") { ./GitAddArtifacts_x86.bat }
-  - cd ..
-  - cd ..
-  - cd ..
-  - git checkout %APPVEYOR_REPO_BRANCH%
-  - git pull --no-edit --no-commit
-  - git commit -m "[ci skip] Automated Build (Appveyor build %APPVEYOR_BUILD_NUMBER%)."
-  - git push "https://TLeonardUK:%GITHUB_TOKEN%@github.com/TwinDrills/MicroBuild.git" --all --quiet
+deploy:
+  release: MicroBuild-v$(appveyor_build_version)
+  description: "Build release"
+  provider: GitHub
+  draft: false
+  prerelease: false
+  artifact: /*\.zip/
+  on:
+    branch: master
+    appveyor_repo_tag: true
+    
