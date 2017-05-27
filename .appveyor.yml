@@ -11,19 +11,22 @@ before_build:
   # so lets just get rid of them
   # http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
   - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
+  - 7z a MicroBuild-Windows-Source-v$(appveyor_build_version).zip .\*
 
 build:
   # Implemented in script mode in UI.
 
 after_build:
-  - 7z a MicroBuild-x64-v$(appveyor_build_version).zip Binaries\Windows\Shipping_x64\*
-  - 7z a MicroBuild-x86-v$(appveyor_build_version).zip Binaries\Windows\Shipping_x86\*
+  - 7z a MicroBuild-Windows-x64-v$(appveyor_build_version).zip Binaries\Windows\Shipping_x64\*
+  - 7z a MicroBuild-Windows-x86-v$(appveyor_build_version).zip Binaries\Windows\Shipping_x86\*
 
 artifacts:
-  - path: MicroBuild-x64-v$(appveyor_build_version).zip
-    name: MicroBuild (64 Bit)
-  - path: MicroBuild-x86-v$(appveyor_build_version).zip
-    name: MicroBuild (32 Bit)
+  - path: MicroBuild-Windows-x64-v$(appveyor_build_version).zip
+    name: MicroBuild Windows (64 Bit)
+  - path: MicroBuild-Windows-x86-v$(appveyor_build_version).zip
+    name: MicroBuild Windows (32 Bit)
+  - path: MicroBuild-Windows-Source-v$(appveyor_build_version).zip
+    name: MicroBuild Windows (Source Code)
   
 deploy:
   release: MicroBuild-v$(appveyor_build_version)
