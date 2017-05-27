@@ -24,6 +24,7 @@ addons:
     - gcc-6-multilib
     - g++-6-multilib	
     - linux-libc-dev
+    - p7zip-full
 script: 
   - cd ./Build/
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Build.Linux.sh; fi
