@@ -7,7 +7,7 @@ branches:
   only:
   - master
 git:
-  depth: 1
+  depth: 50000
 compiler:
   - gcc
 dist: trusty
