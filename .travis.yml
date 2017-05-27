@@ -31,24 +31,24 @@ script:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Build.MacOS.sh; fi
   - cd ./../
 before_script:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a MicroBuild-Linux-Source-v$(TRAVIS_BUILD_NUMBER).zip .\Build\* .\Docs\* .\Plugins\* .\Source\* .\Tests\* .\LICENSE.md .\README.md; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a MicroBuild-MacOS-Source-v$(TRAVIS_BUILD_NUMBER).zip .\Build\* .\Docs\* .\Plugins\* .\Source\* .\Tests\* .\LICENSE.md .\README.md; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a MicroBuild-Linux-Source-v$TRAVIS_BUILD_NUMBER.zip .\Build\* .\Docs\* .\Plugins\* .\Source\* .\Tests\* .\LICENSE.md .\README.md; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a MicroBuild-MacOS-Source-v$TRAVIS_BUILD_NUMBER.zip .\Build\* .\Docs\* .\Plugins\* .\Source\* .\Tests\* .\LICENSE.md .\README.md; fi
 after_success: 
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a MicroBuild-Linux-x64-v$(TRAVIS_BUILD_NUMBER).zip Binaries\Linux\Shipping_x64\*; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a MicroBuild-Linux-x86-v$(TRAVIS_BUILD_NUMBER).zip Binaries\Linux\Shipping_x86\*; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a MicroBuild-MacOS-x64-v$(TRAVIS_BUILD_NUMBER).zip Binaries\MacOS\Shipping_x64\*; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a MicroBuild-MacOS-x86-v$(TRAVIS_BUILD_NUMBER).zip Binaries\MacOS\Shipping_x86\*; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a MicroBuild-Linux-x64-v$TRAVIS_BUILD_NUMBER.zip Binaries\Linux\Shipping_x64\*; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a MicroBuild-Linux-x86-v$TRAVIS_BUILD_NUMBER.zip Binaries\Linux\Shipping_x86\*; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a MicroBuild-MacOS-x64-v$TRAVIS_BUILD_NUMBER.zip Binaries\MacOS\Shipping_x64\*; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a MicroBuild-MacOS-x86-v$TRAVIS_BUILD_NUMBER.zip Binaries\MacOS\Shipping_x86\*; fi
 deploy:
   provider: releases
   api_key: 
     secure: $GITHUB_TOKEN
   file: 
-    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then MicroBuild-Linux-x64-v$(TRAVIS_BUILD_NUMBER).zip; fi
-    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then MicroBuild-Linux-x86-v$(TRAVIS_BUILD_NUMBER).zip; fi
-    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then MicroBuild-Linux-Source-v$(TRAVIS_BUILD_NUMBER).zip; fi
-    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then MicroBuild-MacOS-x64-v$(TRAVIS_BUILD_NUMBER).zip; fi
-    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then MicroBuild-MacOS-x86-v$(TRAVIS_BUILD_NUMBER).zip; fi
-    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then MicroBuild-MacOS-Source-v$(TRAVIS_BUILD_NUMBER).zip; fi
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then MicroBuild-Linux-x64-v$TRAVIS_BUILD_NUMBER.zip; fi
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then MicroBuild-Linux-x86-v$TRAVIS_BUILD_NUMBER.zip; fi
+    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then MicroBuild-Linux-Source-v$TRAVIS_BUILD_NUMBER.zip; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then MicroBuild-MacOS-x64-v$TRAVIS_BUILD_NUMBER.zip; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then MicroBuild-MacOS-x86-v$TRAVIS_BUILD_NUMBER.zip; fi
+    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then MicroBuild-MacOS-Source-v$TRAVIS_BUILD_NUMBER.zip; fi
   skip_cleanup: true
   on:
     tags: true
