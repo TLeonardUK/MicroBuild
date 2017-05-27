@@ -31,8 +31,8 @@ script:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./Build.MacOS.sh; fi
   - cd ./../
 before_script:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a -bb3 -tzip -r MicroBuild-Linux-Source-v$TRAVIS_BUILD_NUMBER.zip .\Build\* .\Docs\* .\Plugins\* .\Source\* .\Tests\* .\LICENSE.md .\README.md; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a -bb3 -tzip -r MicroBuild-MacOS-Source-v$TRAVIS_BUILD_NUMBER.zip .\Build\* .\Docs\* .\Plugins\* .\Source\* .\Tests\* .\LICENSE.md .\README.md; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a -bb3 -tzip -r MicroBuild-Linux-Source-v$TRAVIS_BUILD_NUMBER.zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a -bb3 -tzip -r MicroBuild-MacOS-Source-v$TRAVIS_BUILD_NUMBER.zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md; fi
 after_success: 
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a -bb3 -tzip -r MicroBuild-Linux-x64-v$TRAVIS_BUILD_NUMBER.zip Binaries\Linux\Shipping_x64\*; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a -bb3 -tzip -r MicroBuild-Linux-x86-v$TRAVIS_BUILD_NUMBER.zip Binaries\Linux\Shipping_x86\*; fi
