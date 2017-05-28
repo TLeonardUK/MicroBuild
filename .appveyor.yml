@@ -7,7 +7,7 @@ configuration:
   - Shipping
   
 install:
-  - "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat"
+  - 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat'
 
 before_build:
   # Xamarin targets spam up the log with a bunch of verbose messages, we don't care about these for MicroBuild,
@@ -15,6 +15,8 @@ before_build:
   # http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
   - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
   - 7z a -bb3 -tzip -r MicroBuild-Windows-Source-v$(appveyor_build_version).zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md
+
+build_script:  
   - cd ./Build
   - ./Build.Windows.bat
   - cd ..
