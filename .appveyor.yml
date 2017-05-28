@@ -7,7 +7,7 @@ configuration:
   - Shipping
 
 environment:
-  MB_BUILD_VERSION: %APPVEYOR_REPO_TAG_NAME%
+  MB_BUILD_VERSION: $(APPVEYOR_REPO_TAG_NAME)
   
 install:
   - cmd: "CALL \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat\""
@@ -29,16 +29,16 @@ after_build:
   - 7z a -bb3 -tzip -r MicroBuild-Windows-x86-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x86\*
 
 artifacts:
-  - path: MicroBuild-Windows-x64-%MB_BUILD_VERSION%.zip
+  - path: MicroBuild-Windows-x64-$(MB_BUILD_VERSION).zip
     name: MicroBuild Windows (64 Bit)
-  - path: MicroBuild-Windows-x86-%MB_BUILD_VERSION%.zip
+  - path: MicroBuild-Windows-x86-$(MB_BUILD_VERSION).zip
     name: MicroBuild Windows (32 Bit)
-  - path: MicroBuild-Windows-Source-%MB_BUILD_VERSION%.zip
+  - path: MicroBuild-Windows-Source-$(MB_BUILD_VERSION).zip
     name: MicroBuild Windows (Source Code)
   
 deploy:
-  release: MicroBuild-%MB_BUILD_VERSION%
-  description: "MicroBuild Version %MB_BUILD_VERSION% (Windows Release)"
+  release: MicroBuild-$(MB_BUILD_VERSION)
+  description: "MicroBuild Version $(MB_BUILD_VERSION) (Windows Release)"
   provider: GitHub
   draft: false
   prerelease: false
