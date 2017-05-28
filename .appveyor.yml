@@ -7,7 +7,7 @@ configuration:
   - Shipping
 
 environment:
-  MB_BUILD_VERSION: $(APPVEYOR_REPO_TAG_NAME)
+  MB_BUILD_VERSION: %APPVEYOR_REPO_TAG_NAME%
   
 install:
   - cmd: "CALL \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat\""
@@ -17,7 +17,7 @@ before_build:
   # so lets just get rid of them
   # http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
   - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
-  - 7z a -bb3 -tzip -r MicroBuild-Windows-Source-v$(APPVEYOR_REPO_TAG_NAME).zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md
+  - 7z a -bb3 -tzip -r MicroBuild-Windows-Source-%MB_BUILD_VERSION%.zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md
 
 build_script:  
   - cd ./Build
@@ -25,20 +25,20 @@ build_script:
   - cd ..
   
 after_build:
-  - 7z a -bb3 -tzip -r MicroBuild-Windows-x64-v$(APPVEYOR_REPO_TAG_NAME).zip Binaries\Windows\Shipping_x64\*
-  - 7z a -bb3 -tzip -r MicroBuild-Windows-x86-v$(APPVEYOR_REPO_TAG_NAME).zip Binaries\Windows\Shipping_x86\*
+  - 7z a -bb3 -tzip -r MicroBuild-Windows-x64-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x64\*
+  - 7z a -bb3 -tzip -r MicroBuild-Windows-x86-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x86\*
 
 artifacts:
-  - path: MicroBuild-Windows-x64-v$(APPVEYOR_REPO_TAG_NAME).zip
+  - path: MicroBuild-Windows-x64-%MB_BUILD_VERSION%.zip
     name: MicroBuild Windows (64 Bit)
-  - path: MicroBuild-Windows-x86-v$(APPVEYOR_REPO_TAG_NAME).zip
+  - path: MicroBuild-Windows-x86-%MB_BUILD_VERSION%.zip
     name: MicroBuild Windows (32 Bit)
-  - path: MicroBuild-Windows-Source-v$(APPVEYOR_REPO_TAG_NAME).zip
+  - path: MicroBuild-Windows-Source-%MB_BUILD_VERSION%.zip
     name: MicroBuild Windows (Source Code)
   
 deploy:
-  release: MicroBuild-v$(APPVEYOR_REPO_TAG_NAME)
-  description: "Build release"
+  release: MicroBuild-%MB_BUILD_VERSION%
+  description: "MicroBuild Version %MB_BUILD_VERSION% (Windows Release)"
   provider: GitHub
   draft: false
   prerelease: false
