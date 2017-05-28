@@ -7,7 +7,7 @@ configuration:
   - Shipping
   
 install:
-- "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat"
+  - "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat"
 
 before_build:
   # Xamarin targets spam up the log with a bunch of verbose messages, we don't care about these for MicroBuild,
