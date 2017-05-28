@@ -49,11 +49,11 @@ REM Build the project files directly using msbuild.
 REM ------------------------------------------------------------------------------
 :BuildProjectFiles
 echo Building x64 bootstrap binary ...
-CALL msbuild MicroBuild.sln /t:rebuild /p:Configuration=Shipping /p:Platform=x64
+CALL msbuild MicroBuild.sln /m:4 /t:rebuild /p:Configuration=Shipping /p:Platform=x64
 if %ERRORLEVEL% NEQ 0 GOTO MSBuildErrorHandler
 
 echo Building x86 bootstrap binary ...
-CALL msbuild MicroBuild.sln /t:rebuild /p:Configuration=Shipping /p:Platform=Win32
+CALL msbuild MicroBuild.sln /m:4 /t:rebuild /p:Configuration=Shipping /p:Platform=Win32
 if %ERRORLEVEL% NEQ 0 GOTO MSBuildErrorHandler
 
 REM ------------------------------------------------------------------------------
