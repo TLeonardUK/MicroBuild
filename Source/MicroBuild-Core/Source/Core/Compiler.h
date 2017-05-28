@@ -94,3 +94,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Used to explicitly mark parameters as unused so they don't cause warnings.
 #define MB_UNUSED_PARAMETER(x) (void)x;
+
+// Version numbering for microbuild.
+#ifndef MB_VERSION
+#define MB_VERSION 0.0
+#endif

@@ -6,6 +6,9 @@ REM ----------------------------------------------------------------------------
 set BuildDir=%CD%
 set BinariesDir=%BuildDir%\..\Binaries
 set BootstrapDir=%BuildDir%\Bootstrap
+set VersionNumber=%MB_BUILD_VERSION%
+
+IF "%VersionNumber%"=="" set VersionNumber="0.0"
 
 REM ------------------------------------------------------------------------------
 REM Generate a bootstrap executable which we will use to build our main binary.
@@ -27,11 +30,11 @@ REM ----------------------------------------------------------------------------
 REM Call the bootstrap to build our final binary.
 REM ------------------------------------------------------------------------------
 echo Building x64 binary ...
-CALL %BootstrapDir%\ProjectFiles\MicroBuild\Shipping_x64\bin\MicroBuild.exe Build Config\Workspace.ini MicroBuild -c=Shipping -p=x64 --silent
+CALL %BootstrapDir%\ProjectFiles\MicroBuild\Shipping_x64\bin\MicroBuild.exe Build Config\Workspace.ini MicroBuild -c=Shipping -p=x64 --set=MB_VERSION=%VersionNumber% --silent
 if %ERRORLEVEL% NEQ 0 GOTO ErrorHandler
 
 echo Building x86 binary ...
-CALL %BootstrapDir%\ProjectFiles\MicroBuild\Shipping_x32\bin\MicroBuild.exe Build Config\Workspace.ini MicroBuild -c=Shipping -p=x86 --silent
+CALL %BootstrapDir%\ProjectFiles\MicroBuild\Shipping_x32\bin\MicroBuild.exe Build Config\Workspace.ini MicroBuild -c=Shipping -p=x86 --set=MB_VERSION=%VersionNumber% --silent
 if %ERRORLEVEL% NEQ 0 GOTO ErrorHandler
 
 REM ------------------------------------------------------------------------------
