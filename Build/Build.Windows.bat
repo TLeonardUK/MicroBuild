@@ -37,7 +37,7 @@ if %ERRORLEVEL% NEQ 0 GOTO ErrorHandler
 REM ------------------------------------------------------------------------------
 REM Error handling / Exiting.
 REM ------------------------------------------------------------------------------
-exit /B 1
+exit /B 0
 goto Finished
 
 :ErrorHandler
