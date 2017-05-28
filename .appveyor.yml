@@ -7,7 +7,7 @@ configuration:
   - Shipping
 
 environment:
-  MB_BUILD_VERSION: $(APPVEYOR_REPO_TAG_NAME)
+  MB_BUILD_VERSION: '%APPVEYOR_REPO_TAG_NAME%'
   
 install:
   - cmd: "CALL \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat\""
