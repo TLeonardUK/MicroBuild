@@ -37,9 +37,9 @@ deploy:
   auth_token:
     secure: tYqB8BBM1Na+XEZm115VA8DZe1SQt3btU/AsTfAutYyCQ+p3MYY3f4u+c0AvmP6X
   draft: false
-  prerelease: false
+  prerelease: true
   artifact: /*\.zip/
   on:
-    branch: master
+    tags: true
     appveyor_repo_tag: true
     
