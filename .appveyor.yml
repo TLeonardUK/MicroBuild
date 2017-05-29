@@ -19,20 +19,20 @@ before_build:
 
 build_script:  
   - cd ./Build
-  #- ./Build.Windows.bat
+  - ./Build.Windows.bat
   - cd ..
   
 after_build:
-  #- 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x64\*
-  #- 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x86\*
+  - 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x64\*
+  - 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x86\*
 
 artifacts:
   - path: MicroBuild-Windows-$(MB_BUILD_VERSION).zip
     name: MicroBuild Windows 
   
 deploy:
-  release: MicroBuild-$(MB_BUILD_VERSION)
-  description: "MicroBuild Version $(MB_BUILD_VERSION) (Windows Release)"
+  release: MicroBuild $(MB_BUILD_VERSION) (Windows Release) 
+  description: "Windows release of MicroBuild version $(MB_BUILD_VERSION)."
   provider: GitHub
   auth_token:
     secure: tYqB8BBM1Na+XEZm115VA8DZe1SQt3btU/AsTfAutYyCQ+p3MYY3f4u+c0AvmP6X
