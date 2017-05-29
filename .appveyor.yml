@@ -6,9 +6,6 @@ platform:
 configuration:
   - Shipping
 
-environment:
-  MB_BUILD_VERSION: '%APPVEYOR_REPO_TAG_NAME%'
-  
 install:
   - cmd: "CALL \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\Common7\\Tools\\VsDevCmd.bat\""
 
@@ -16,7 +13,12 @@ before_build:
   # Xamarin targets spam up the log with a bunch of verbose messages, we don't care about these for MicroBuild,
   # so lets just get rid of them
   # http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
-  - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"
+  - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"  
+  - if [%APPVEYOR_REPO_TAG%]==[false] (
+      set MB_BUILD_VERSION=99.99
+    ) else (
+      set MB_BUILD_VERSION=%APPVEYOR_REPO_TAG_NAME%
+    )    
   - set
   - 7z a -bb3 -tzip -r MicroBuild-Windows-Source-%MB_BUILD_VERSION%.zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md
 
