@@ -18,9 +18,9 @@ before_build:
   - 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md
 
 build_script:  
-  #- cd ./Build
+  - cd ./Build
   #- ./Build.Windows.bat
-  #- cd ..
+  - cd ..
   
 after_build:
   #- 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x64\*
