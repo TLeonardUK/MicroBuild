@@ -4,12 +4,12 @@
 # Builds a MicroBuild binary for windows.
 # ------------------------------------------------------------------------------
 
-set BuildDir="$(pwd)"
-set BinariesDir=$BuildDir/../Binaries
-set BootstrapDir=$BuildDir/Bootstrap
-set VersionNumber=$MB_BUILD_VERSION
+BuildDir="$(pwd)"
+BinariesDir=$BuildDir/../Binaries
+BootstrapDir=$BuildDir/Bootstrap
+VersionNumber=$MB_BUILD_VERSION
 
-if [ "$VersionNumber" == "" ]; then set VersionNumber="99.99"; fi
+if [ "$VersionNumber" == "" ]; then VersionNumber="99.99"; fi
 
 # ------------------------------------------------------------------------------
 # Generate a bootstrap executable which we will use to build our main binary.
@@ -44,7 +44,7 @@ if [ $? -neq 0 ]; then ErrorHandler; fi
 exit 0
 
 function ErrorHandler {
-	echo Failed to build MicroBuild. Build command finished with exit code %ERRORLEVEL%, aborting ...
+	echo Failed to build MicroBuild. Build command finished with failure exit code, aborting ...
 	cd $BuildDir
 	exit 1
 }
