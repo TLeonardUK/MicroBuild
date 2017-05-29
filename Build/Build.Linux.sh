@@ -1,3 +1,5 @@
+#!/bin/bash 
+
 # ------------------------------------------------------------------------------
 # Builds a MicroBuild binary for windows.
 # ------------------------------------------------------------------------------
@@ -8,6 +10,11 @@ set BootstrapDir=$BuildDir/Bootstrap
 set VersionNumber=$MB_BUILD_VERSION
 
 if [ "$VersionNumber" == "" ]; then set VersionNumber="99.99"; fi
+
+echo BuildDir $BuildDir
+echo BinariesDir: $BinariesDir
+echo BootstrapDir: $BootstrapDir
+echo VersionNumber: $VersionNumber
 
 # ------------------------------------------------------------------------------
 # Generate a bootstrap executable which we will use to build our main binary.
@@ -22,7 +29,7 @@ cd $BuildDir
 # Call the bootstrap to build our project files.
 # ------------------------------------------------------------------------------
 echo Building binary project files ...
-$BootstrapDir/ProjectFiles/MicroBuild/Shipping_x64/bin/MicroBuild Generate vs2017 Config/Workspace.ini 
+$BootstrapDir/ProjectFiles/MicroBuild/Shipping_x64/bin/MicroBuild Generate make Config/Workspace.ini 
 if [ $? -neq 0 ]; then ErrorHandler; fi
 
 # ------------------------------------------------------------------------------
