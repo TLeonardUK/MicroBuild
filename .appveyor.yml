@@ -18,13 +18,13 @@ before_build:
   - 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md
 
 build_script:  
-  - cd ./Build
-  - ./Build.Windows.bat
-  - cd ..
+  #- cd ./Build
+  #- ./Build.Windows.bat
+  #- cd ..
   
 after_build:
-  - 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x64\*
-  - 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x86\*
+  #- 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x64\*
+  #- 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x86\*
 
 artifacts:
   - path: MicroBuild-Windows-$(MB_BUILD_VERSION).zip
