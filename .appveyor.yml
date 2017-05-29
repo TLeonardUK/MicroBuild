@@ -38,7 +38,7 @@ deploy:
     secure: tYqB8BBM1Na+XEZm115VA8DZe1SQt3btU/AsTfAutYyCQ+p3MYY3f4u+c0AvmP6X
   draft: false
   prerelease: true
-  artifact: /*\.zip/
+  artifact: MicroBuild-Windows-$(MB_BUILD_VERSION).zip
   on:
     appveyor_repo_tag: true
     
