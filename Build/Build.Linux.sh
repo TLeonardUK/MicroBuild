@@ -17,7 +17,7 @@ if [ "$VersionNumber" == "" ]; then VersionNumber="99.99"; fi
 echo Building bootstrap ...
 cd $BootstrapDir
 ./Build.Linux.sh
-if [ $? -neq 0 ]; then ErrorHandler; fi
+if [ $? -ne 0 ]; then ErrorHandler; fi
 cd $BuildDir
 
 # ------------------------------------------------------------------------------
@@ -25,18 +25,18 @@ cd $BuildDir
 # ------------------------------------------------------------------------------
 echo Building binary project files ...
 $BootstrapDir/ProjectFiles/MicroBuild/Shipping_x64/bin/MicroBuild Generate make Config/Workspace.ini 
-if [ $? -neq 0 ]; then ErrorHandler; fi
+if [ $? -ne 0 ]; then ErrorHandler; fi
 
 # ------------------------------------------------------------------------------
 # Call the bootstrap to build our final binary.
 # ------------------------------------------------------------------------------
 echo Building x64 binary ...
 $BootstrapDir/ProjectFiles/MicroBuild/Shipping_x64/bin/MicroBuild Build Config/Workspace.ini MicroBuild -c=Shipping -p=x64 --set=MB_VERSION=$VersionNumber --silent
-if [ $? -neq 0 ]; then ErrorHandler; fi
+if [ $? -ne 0 ]; then ErrorHandler; fi
 
 echo Building x86 binary ...
 $BootstrapDir/ProjectFiles/MicroBuild/Shipping_x32/bin/MicroBuild Build Config/Workspace.ini MicroBuild -c=Shipping -p=x86 --set=MB_VERSION=$VersionNumber --silent
-if [ $? -neq 0 ]; then ErrorHandler; fi
+if [ $? -ne 0 ]; then ErrorHandler; fi
 
 # ------------------------------------------------------------------------------
 # Error handling / Exiting.

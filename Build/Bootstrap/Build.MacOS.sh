@@ -15,18 +15,18 @@ echo Generating bootstrap project files ...
 mkdir $ProjectFilesDir
 cd $ProjectFilesDir
 $PremakeDir/premake5.macos gmake --file=../Workspace.premake 
-if [ $? -neq 0 ]; then MakeErrorHandler; fi
+if [ $? -ne 0 ]; then MakeErrorHandler; fi
 
 # ------------------------------------------------------------------------------
 # Build the project files directly using msbuild.
 # ------------------------------------------------------------------------------
 echo Building x64 bootstrap binary ...
-make config=shipping_x64 --file=Makefile
-if [ $? -neq 0 ]; then MakeErrorHandler; fi
+make rebuild config=shipping_x64 --file=Makefile
+if [ $? -ne 0 ]; then MakeErrorHandler; fi
 
 echo Building x86 bootstrap binary ...
-make config=shipping_x86 --file=Makefile
-if [ $? -neq 0 ]; then MakeErrorHandler; fi
+make rebuild config=shipping_x86 --file=Makefile
+if [ $? -ne 0 ]; then MakeErrorHandler; fi
 
 # ------------------------------------------------------------------------------
 # Error hanlding / Exiting.
