@@ -97,5 +97,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Version numbering for microbuild.
 #ifndef MB_VERSION
-#define MB_VERSION 0.0
+#define MB_VERSION 99.99
 #endif

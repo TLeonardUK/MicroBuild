@@ -8,7 +8,7 @@ set BinariesDir=%BuildDir%\..\Binaries
 set BootstrapDir=%BuildDir%\Bootstrap
 set VersionNumber=%MB_BUILD_VERSION%
 
-IF "%VersionNumber%"=="" set VersionNumber="0.0"
+IF "%VersionNumber%"=="" set VersionNumber="99.99"
 
 REM ------------------------------------------------------------------------------
 REM Generate a bootstrap executable which we will use to build our main binary.
