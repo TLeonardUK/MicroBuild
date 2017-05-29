@@ -16,7 +16,7 @@ before_build:
   - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"  
   - if [%APPVEYOR_REPO_TAG%]==[false] (set MB_BUILD_VERSION=99.99) else (set MB_BUILD_VERSION=%APPVEYOR_REPO_TAG_NAME%)    
   - set
-  - 7z a -bb3 -tzip -r MicroBuild-Windows-Source-%MB_BUILD_VERSION%.zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md
+  - 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md
 
 build_script:  
   - cd ./Build
@@ -24,16 +24,12 @@ build_script:
   - cd ..
   
 after_build:
-  - 7z a -bb3 -tzip -r MicroBuild-Windows-x64-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x64\*
-  - 7z a -bb3 -tzip -r MicroBuild-Windows-x86-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x86\*
+  - 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x64\*
+  - 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip Binaries\Windows\Shipping_x86\*
 
 artifacts:
-  - path: MicroBuild-Windows-x64-$(MB_BUILD_VERSION).zip
-    name: MicroBuild Windows (64 Bit)
-  - path: MicroBuild-Windows-x86-$(MB_BUILD_VERSION).zip
-    name: MicroBuild Windows (32 Bit)
-  - path: MicroBuild-Windows-Source-$(MB_BUILD_VERSION).zip
-    name: MicroBuild Windows (Source Code)
+  - path: MicroBuild-Windows-$(MB_BUILD_VERSION).zip
+    name: MicroBuild Windows 
   
 deploy:
   release: MicroBuild-$(MB_BUILD_VERSION)
