@@ -15,7 +15,6 @@ before_build:
   # http://help.appveyor.com/discussions/problems/4569-the-target-_convertpdbfiles-listed-in-a-beforetargets-attribute-at-c-does-not-exist-in-the-project-and-will-be-ignored
   - del "C:\Program Files (x86)\MSBuild\14.0\Microsoft.Common.targets\ImportAfter\Xamarin.Common.targets"  
   - if [%APPVEYOR_REPO_TAG%]==[false] (set MB_BUILD_VERSION=99.99) else (set MB_BUILD_VERSION=%APPVEYOR_REPO_TAG_NAME%)    
-  - set
   - 7z a -bb3 -tzip -r MicroBuild-Windows-%MB_BUILD_VERSION%.zip .\Build\ .\Docs\ .\Plugins\ .\Source\ .\Tests\ .\LICENCE.md .\README.md
 
 build_script:  
@@ -35,6 +34,8 @@ deploy:
   release: MicroBuild-$(MB_BUILD_VERSION)
   description: "MicroBuild Version $(MB_BUILD_VERSION) (Windows Release)"
   provider: GitHub
+  auth_token:
+    secure: tYqB8BBM1Na+XEZm115VA8DZe1SQt3btU/AsTfAutYyCQ+p3MYY3f4u+c0AvmP6X
   draft: false
   prerelease: false
   artifact: /*\.zip/
