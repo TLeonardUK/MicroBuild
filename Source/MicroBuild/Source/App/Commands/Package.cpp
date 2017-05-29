@@ -130,7 +130,6 @@ PackageCommand::PackageCommand(App* app)
 	platform->SetOutput(&m_platform);
 	RegisterArgument(platform);
 
-
 	CommandMapArgument* setArguments = new CommandMapArgument();
 	setArguments->SetName("Defines");
 	setArguments->SetShortName("set");

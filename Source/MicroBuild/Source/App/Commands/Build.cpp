@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Commands/CommandPathArgument.h"
 #include "Core/Commands/CommandFlagArgument.h"
 #include "Core/Commands/CommandStringArgument.h"
+#include "Core/Commands/CommandMapArgument.h"
 #include "Core/Helpers/Time.h"
 
 namespace MicroBuild {
@@ -109,6 +110,16 @@ BuildCommand::BuildCommand(App* app)
 	platform->SetDefault("");
 	platform->SetOutput(&m_platform);
 	RegisterArgument(platform);
+
+	CommandMapArgument* setArguments = new CommandMapArgument();
+	setArguments->SetName("Defines");
+	setArguments->SetShortName("set");
+	setArguments->SetDescription("Defines a key-value pair that is defined as a variable "
+		"when workspace and project files are parsed.");
+	setArguments->SetRequired(false);
+	setArguments->SetPositional(false);
+	setArguments->SetOutput(&m_setArguments);
+	RegisterArgument(setArguments);
 }
 
 bool BuildCommand::IndirectInvoke(
@@ -188,6 +199,34 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 
 			if (databaseFile.Read())
 			{
+				// Base configuration.
+				m_workspaceFile.Set_Target_IDE(databaseFile.Get_Target_IDE());
+				m_workspaceFile.Set_Target_Configuration(m_configuration);
+				m_workspaceFile.Set_Target_Platform(platformId);
+				m_workspaceFile.Set_Target_PlatformName(IdeHelper::ResolvePlatformName(platformId));
+
+				for (auto& pair : m_setArguments)
+				{
+					m_workspaceFile.SetOrAddValue("", pair.first, pair.second, true);
+				}
+
+				m_workspaceFile.Resolve();
+
+				if (!m_workspaceFile.Validate())
+				{
+					return false;
+				}
+
+				if (!m_workspaceFile.IsConfigurationValid(m_configuration, m_platform))
+				{
+					Log(LogSeverity::Fatal,
+						"Configuration %s|%s is not valid.\n",
+						m_configuration.c_str(),
+						m_platform.c_str());
+
+					return false;
+				}
+
 				// Load all projects.
 				std::vector<Platform::Path> projectPaths =
 					m_workspaceFile.Get_Projects_Project();
@@ -214,6 +253,7 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 						projectFiles[i].Set_Target_PlatformName(IdeHelper::ResolvePlatformName(platformId));
 						projectFiles[i].Set_Target_MicroBuildExecutable(Platform::Path::GetExecutablePath());
 						projectFiles[i].Set_Target_IDE(databaseFile.Get_Target_IDE());
+
 						projectFiles[i].Resolve();
 
 						if (!projectFiles[i].Validate())

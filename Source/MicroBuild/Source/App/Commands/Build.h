@@ -58,6 +58,8 @@ private:
 	std::string m_configuration;
 	std::string m_platform;
 
+	std::map<std::string, std::string> m_setArguments;
+
 	bool m_rebuild;
 	bool m_buildDependencies;
 
