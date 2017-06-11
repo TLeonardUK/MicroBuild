@@ -33,7 +33,7 @@ filter "action:vs*"
 		"WIN32_LEAN_AND_MEAN"
 	}
 
-filter "system:linux or system:macos"
+filter "system:linux or system:macosx"
 	defines 
 	{ 
 		"__ANSI__" 

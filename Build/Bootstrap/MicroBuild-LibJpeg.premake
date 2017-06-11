@@ -5,7 +5,7 @@ project "MicroBuild-LibJpeg"
 	filter "system:windows"
 		targetdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
 		objdir "$(SolutionDir)/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"	 
-	filter "system:linux or system:macos"
+	filter "system:linux or system:macosx"
 		targetdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/bin/"
 		objdir "ProjectFiles/%{prj.name}/%{cfg.buildcfg}_%{cfg.platform}/obj/"
 	filter {}
