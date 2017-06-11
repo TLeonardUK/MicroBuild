@@ -1,5 +1,8 @@
 flags { "C++11" }
+
 linkgroups "On"
+filter "system:macosx"
+	linkgroups "Off"
 
 -- So this is kinda funky, and really should be fixed, but we get warnings when built with
 -- premake but not through the "real" self-hosted build. Might be a possible configuration
