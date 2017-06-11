@@ -11,6 +11,12 @@ VersionNumber=$MB_BUILD_VERSION
 
 if [ "$VersionNumber" == "" ]; then VersionNumber="99.99"; fi
 
+function ErrorHandler {
+	echo Failed to build MicroBuild. Build command finished with failure exit code, aborting ...
+	cd $BuildDir
+	exit 1
+}
+
 # ------------------------------------------------------------------------------
 # Generate a bootstrap executable which we will use to build our main binary.
 # ------------------------------------------------------------------------------
@@ -42,9 +48,3 @@ if [ $? -ne 0 ]; then ErrorHandler; fi
 # Error handling / Exiting.
 # ------------------------------------------------------------------------------
 exit 0
-
-function ErrorHandler {
-	echo Failed to build MicroBuild. Build command finished with failure exit code, aborting ...
-	cd $BuildDir
-	exit 1
-}
