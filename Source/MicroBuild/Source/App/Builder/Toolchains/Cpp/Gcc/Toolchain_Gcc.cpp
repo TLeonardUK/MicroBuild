@@ -243,6 +243,11 @@ void Toolchain_Gcc::GetBaseCompileArguments(const BuilderFileInfo& file, std::ve
 		args.push_back("-g");	
 	}
 	
+	// Older versions of clang error on -no-lto flags during compile, this is fixed in:
+	// http://llvm.org/viewvc/llvm-project?view=revision&revision=225100
+	// But for the time being, lets just supress the warning.
+	args.push_back("-Qunused-arguments");
+	
 	if (m_projectFile.Get_Flags_LinkTimeOptimization())
 	{
 		args.push_back("-flto");	
@@ -510,6 +515,11 @@ void Toolchain_Gcc::GetLinkArguments(const std::vector<BuilderFileInfo>& sourceF
 	{
 		args.push_back("-g");	
 	}
+	
+	// Older versions of clang error on -no-lto flags during compile, this is fixed in:
+	// http://llvm.org/viewvc/llvm-project?view=revision&revision=225100
+	// But for the time being, lets just supress the warning.
+	args.push_back("-Qunused-arguments");
 	
 	if (m_projectFile.Get_Flags_LinkTimeOptimization())
 	{
