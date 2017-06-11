@@ -35,7 +35,7 @@ if [ $? -ne 0 ]; then MakeErrorHandler; fi
 echo Building x86 bootstrap binary ...
 make clean --file=Makefile
 if [ $? -ne 0 ]; then MakeErrorHandler; fi
-make config=shipping_x86 --file=Makefile
+make config=shipping_x32 --file=Makefile
 if [ $? -ne 0 ]; then MakeErrorHandler; fi
 
 # ------------------------------------------------------------------------------
