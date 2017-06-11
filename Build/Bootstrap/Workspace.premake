@@ -1,6 +1,12 @@
 flags { "C++11" }
 linkgroups "On"
 
+-- So this is kinda funky, and really should be fixed, but we get warnings when built with
+-- premake but not through the "real" self-hosted build. Might be a possible configuration
+-- descrepency? Either way, for simplicity we just supress all warnings, anything important
+-- should be picked up during the self-hosted build.
+warnings "Off"
+
 filter "configurations:Debug"
 	defines { "MB_RELEASE_BUILD" }
 	
@@ -42,47 +48,6 @@ filter "kind:StaticLib"
 filter "action:vs*"
 	characterset "MBCS"	
 	systemversion "10.0.15063.0"
-	disablewarnings 
-	{
-		-- Our third party libraries have a crap ton of warnings in them, we're just going to supress them
-		-- here. Ideally we should move all these disables to each projects make file (todo). As this is only a 
-		-- bootstrap build though, we don't really care much, we just want to get something we can use to do the actual compile.
-		
-		-- warning C4267: '=': conversion from 'size_t' to 'unsigned long'
-		"4267",
-		-- conversion from 'double' to 'float', possible loss of data
-		"4244",
-		-- The POSIX name for this item is deprecated. Instead, use the ISO C and C++ conformant name: _swab. See online help for details.
-		"4996",
-		-- '<': signed/unsigned mismatch 
-		"4018",
-		-- 'r': unreferenced local variable 
-		"4101",
-		-- 'initializing': truncation from 'double' to 'const float'
-		"4305",
-		-- unary minus operator applied to unsigned type, result still unsigned
-		"4146",
-		-- '&': check operator precedence for possible error; use parentheses to clarify precedence
-		"4554",
-		-- macro redefinition 
-		"4005",
-		-- 'int': forcing value to bool 'true' or 'false'
-		"4800",
-		-- result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)
-		"4334",
-		-- 'type cast': pointer truncation from 'const void *__restrict ' to 'unsigned long'
-		"4311",
-		-- 'IlmThread_2_2::Thread::~Thread': function assumed not to throw an exception but does
-		"4297",
-		-- '<=': unsafe use of type 'bool' in operation
-		"4804",
-		-- 'next': unreferenced label
-		"4102",
-		-- conversion from 'double' to 'const float' requires a narrowing conversion
-		"4838",
-		-- truncation from 'const void *__restrict ' to 'unsigned long'
-		"4302"
-	}
 	
 filter {}
 
