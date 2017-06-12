@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // TODO: Framework support
 // TODO: -arch support
 // TODO: -mios-simulation-version-min=?? etc support
+// TODO: Update GCC ParseMessageOutput to support libtool errors (error: libtool: message)
 
 #include "PCH.h"
 #include "App/Builder/Toolchains/Cpp/XCode/Toolchain_XCode.h"
@@ -134,18 +135,17 @@ void Toolchain_XCode::GetArchiveArguments(const std::vector<BuilderFileInfo>& so
 	args.push_back(Strings::Quoted(outputPath.ToString()).c_str());
 	args.push_back("-filelist");
 	args.push_back("@");
-	args.push_back(Strings::Quoted(outputPath.ToString()).c_str());
 
 	// Object files to link.
 	for (auto& sourceFile : sourceFiles)
 	{
-		args.push_back(Strings::Quoted(sourceFile.OutputPath.ToString()));
+		args.push_back(sourceFile.OutputPath.ToString());
 	}
 
 	// Link PCH.
 	if (!pchObjectPath.IsEmpty() && !m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
 	{
-		args.push_back(Strings::Quoted(pchObjectPath.ToString()));
+		args.push_back(pchObjectPath.ToString());
 	}
 }
 
