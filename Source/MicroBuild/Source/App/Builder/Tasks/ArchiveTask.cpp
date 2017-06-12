@@ -38,6 +38,7 @@ bool ArchiveTask::Execute()
 	GetTaskProgress(jobIndex, totalJobs);
 
 	TaskLog(LogSeverity::SilentInfo, "Archiving: %s\n", m_outputFile.OutputPath.GetFilename().c_str());
+	TaskLog(LogSeverity::SilentInfo, "Archiving (FullPath): %s\n", m_outputFile.OutputPath.ToString().c_str());
 
 	return m_toolchain->Archive(m_sourceFiles, m_outputFile);
 }
