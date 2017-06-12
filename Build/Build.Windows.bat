@@ -30,11 +30,11 @@ REM ----------------------------------------------------------------------------
 REM Call the bootstrap to build our final binary.
 REM ------------------------------------------------------------------------------
 echo Building x64 binary ...
-CALL %BootstrapDir%\ProjectFiles\MicroBuild\Shipping_x64\bin\MicroBuild.exe Build Config\Workspace.ini MicroBuild -c=Shipping -p=x64 --set=MB_VERSION=%VersionNumber% --silent
+CALL %BootstrapDir%\ProjectFiles\MicroBuild\Shipping_x64\bin\MicroBuild.exe Build Config\Workspace.ini MicroBuild -c=Shipping -p=x64 --set=MB_VERSION=%VersionNumber% --verbose
 if %ERRORLEVEL% NEQ 0 GOTO ErrorHandler
 
 echo Building x86 binary ...
-CALL %BootstrapDir%\ProjectFiles\MicroBuild\Shipping_x32\bin\MicroBuild.exe Build Config\Workspace.ini MicroBuild -c=Shipping -p=x86 --set=MB_VERSION=%VersionNumber% --silent
+CALL %BootstrapDir%\ProjectFiles\MicroBuild\Shipping_x32\bin\MicroBuild.exe Build Config\Workspace.ini MicroBuild -c=Shipping -p=x86 --set=MB_VERSION=%VersionNumber% --verbose
 if %ERRORLEVEL% NEQ 0 GOTO ErrorHandler
 
 REM ------------------------------------------------------------------------------
