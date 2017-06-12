@@ -422,7 +422,6 @@ bool Toolchain::Compile(BuilderFileInfo& fileInfo, BuilderFileInfo& pchFileInfo)
 	return true;
 }
 
-
 bool Toolchain::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
 {
 	MB_UNUSED_PARAMETER(fileInfo);
@@ -455,7 +454,9 @@ bool Toolchain::Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& ou
 	{
 		printf("%s", output.c_str());
 	}
+
 	PrintMessages(outputFile);
+
 	if (outputFile.ErrorCount > 0 || (outputFile.WarningCount > 0 && m_projectFile.Get_Flags_LinkerWarningsFatal()))
 	{
 		return false;
@@ -583,11 +584,6 @@ bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outpu
 	std::vector<std::string> arguments;
 	GetLinkArguments(files, arguments);
 
-//	for (size_t i = 0; i < arguments.size(); i++)
-//	{
-//		Log(LogSeverity::Warning, "[%i] %s\n", i, arguments[i].c_str());
-//	}	
-
 	Platform::Process process;
 	Platform::Path responseFilePath = outputFile.ManifestPath.AppendFragment(".rsp", false);
 	if (!OpenResponseFileProcess(process, responseFilePath, m_linkerPath, m_linkerPath.GetDirectory(), arguments, true))
@@ -622,14 +618,36 @@ bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outpu
 
 bool Toolchain::OpenResponseFileProcess(Platform::Process& process, const Platform::Path& responseFilePath, const Platform::Path& exePath, const Platform::Path& workingDir, const std::vector<std::string>& arguments, bool bRedirectStdout)
 {
-	std::string data = Strings::Join(arguments, "\n");
-
-	if (!Strings::WriteFile(responseFilePath, data))
+	// Look for a @ symbol in the argument list, this denotes that everything that follows goes in 
+	// a response file and the @ symbol is replaced with the response filename.
+	auto atSymbolIndex = std::find(arguments.begin(), arguments.end(), "@");
+	if (atSymbolIndex != arguments.end())
 	{
-		return false;
-	}
+		std::vector<std::string> commandLine(arguments.begin(), atSymbolIndex);
+		std::vector<std::string> responseArguments(atSymbolIndex + 1, arguments.end());
+		
+		std::string responseData = Strings::Join(responseArguments, "\n");
 
-	return process.Open(exePath, workingDir, { "@" + responseFilePath.ToString() }, bRedirectStdout);
+		if (!Strings::WriteFile(responseFilePath, responseData))
+		{
+			return false;
+		}
+
+		commandLine.push_back(responseFilePath.ToString());
+
+		return process.Open(exePath, workingDir, commandLine, bRedirectStdout);
+	}
+	else
+	{
+		std::string data = Strings::Join(arguments, "\n");
+
+		if (!Strings::WriteFile(responseFilePath, data))
+		{
+			return false;
+		}
+
+		return process.Open(exePath, workingDir, { "@" + responseFilePath.ToString() }, bRedirectStdout);
+	}
 }
 
 Platform::Path Toolchain::GetOutputPath()

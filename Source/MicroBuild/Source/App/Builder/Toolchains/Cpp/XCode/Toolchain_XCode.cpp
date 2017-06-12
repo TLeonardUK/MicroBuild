@@ -65,7 +65,7 @@ bool Toolchain_XCode::FindToolchain()
 		Log(LogSeverity::Warning, "Could not find clang++ in xcode toolchain.\n");
 		return false;
 	}
-	if (!FindXCodeExe("ar", m_archiverPath))
+	if (!FindXCodeExe("libtool", m_archiverPath))
 	{
 		Log(LogSeverity::Warning, "Could not find ar in xcode toolchain.\n");
 		return false;
@@ -121,6 +121,32 @@ void Toolchain_XCode::GetBaseCompileArguments(const BuilderFileInfo& file, std::
 
 	args.push_back("-isysroot");
 	args.push_back(m_isysRoot.ToString());
+}
+
+void Toolchain_XCode::GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args)
+{
+	Platform::Path outputPath = GetOutputPath();
+	Platform::Path pchPath = GetPchPath();
+	Platform::Path pchObjectPath = GetPchObjectPath();
+
+	args.push_back("-static");
+	args.push_back("-o");
+	args.push_back(Strings::Quoted(outputPath.ToString()).c_str());
+	args.push_back("-filelist");
+	args.push_back("@");
+	args.push_back(Strings::Quoted(outputPath.ToString()).c_str());
+
+	// Object files to link.
+	for (auto& sourceFile : sourceFiles)
+	{
+		args.push_back(Strings::Quoted(sourceFile.OutputPath.ToString()));
+	}
+
+	// Link PCH.
+	if (!pchObjectPath.IsEmpty() && !m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+	{
+		args.push_back(Strings::Quoted(pchObjectPath.ToString()));
+	}
 }
 
 }; // namespace MicroBuild

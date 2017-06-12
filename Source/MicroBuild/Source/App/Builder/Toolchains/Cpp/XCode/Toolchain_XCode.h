@@ -43,7 +43,10 @@ protected:
 	
 	// Gets all the generic arguments required to compile a file.
 	virtual void GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args) override;
-	
+
+	// Gets arguments to send to archiver for generating an library file.
+	virtual void GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args) override;
+
 public:
 	Toolchain_XCode(ProjectFile& file, uint64_t configurationHash);
 
