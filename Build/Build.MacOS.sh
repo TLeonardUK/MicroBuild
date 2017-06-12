@@ -37,11 +37,11 @@ if [ $? -ne 0 ]; then ErrorHandler; fi
 # Call the bootstrap to build our final binary.
 # ------------------------------------------------------------------------------
 echo Building x64 binary ...
-$BootstrapDir/ProjectFiles/MicroBuild/Shipping_x64/bin/MicroBuild Build Config/Workspace.ini MicroBuild -c=Shipping -p=x64 --set=MB_VERSION=$VersionNumber --silent
+$BootstrapDir/ProjectFiles/MicroBuild/Shipping_x64/bin/MicroBuild Build Config/Workspace.ini MicroBuild -c=Shipping -p=x64 --set=MB_VERSION=$VersionNumber --verbose
 if [ $? -ne 0 ]; then ErrorHandler; fi
 
 echo Building x86 binary ...
-$BootstrapDir/ProjectFiles/MicroBuild/Shipping_x32/bin/MicroBuild Build Config/Workspace.ini MicroBuild -c=Shipping -p=x86 --set=MB_VERSION=$VersionNumber --silent
+$BootstrapDir/ProjectFiles/MicroBuild/Shipping_x32/bin/MicroBuild Build Config/Workspace.ini MicroBuild -c=Shipping -p=x86 --set=MB_VERSION=$VersionNumber --verbose
 if [ $? -ne 0 ]; then ErrorHandler; fi
 
 # ------------------------------------------------------------------------------
