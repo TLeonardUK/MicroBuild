@@ -68,6 +68,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // make
 // xcode
 
+#include "App/Builder/Toolchains/Cpp/Gcc/Toolchain_GccOutputParser.h"
+#include "App/Builder/Toolchains/Cpp/Microsoft/Toolchain_MicrosoftOutputParser.h"
+#include "App/Builder/Toolchains/Cpp/Nintendo3ds/Toolchain_Nintendo3dsOutputParser.h"
+#include "App/Builder/Toolchains/Cpp/NintendoWiiU/Toolchain_NintendoWiiUOutputParser.h"
+
 namespace MicroBuild {
 
 App::App(int argc, char* argv[])
@@ -93,6 +98,11 @@ App::App(int argc, char* argv[])
 	m_commandLineParser.RegisterCommand(new CleanCommand(this));
 	m_commandLineParser.RegisterCommand(new HelpCommand(this));
 	m_commandLineParser.RegisterCommand(new VersionCommand(this));
+
+	Toolchain_GccOutputParser parser1;
+	Toolchain_MicrosoftOutputParser parser2;
+	Toolchain_Nintendo3dsOutputParser parser3;
+	Toolchain_NintendoWiiUOutputParser parser4;
 }
 
 App::~App()
