@@ -37,17 +37,17 @@ BuilderFileInfo::BuilderFileInfo()
 {
 }
 
-void BuilderFileInfo::AddMessage(const BuilderFileMessage& message)
+void BuilderFileInfo::AddMessage(const ToolchainOutputMessage& message)
 {
-	if (message.Type == EBuilderFileMessageType::Error)
+	if (message.Type == EToolchainOutputMessageType::Error)
 	{
 		ErrorCount++;
 	}
-	else if (message.Type == EBuilderFileMessageType::Warning)
+	else if (message.Type == EToolchainOutputMessageType::Warning)
 	{
 		WarningCount++;
 	}
-	else if (message.Type == EBuilderFileMessageType::Info)
+	else if (message.Type == EToolchainOutputMessageType::Info)
 	{
 		InfoCount++;
 	}

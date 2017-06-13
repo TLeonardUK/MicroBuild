@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "App/Builder/Toolchains/ToolchainOutputParser.h"
 #include "Core/Commands/Command.h"
 #include "Core/Platform/Path.h"
 
@@ -32,39 +33,6 @@ struct BuilderDependencyInfo
 public:
 	Platform::Path	SourcePath;
 	uint64_t		Hash;
-
-};
-
-// Type of builder file messages.
-enum class EBuilderFileMessageType
-{
-	Info,
-	Warning,
-	Error
-};
-
-// Stores information on a message emitted while building a file.
-struct BuilderFileMessage
-{
-public:
-
-	// File or tool that this message originated from.
-	Platform::Path			Origin;
-
-	// Line number this messaged originated on.
-	int						Line;
-
-	// Column number this messaged originated on.
-	int						Column;
-
-	// Internal identifier of this message (per-toolchain), eg. C4001 for msbuild
-	std::string				Identifier;
-
-	// Type of message - Error/Warning/etc.
-	EBuilderFileMessageType	Type;
-
-	// The main text of this message.
-	std::string				Text;
 
 };
 
@@ -105,7 +73,7 @@ public:
 	std::vector<Platform::Path>			OutputDependencyPaths;
 
 	// Messages that occured while trying to build the file.
-	std::vector<BuilderFileMessage>		Messages;
+	std::vector<ToolchainOutputMessage>	Messages;
 
 	// How many messages in the above array are errors.
 	int ErrorCount;
@@ -117,7 +85,7 @@ public:
 	int InfoCount;
 
 	// Adds a message to the file info.
-	void AddMessage(const BuilderFileMessage& message);
+	void AddMessage(const ToolchainOutputMessage& message);
 
 	// Loads hash and dependency data from the manifest file.
 	bool LoadManifest();

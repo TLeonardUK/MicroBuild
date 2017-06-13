@@ -70,7 +70,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-App::App(int argc, char* argv[])    
+App::App(int argc, char* argv[])
 	: m_argv(argv)
 	, m_argc(argc)
 	, m_commandLineParser(MB_NAME, MB_COPYRIGHT)

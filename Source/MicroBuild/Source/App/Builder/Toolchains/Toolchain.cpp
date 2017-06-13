@@ -264,17 +264,17 @@ void Toolchain::PrintMessages(BuilderFileInfo& file)
 
 		switch (msg.Type)
 		{
-		case EBuilderFileMessageType::Info:
+		case EToolchainOutputMessageType::Info:
 			{
 				typeString = "message";
 				break;
 			}
-		case EBuilderFileMessageType::Warning:
+		case EToolchainOutputMessageType::Warning:
 			{
 				typeString = "warning";
 				break;
 			}
-		case EBuilderFileMessageType::Error:
+		case EToolchainOutputMessageType::Error:
 			{
 				typeString = "error";
 				break;

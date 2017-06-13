@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Builder/Toolchains/Cpp/Nintendo3ds/Toolchain_Nintendo3ds.h"
+#include "App/Builder/Toolchains/Cpp/Nintendo3ds/Toolchain_Nintendo3dsOutputParser.h"
 #include "App/Builder/Toolchains/Cpp/Gcc/Toolchain_Gcc.h"
 #include "Core/Platform/Process.h"
 #include "Core/Platform/Platform.h"
@@ -500,91 +501,14 @@ bool Toolchain_Nintendo3ds::ParseMessageOutput(BuilderFileInfo& file, std::strin
 {
 	MB_UNUSED_PARAMETER(file);
 
-	// Attempts to extract messages in the following formats:
-	// Rather ugly ...
+	std::vector<ToolchainOutputMessage> messages;
 
-	// "D:\Git\Ludo\Tools\MicroBuild\Tests\Projects\Cpp_Exe\Project\Source\File.cpp", line 34: Error:  #20: identifier "zyx" is undefined
+	Toolchain_Nintendo3dsOutputParser parser;
+	parser.ExtractMessages(input, messages);
 
-	size_t startOffset = 0;
-	while (startOffset < input.size())
+	for (ToolchainOutputMessage& message : messages)
 	{
-		size_t endOffset = input.find("\r\n", startOffset);
-		if (endOffset == std::string::npos)
-		{
-			break;
-		}
-
-		std::string line = input.substr(startOffset, endOffset - startOffset);
-
-		size_t colonIndex = line.find(':', 3 /* Skip drive colon */);
-		if (colonIndex != std::string::npos)
-		{
-			std::string origin;
-			std::string message;
-			Strings::SplitOnIndex(line, colonIndex, origin, message);
-
-			colonIndex = message.find(':');
-			if (colonIndex != std::string::npos)
-			{
-				std::string errorType;
-				Strings::SplitOnIndex(message, colonIndex, errorType, message);
-
-				message = Strings::Trim(message);
-				errorType = Strings::Trim(errorType);
-
-				colonIndex = message.find(':');
-				if (colonIndex != std::string::npos)
-				{
-					std::string errorIdentifier;
-					Strings::SplitOnIndex(message, colonIndex, errorIdentifier, message);
-
-					message = Strings::Trim(message);
-					errorIdentifier = Strings::Trim(errorIdentifier);
-
-					if (errorIdentifier[0] == '#')
-					{
-						BuilderFileMessage fileMessage;
-						fileMessage.Identifier = errorIdentifier;
-						fileMessage.Text = message;
-
-						errorType = Strings::ToLowercase(errorType);
-						if (errorType == "error" ||
-							errorType == "fatal")
-						{
-							fileMessage.Type = EBuilderFileMessageType::Error;
-						}
-						else if (errorType == "warning")
-						{
-							fileMessage.Type = EBuilderFileMessageType::Warning;
-						}
-						else if (errorType == "info" ||
-								 errorType == "message")
-						{
-							fileMessage.Type = EBuilderFileMessageType::Info;
-						}
-
-						// Try and extract line/colum information from origin.
-						if (origin[0] == '"')
-						{
-							size_t closeQuoteOffset = origin.find_last_of('"');
-							std::string lineText = Strings::Trim(origin.substr(closeQuoteOffset + 1));
-							origin = Strings::StripQuotes(origin.substr(0, closeQuoteOffset + 1));
-					
-							if (lineText.substr(0, 6) == ", line")
-							{
-								fileMessage.Line = CastFromString<int>(lineText.substr(6));
-								fileMessage.Column = 1;
-							}
-						}
-
-						fileMessage.Origin = origin;
-						file.AddMessage(fileMessage);
-					}
-				}
-			}
-		}
-
-		startOffset = endOffset + 2;
+		file.AddMessage(message);
 	}
 
 	return true;

@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Builder/Toolchains/Cpp/Microsoft/Toolchain_Microsoft.h"
+#include "App/Builder/Toolchains/Cpp/Microsoft/Toolchain_MicrosoftOutputParser.h"
 #include "App/Ides/MSBuild/Versions/VisualStudio_2017.h"
 
 #include "Core/Platform/Platform.h"
@@ -920,106 +921,14 @@ bool Toolchain_Microsoft::ParseDependencyOutput(BuilderFileInfo& file, std::stri
 
 bool Toolchain_Microsoft::ParseMessageOutput(BuilderFileInfo& file, std::string& input)
 {
-	// Attempts to extract messages in the following formats:
-	// Rather ugly ...
+	std::vector<ToolchainOutputMessage> messages;
 
-	// origin(Line): [subcategory] fatal/error/warning/message ErrorNumber: Text
-	// origin(Line,Col): [subcategory] fatal/error/warning/message ErrorNumber: Text
-	// origin(Line-Line): [subcategory] fatal/error/warning/message ErrorNumber: Text
-	// origin(Line-Col): [subcategory] fatal/error/warning/message ErrorNumber: Text
-	// origin(Line,Col-Col): [subcategory] fatal/error/warning/message ErrorNumber: Text
-	// origin(Line,Col,Line,Col): [subcategory] fatal/error/warning/message ErrorNumber: Text
-
-	size_t startOffset = 0;
-	while (startOffset < input.size())
+	Toolchain_MicrosoftOutputParser parser;
+	parser.ExtractMessages(input, messages);
+	
+	for (ToolchainOutputMessage& message : messages)
 	{
-		size_t endOffset = input.find("\r\n", startOffset);
-		if (endOffset == std::string::npos)
-		{
-			break;
-		}
-
-		std::string line = input.substr(startOffset, endOffset - startOffset);
-
-		size_t colonIndex = line.find(':', 3 /* Skip drive colon */);
-		if (colonIndex != std::string::npos)
-		{
-			std::string origin;
-			std::string message;
-			Strings::SplitOnIndex(line, colonIndex, origin, message);
-
-			colonIndex = message.find(':');
-			if (colonIndex != std::string::npos)
-			{
-				std::string errorType;
-				Strings::SplitOnIndex(message, colonIndex, errorType, message);
-
-				message = Strings::Trim(message);
-				errorType = Strings::Trim(errorType);
-
-				std::vector<std::string> errorTypeSplit = Strings::Split(' ', errorType, false, true);
-				if (errorTypeSplit.size() >= 2)
-				{
-					BuilderFileMessage fileMessage;
-					fileMessage.Identifier = errorTypeSplit[errorTypeSplit.size() - 1];
-					fileMessage.Text = message;
-					fileMessage.Line = 0;
-					fileMessage.Column = 0;
-
-					// Figure out what error level this message is.
-					std::string typeIdentifier = Strings::ToLowercase(errorTypeSplit[errorTypeSplit.size() - 2]);
-					if (typeIdentifier == "error" ||
-						typeIdentifier == "fatal")
-					{
-						fileMessage.Type = EBuilderFileMessageType::Error;
-					}
-					else if (typeIdentifier == "warning")
-					{
-						fileMessage.Type = EBuilderFileMessageType::Warning;
-					}
-					else if (typeIdentifier == "info" ||
-							 typeIdentifier == "message")
-					{
-						fileMessage.Type = EBuilderFileMessageType::Info;
-					}
-
-					// Try and extract line/colum information from origin.
-					if (origin[origin.size() - 1] == ')')
-					{
-						size_t openBraceOffset = origin.find_last_of('(');
-						std::string lineText = origin.substr(openBraceOffset + 1, origin.size() - openBraceOffset - 2);
-						origin = origin.substr(0, openBraceOffset);
-
-						// For the line number format this we're going to stick to only supporting:
-						// Line
-						// Line-Line
-						// Line,Offset
-						// As the other ones don't actually appear to be used anywhere I've seen.
-
-						size_t spacerOffset = lineText.find(',');
-						if (spacerOffset == std::string::npos)
-						{
-							spacerOffset = lineText.find('-');
-						}
-						if (spacerOffset == std::string::npos)
-						{
-							fileMessage.Line = CastFromString<int>(lineText);
-							fileMessage.Column = 1;
-						}
-						else
-						{
-							fileMessage.Line = CastFromString<int>(lineText.substr(0, spacerOffset));
-							fileMessage.Column = CastFromString<int>(lineText.substr(spacerOffset + 1));
-						}
-					}
-
-					fileMessage.Origin = origin;
-					file.AddMessage(fileMessage);
-				}
-			}
-		}
-
-		startOffset = endOffset + 2;
+		file.AddMessage(message);
 	}
 
 	return true;

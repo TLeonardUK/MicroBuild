@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "PCH.h"
 #include "App/Builder/Toolchains/Cpp/Gcc/Toolchain_Gcc.h"
+#include "App/Builder/Toolchains/Cpp/Gcc/Toolchain_GccOutputParser.h"
 #include "Core/Platform/Process.h"
 
 namespace MicroBuild {
@@ -666,145 +667,14 @@ bool Toolchain_Gcc::ParseDependencyFile(BuilderFileInfo& file, std::string& inpu
 
 bool Toolchain_Gcc::ParseMessageOutput(BuilderFileInfo& file, std::string& input)
 {
-	MB_UNUSED_PARAMETER(file);
+	std::vector<ToolchainOutputMessage> messages;
 
-	// Attempts to extract messages in the following formats:
-	// Rather ugly ...
+	Toolchain_GccOutputParser parser;
+	parser.ExtractMessages(input, messages);
 
-	// MyFile.cpp:100:100: error: variable or field 'f' declared void
-	// ld: warning: xxxx
-
-	size_t startOffset = 0;
-	while (startOffset < input.size())
+	for (ToolchainOutputMessage& message : messages)
 	{
-		size_t endOffset = input.find("\n", startOffset);
-		if (endOffset == std::string::npos)
-		{
-			break;
-		}
-
-		std::string line = Strings::Trim(input.substr(startOffset, endOffset - startOffset));
-
-		size_t colonIndex = line.find(':', 2 /* Skip drive colon */);
-		if (colonIndex != std::string::npos)
-		{
-			std::string origin;
-			std::string message;
-			Strings::SplitOnIndex(line, colonIndex, origin, message);
-
-			colonIndex = message.find(':');
-			if (colonIndex != std::string::npos)
-			{
-				std::string lineValue;
-				Strings::SplitOnIndex(message, colonIndex, lineValue, message);
-
-				std::string unprefixedMessageType = lineValue;
-				std::string unprefixedMessage = message;
-
-				lineValue = Strings::Trim(lineValue);
-
-				// If the rest of the line starts with number:number: bleh
-				// then we are looking at a file position following, otherwise
-				// we are looking at an error without a position.
-				bool bHasLineNumber = false;
-
-				if (Strings::IsNumeric(lineValue))
-				{
-					colonIndex = message.find(':');
-					if (colonIndex != std::string::npos)
-					{
-						std::string columnValue;
-						Strings::SplitOnIndex(message, colonIndex, columnValue, message);
-
-						columnValue = Strings::Trim(columnValue);
-
-						if (Strings::IsNumeric(columnValue))
-						{
-							bHasLineNumber = true;
-
-							colonIndex = message.find(':');
-							if (colonIndex != std::string::npos)
-							{
-								std::string errorType;
-								Strings::SplitOnIndex(message, colonIndex, errorType, message);
-
-								errorType = Strings::Trim(errorType);
-								message = Strings::Trim(message);
-
-								BuilderFileMessage fileMessage;
-								fileMessage.Identifier = "";
-								fileMessage.Text = message;
-								fileMessage.Column = CastFromString<int>(columnValue);
-								fileMessage.Line = CastFromString<int>(lineValue);
-								fileMessage.Origin = origin;
-
-								bool bValid = false;
-
-								if (errorType == "error" || errorType == "fatal")
-								{
-									fileMessage.Type = EBuilderFileMessageType::Error;
-									bValid = true;
-								}
-								else if (errorType == "warning")
-								{
-									fileMessage.Type = EBuilderFileMessageType::Warning;
-									bValid = true;
-								}
-								else if (errorType == "note" || errorType == "message")
-								{
-									fileMessage.Type = EBuilderFileMessageType::Info;
-									bValid = true;
-								}
-								
-								if (bValid)
-								{
-									file.AddMessage(fileMessage);
-								}
-							}
-						}
-					}
-				}
-
-				// No line number? Probably a non-positional message.
-				if (!bHasLineNumber)
-				{
-					unprefixedMessageType = Strings::Trim(unprefixedMessageType);
-					unprefixedMessage = Strings::Trim(unprefixedMessage);
-
-					BuilderFileMessage fileMessage;
-					fileMessage.Identifier = "";
-					fileMessage.Text = unprefixedMessage;
-					fileMessage.Column = 0;
-					fileMessage.Line = 0;
-					fileMessage.Origin = origin;
-
-					bool bValid = false;
-
-					if (unprefixedMessageType == "error" || unprefixedMessageType == "fatal")
-					{
-						fileMessage.Type = EBuilderFileMessageType::Error;
-						bValid = true;
-					}
-					else if (unprefixedMessageType == "warning")
-					{
-						fileMessage.Type = EBuilderFileMessageType::Warning;
-						bValid = true;
-					}
-					else if (unprefixedMessageType == "note" || unprefixedMessageType == "message")
-					{
-						fileMessage.Type = EBuilderFileMessageType::Info;
-						bValid = true;
-					}
-					
-					if (bValid)
-					{
-						file.AddMessage(fileMessage);
-					}
-				}
-			}
-		}
-
-		startOffset = endOffset + 2;
+		file.AddMessage(message);
 	}
 
 	return true;
