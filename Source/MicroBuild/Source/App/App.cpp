@@ -98,11 +98,6 @@ App::App(int argc, char* argv[])
 	m_commandLineParser.RegisterCommand(new CleanCommand(this));
 	m_commandLineParser.RegisterCommand(new HelpCommand(this));
 	m_commandLineParser.RegisterCommand(new VersionCommand(this));
-
-	Toolchain_GccOutputParser parser1;
-	Toolchain_MicrosoftOutputParser parser2;
-	Toolchain_Nintendo3dsOutputParser parser3;
-	Toolchain_NintendoWiiUOutputParser parser4;
 }
 
 App::~App()
