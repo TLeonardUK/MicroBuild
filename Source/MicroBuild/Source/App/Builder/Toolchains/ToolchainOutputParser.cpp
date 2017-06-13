@@ -29,7 +29,16 @@ namespace MicroBuild {
 void ToolchainOutputParser::RegisterOutput(const std::string& regex, const std::vector<EToolchainCaptureType>& captureTypes)
 {
 	MatchType type;
-	type.Pattern = regex;
+
+	try
+	{
+		type.Pattern = regex;
+	}
+	catch (const std::regex_error& e) 
+	{
+		Log(LogSeverity::Fatal, "Regex error (code %i) caught (%s) for pattern: %s", e.code(), e.what(), regex.c_str());
+	}
+
 	type.CaptureTypes = captureTypes;
 	m_matchTypes.push_back(type);
 }
