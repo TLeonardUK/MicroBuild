@@ -32,11 +32,12 @@ void ToolchainOutputParser::RegisterOutput(const std::string& regex, const std::
 
 	try
 	{
-		type.Pattern = regex;
+		type.Pattern = std::regex(regex, std::regex_constants::ECMAScript | std::regex_constants::icase);
 	}
 	catch (const std::regex_error& e) 
 	{
 		Log(LogSeverity::Fatal, "Regex error (code %i) caught (%s) for pattern: %s", e.code(), e.what(), regex.c_str());
+		assert(false);
 	}
 
 	type.CaptureTypes = captureTypes;
