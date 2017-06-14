@@ -16,6 +16,7 @@ addons:
   apt:
     sources:
     - llvm-toolchain-trusty
+    - llvm-toolchain-wily
     - ubuntu-toolchain-r-test
     packages:
     - gcc-6
@@ -32,8 +33,6 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install p7zip; fi  
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-5.0 100; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang-5.0 100; fi  
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ls -l /etc/alternatives; fi  
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo ls -l /usr/bin; fi  
 script: 
   - cd ./Build/
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./Build.Linux.sh; fi
