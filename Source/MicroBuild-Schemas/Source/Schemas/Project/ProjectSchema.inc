@@ -113,6 +113,12 @@ START_ENUM(EVersionFormat)
 	ENUM_KEY(Changelist)
 END_ENUM()
 
+START_ENUM(EStandardLibrary)
+	ENUM_KEY(Default)
+	ENUM_KEY(LibStdCpp)
+	ENUM_KEY(LibCpp)
+END_ENUM()
+
 // ---------------------------------------------------------------------------
 // Project
 // ---------------------------------------------------------------------------
@@ -250,6 +256,17 @@ START_OPTION(
 	"What language/standard version to compile against."
 )
 OPTION_RULE_DEFAULT(ELanguageVersion::Default)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	EStandardLibrary,
+	Project,
+	StandardLibrary,
+	"What standard library to compile against."
+)
+OPTION_RULE_DEFAULT(EStandardLibrary::Default)
 END_OPTION()
 
 // ---------------------------------------------------------------------------
