@@ -1,5 +1,6 @@
 flags { "C++11" }
 
+
 linkgroups "On"
 filter "system:macosx"
 	linkgroups "Off"
@@ -43,8 +44,7 @@ filter "system:linux or system:macosx"
 	}
 
 filter "system:linux"
-	gcc.tools.cc  = 'clang'
-	gcc.tools.cxx = 'clang++'
+	toolset "clang"
 	linkoptions  { "-std=c++11", "-stdlib=libc++" }
 	buildoptions { "-std=c++11", "-stdlib=libc++" }
 
