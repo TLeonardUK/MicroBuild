@@ -329,6 +329,24 @@ void Toolchain_Gcc::GetBaseCompileArguments(const BuilderFileInfo& file, std::ve
 		}
 	}	
 	
+	switch (m_projectFile.Get_Project_StandardLibrary())
+	{
+	case EStandardLibrary::Default:
+		{
+			break;
+		}
+	case EStandardLibrary::LibCpp:
+		{
+			args.push_back("-stdlib=libc++");
+			break;
+		}
+	case EStandardLibrary::LibStdCpp:
+		{
+			args.push_back("-stdlib=libstdc++");
+			break;
+		}
+	}
+	
 	// Dumps out dependencies to a file.
 	args.push_back("-MD");
 	args.push_back("-MP");
