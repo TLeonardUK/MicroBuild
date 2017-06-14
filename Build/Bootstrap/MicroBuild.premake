@@ -69,3 +69,6 @@ project "MicroBuild"
 		links { "dl", "pthread" }
 		defines { "_GNU_SOURCE" }
 		
+	filter "system:linux"
+		links { "libc++abi" }
+		
