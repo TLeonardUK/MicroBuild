@@ -43,8 +43,8 @@ filter "system:linux or system:macosx"
 	}
 
 filter "system:linux"
-	premake.gcc.cc  = 'clang'
-	premake.gcc.cxx = 'clang++'
+	gcc.tools.cc  = 'clang'
+	gcc.tools.cxx = 'clang++'
 	linkoptions  { "-std=c++11", "-stdlib=libc++" }
 	buildoptions { "-std=c++11", "-stdlib=libc++" }
 
