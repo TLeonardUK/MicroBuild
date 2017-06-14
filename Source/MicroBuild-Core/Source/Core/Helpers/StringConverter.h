@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
+#include <cstdlib>
 
 // This is outside the MB namespace as gcc differs from msbuild as it appends
 // the namespace to the nested extern reference :(. Theres probably a nicer way
