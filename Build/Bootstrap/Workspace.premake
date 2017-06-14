@@ -47,7 +47,7 @@ filter "system:linux"
 	toolset "clang"
 	linkoptions  { "-stdlib=libc++" }
 
-filter { "system:linux", "files:**.cpp" }
+filter { "system:linux" }
 	buildoptions { "-stdlib=libc++" }
 
 filter "kind:StaticLib"

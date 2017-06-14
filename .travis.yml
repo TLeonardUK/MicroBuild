@@ -28,7 +28,6 @@ addons:
     - p7zip-full
     - clang-5.0
     - libc++-dev
-    - libc++abi-dev
 before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install p7zip; fi
