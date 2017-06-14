@@ -674,7 +674,13 @@ bool Toolchain_Gcc::ParseMessageOutput(BuilderFileInfo& file, std::string& input
 
 	for (ToolchainOutputMessage& message : messages)
 	{
-		file.AddMessage(message);
+		// Supress the 
+		// file: xxx has no symbols
+		// warning, its pointless, but there is no easy way to supress it :(.
+		if (message.Text.find("has no symbols") == std::string::npos)
+		{
+			file.AddMessage(message);
+		}
 	}
 
 	return true;

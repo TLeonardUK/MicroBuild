@@ -47,7 +47,7 @@ Toolchain_GccOutputParser::Toolchain_GccOutputParser()
 
 	// tool: warning: xxxx
 	RegisterOutput(
-		R"(^(.*): (fatal|error|warning|info|message|note): (.*)$)",
+		R"(^(.*): (fatal|error|warning|info|message|note|file): (.*)$)",
 		{
 			EToolchainCaptureType::Origin,
 			EToolchainCaptureType::Type,
@@ -57,7 +57,7 @@ Toolchain_GccOutputParser::Toolchain_GccOutputParser()
 
 	// warning: tool: xxxx
 	RegisterOutput(
-		R"(^(fatal|error|warning|info|message|note): (.*): (.*)$)",
+		R"(^(fatal|error|warning|info|message|note|file): (.*): (.*)$)",
 		{
 			EToolchainCaptureType::Type,
 			EToolchainCaptureType::Origin,
