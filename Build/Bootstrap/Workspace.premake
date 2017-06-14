@@ -45,8 +45,8 @@ filter "system:linux or system:macosx"
 
 filter "system:linux"
 	toolset "clang"
-	linkoptions  { "-std=c++11", "-stdlib=libc++" }
-	buildoptions { "-std=c++11", "-stdlib=libc++" }
+	linkoptions  { "-stdlib=libc++" }
+	buildoptions { "-stdlib=libc++" }
 
 filter "kind:StaticLib"
 	defines 
