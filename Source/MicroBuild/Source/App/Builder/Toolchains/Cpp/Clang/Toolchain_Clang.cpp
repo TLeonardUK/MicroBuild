@@ -43,6 +43,8 @@ bool Toolchain_Clang::FindToolchain()
 
 #if defined(MB_PLATFORM_WINDOWS)
 	additionalDirs.push_back("C:/Program Files/LLVM/bin");
+#else
+	additionalDirs.push_back("/usr/bin");
 #endif
 	
 #if defined(MB_PLATFORM_WINDOWS)
