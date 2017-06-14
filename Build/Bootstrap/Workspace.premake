@@ -41,7 +41,12 @@ filter "system:linux or system:macosx"
 	{ 
 		"__ANSI__" 
 	}
-	
+
+filter "system:linux"
+	toolset "clang"
+	linkoptions  { "-std=c++11", "-stdlib=libc++" }
+	buildoptions { "-std=c++11", "-stdlib=libc++" }
+
 filter "kind:StaticLib"
 	defines 
 	{ 
