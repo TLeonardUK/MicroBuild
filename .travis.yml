@@ -20,10 +20,11 @@ addons:
     packages:
     - gcc-6
     - g++-6
+    - gcc-multilib
+    - g++-multilib
     - gcc-6-multilib
     - g++-6-multilib	
     - linux-libc-dev
-    - libstdc++-4.9-dev
     - p7zip-full
     - clang-5.0
 env:
