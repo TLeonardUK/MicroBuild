@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Core/Helpers/Image.h"
 
 #include <algorithm>
+#include <cstdlib>
 
 namespace MicroBuild {
 

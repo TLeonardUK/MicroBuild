@@ -41,6 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <initializer_list>
 #include <utility>
 #include <memory>
+#include <cstdlib>
 
 #include "Core/Compiler.h"
 #include "Core/Log.h"
