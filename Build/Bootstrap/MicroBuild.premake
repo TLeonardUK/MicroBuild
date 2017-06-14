@@ -70,5 +70,5 @@ project "MicroBuild"
 		defines { "_GNU_SOURCE" }
 		
 	filter "system:linux"
-		links { "libc++abi" }
+		links { "c++abi" }
 		
