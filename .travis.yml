@@ -3,9 +3,6 @@ osx_image: xcode8.3
 os:
   - linux
   - osx
-branches:
-  only:
-  - master
 git:
   depth: 50000
 compiler:
