@@ -50,10 +50,12 @@ after_success:
 deploy:
   provider: releases
   release: MicroBuild $MB_BUILD_VERSION
+  description: "Release of MicroBuild version $(MB_BUILD_VERSION)."
+  name: MicroBuild $MB_BUILD_VERSION
+  tag: $TRAVIS_TAG
   api_key: 
     secure: $GITHUB_TOKEN
   file: MicroBuild-$MB_OS_NAME-$MB_BUILD_VERSION.zip
-  name: MicroBuild $MB_BUILD_VERSION
   skip_cleanup: true
   on:
     tags: true
