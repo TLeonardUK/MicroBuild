@@ -41,29 +41,19 @@ script:
 before_script:
   - if [ "$TRAVIS_TAG" == "" ]; then export MB_BUILD_VERSION=99.99; fi
   - if [ "$TRAVIS_TAG" != "" ]; then export MB_BUILD_VERSION=$TRAVIS_TAG; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a -tzip -r "MicroBuild-Linux-$MB_BUILD_VERSION.zip" "Build" "Docs" "Plugins" "Source" "Tests" "LICENCE.md" "README.md"; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a -tzip -r "MicroBuild-MacOS-$MB_BUILD_VERSION.zip" "Build" "Docs" "Plugins" "Source" "Tests" "LICENCE.md" "README.md"; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export MB_OS_NAME=Linux; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export MB_OS_NAME=MacOS; fi
+  - 7z a -tzip -r "MicroBuild-$MB_OS_NAME-$MB_BUILD_VERSION.zip" "Build" "Docs" "Plugins" "Source" "Tests" "LICENCE.md" "README.md"
 after_success: 
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a -tzip -r "MicroBuild-Linux-$MB_BUILD_VERSION.zip" "Binaries/Linux/Shipping_x64/*"; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then 7z a -tzip -r "MicroBuild-Linux-$MB_BUILD_VERSION.zip" "Binaries/Linux/Shipping_x86/*"; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a -tzip -r "MicroBuild-MacOS-$MB_BUILD_VERSION.zip" "Binaries/MacOS/Shipping_x64/*"; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a -tzip -r "MicroBuild-MacOS-$MB_BUILD_VERSION.zip" "Binaries/MacOS/Shipping_x86/*"; fi
+  - 7z a -tzip -r "MicroBuild-$MB_OS_NAME-$MB_BUILD_VERSION.zip" "Binaries/$MB_OS_NAME/Shipping_x64/*"
+  - 7z a -tzip -r "MicroBuild-$MB_OS_NAME-$MB_BUILD_VERSION.zip" "Binaries/$MB_OS_NAME/Shipping_x86/*"
 deploy:
-  - provider: releases
-    release: MicroBuild $MB_BUILD_VERSION
-    api_key: 
-      secure: $GITHUB_TOKEN
-    file: MicroBuild-Linux-$MB_BUILD_VERSION.zip
-    skip_cleanup: true
-    on:
-      tags: true
-      condition: $TRAVIS_OS_NAME == linux
-  - provider: releases
-    release: MicroBuild $MB_BUILD_VERSION
-    api_key: 
-      secure: $GITHUB_TOKEN
-    file: MicroBuild-MacOS-$MB_BUILD_VERSION.zip
-    skip_cleanup: true
-    on:
-      tags: true
-      condition: $TRAVIS_OS_NAME == osx
+  provider: releases
+  release: MicroBuild $MB_BUILD_VERSION
+   api_key: 
+    secure: $GITHUB_TOKEN
+  file: MicroBuild-$MB_OS_NAME-$MB_BUILD_VERSION.zip
+  name: MicroBuild $MB_BUILD_VERSION
+  skip_cleanup: true
+  on:
+    tags: true
