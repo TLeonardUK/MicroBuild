@@ -12,9 +12,9 @@ Microbuild is a simple, fast, cross platform, build system.
 </a>
 <a href="https://www.codacy.com/app/tim_27/MicroBuild?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=TwinDrills/MicroBuild&amp;utm_campaign=Badge_Grade">
   <img alt="Codacy"
-       src="https://api.codacy.com/project/badge/Grade/17164bc001ab41ea9dcc3e7972385d2b"/>
+       src="https://api.codacy.com/project/badge/Grade/6720523fbdbd4ed093bf4454bdcfe6d0"/>
 </a>
- 
+
 ## Project Aims
 MicroBuild is designed to be a general purpose C-Language (C++/C#/ObjC) build system. It has the ability to generate project and workspace files on each platform for all IDE's it supports (currently Visual Studio, XCode and GNU Makefiles), as well as to build the projects for a variety of platforms (Desktop, HTML5, Consoles, etc). It also supports the ability to automate packaging of projects using the target platforms native packaging toolset.
 
