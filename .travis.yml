@@ -53,9 +53,18 @@ deploy:
   release: MicroBuild $MB_BUILD_VERSION
   api_key: 
     secure: $GITHUB_TOKEN
-  file: 
-    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then MicroBuild-Linux-$MB_BUILD_VERSION.zip; fi
-    - if [ "$TRAVIS_OS_NAME" == "osx" ]; then MicroBuild-MacOS-$MB_BUILD_VERSION.zip; fi
+  file: MicroBuild-Linux-$MB_BUILD_VERSION.zip
   skip_cleanup: true
   on:
     tags: true
+    condition: "$TRAVIS_OS_NAME" == "linux"
+deploy:
+  provider: releases
+  release: MicroBuild $MB_BUILD_VERSION
+  api_key: 
+    secure: $GITHUB_TOKEN
+  file: MicroBuild-MacOS-$MB_BUILD_VERSION.zip
+  skip_cleanup: true
+  on:
+    tags: true
+    condition: "$TRAVIS_OS_NAME" == "osx"
