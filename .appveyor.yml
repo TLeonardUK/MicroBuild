@@ -31,8 +31,8 @@ artifacts:
     name: MicroBuild Windows 
   
 deploy:
-  release: MicroBuild $(MB_BUILD_VERSION) (Windows Release) 
-  description: "Windows release of MicroBuild version $(MB_BUILD_VERSION)."
+  release: MicroBuild $(MB_BUILD_VERSION)
+  description: "Release of MicroBuild version $(MB_BUILD_VERSION)."
   provider: GitHub
   auth_token:
     secure: tYqB8BBM1Na+XEZm115VA8DZe1SQt3btU/AsTfAutYyCQ+p3MYY3f4u+c0AvmP6X

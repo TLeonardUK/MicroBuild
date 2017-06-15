@@ -50,6 +50,7 @@ after_success:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a -tzip -r "MicroBuild-MacOS-$MB_BUILD_VERSION.zip" "Binaries/MacOS/Shipping_x86/*"; fi
 deploy:
   provider: releases
+  release: MicroBuild $MB_BUILD_VERSION
   api_key: 
     secure: $GITHUB_TOKEN
   file: 
