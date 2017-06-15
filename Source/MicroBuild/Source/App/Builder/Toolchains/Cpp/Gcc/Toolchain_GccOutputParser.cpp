@@ -34,6 +34,16 @@ Toolchain_GccOutputParser::Toolchain_GccOutputParser()
 			EToolchainCaptureType::Message,
 		}
 	);
+		
+	// MyFile.cpp:100: variable or field 'f' declared void
+	RegisterOutput(
+		R"(^(.*):(\d+): (.*)$)",
+		{
+			EToolchainCaptureType::Origin,
+			EToolchainCaptureType::Line,
+			EToolchainCaptureType::Message,
+		}
+	);
 
 	// MyFile.cpp: error: variable or field 'f' declared void
 	RegisterOutput(
@@ -76,6 +86,16 @@ void Toolchain_GccOutputParser::Test()
 			"100",
 			"100",
 			"error",
+			"variable or field 'f' declared void"
+		}
+	);
+	
+	// MyFile.cpp:100: variable or field 'f' declared void
+	TestOutput(
+		R"(MyFile.cpp:100: variable or field 'f' declared void)",
+		{
+			"MyFile.cpp",
+			"100",
 			"variable or field 'f' declared void"
 		}
 	);
