@@ -49,22 +49,21 @@ after_success:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a -tzip -r "MicroBuild-MacOS-$MB_BUILD_VERSION.zip" "Binaries/MacOS/Shipping_x64/*"; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then 7z a -tzip -r "MicroBuild-MacOS-$MB_BUILD_VERSION.zip" "Binaries/MacOS/Shipping_x86/*"; fi
 deploy:
-  provider: releases
-  release: MicroBuild $MB_BUILD_VERSION
-  api_key: 
-    secure: $GITHUB_TOKEN
-  file: MicroBuild-Linux-$MB_BUILD_VERSION.zip
-  skip_cleanup: true
-  on:
-    tags: true
-    condition: "$TRAVIS_OS_NAME" == "linux"
-deploy:
-  provider: releases
-  release: MicroBuild $MB_BUILD_VERSION
-  api_key: 
-    secure: $GITHUB_TOKEN
-  file: MicroBuild-MacOS-$MB_BUILD_VERSION.zip
-  skip_cleanup: true
-  on:
-    tags: true
-    condition: "$TRAVIS_OS_NAME" == "osx"
+  - provider: releases
+    release: MicroBuild $MB_BUILD_VERSION
+    api_key: 
+      secure: $GITHUB_TOKEN
+    file: MicroBuild-Linux-$MB_BUILD_VERSION.zip
+    skip_cleanup: true
+    on:
+      tags: true
+      condition: $TRAVIS_OS_NAME == linux
+  - provider: releases
+    release: MicroBuild $MB_BUILD_VERSION
+    api_key: 
+      secure: $GITHUB_TOKEN
+    file: MicroBuild-MacOS-$MB_BUILD_VERSION.zip
+    skip_cleanup: true
+    on:
+      tags: true
+      condition: $TRAVIS_OS_NAME == osx
