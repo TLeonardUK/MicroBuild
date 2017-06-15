@@ -1508,7 +1508,7 @@ bool Path::FindFile(const std::string& filename, Platform::Path& result, std::ve
 	std::vector<std::string> pathDirs = Strings::Split(':', pathEnv);
 #endif
 
-	Log(LogSeverity::Verbose, "Finding file '%s'.", filename.c_str());
+	Log(LogSeverity::Verbose, "Finding file '%s'.\n", filename.c_str());
 
 	for (Platform::Path& path : additionalDirs)
 	{
@@ -1519,10 +1519,10 @@ bool Path::FindFile(const std::string& filename, Platform::Path& result, std::ve
 	for (Platform::Path path : pathDirs)
 	{
 		Platform::Path location = path.AppendFragment(filename, true);
-		Log(LogSeverity::Verbose, "  Looking for '%s'.", location.ToString().c_str());
+		Log(LogSeverity::Verbose, "  Looking for '%s'.\n", location.ToString().c_str());
 		if (location.Exists())
 		{
-			Log(LogSeverity::Verbose, "  Found at '%s'.", location.ToString().c_str());
+			Log(LogSeverity::Verbose, "  Found at '%s'.\n", location.ToString().c_str());
 			result = location;
 			return true;
 		}
@@ -1539,7 +1539,7 @@ bool Path::FindFile(const std::string& filename, Platform::Path& result, std::ve
 				Log(LogSeverity::Verbose, "  Looking for '%s'.", location.ToString().c_str());
 				if (location.Exists() && location.GetBaseName() == filename)
 				{
-					Log(LogSeverity::Verbose, "  Found at '%s'.", location.ToString().c_str());
+					Log(LogSeverity::Verbose, "  Found at '%s'.\n", location.ToString().c_str());
 					result = location;
 					return true;
 				}
