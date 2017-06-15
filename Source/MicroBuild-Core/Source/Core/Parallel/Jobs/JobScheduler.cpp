@@ -50,6 +50,8 @@ JobScheduler::JobScheduler(int ThreadCount)
 		m_Threads.push_back(new std::thread([this, i]() {
 #if 0
 			g_jobSchedulerthreadId = i + 1;
+#else
+			MB_UNUSED_PARAMETER(i);
 #endif
 			ThreadEntryPoint();
 		}));
