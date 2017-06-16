@@ -32,7 +32,7 @@ artifacts:
   
 deploy:
   release: MicroBuild $(MB_BUILD_VERSION)
-  description: "$(APPVEYOR_REPO_COMMIT_MESSAGE)"
+  description: "Release of version $(MB_BUILD_VERSION) of MicroBuild."
   name: MicroBuild $MB_BUILD_VERSION
   tag: $(APPVEYOR_REPO_TAG_NAME)
   provider: GitHub
