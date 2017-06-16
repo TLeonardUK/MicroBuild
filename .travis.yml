@@ -50,7 +50,7 @@ after_success:
 deploy:
   provider: releases
   release: MicroBuild $MB_BUILD_VERSION
-  description: "$(TRAVIS_COMMIT_MESSAGE)"
+  description: "$TRAVIS_COMMIT_MESSAGE"
   name: MicroBuild $MB_BUILD_VERSION
   tag: $TRAVIS_TAG
   api_key: 
