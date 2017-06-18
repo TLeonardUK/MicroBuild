@@ -43,7 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "FreeImage.h"
 
 // Prints time between entering and exiting the main app entry point.
-//#define MB_OPT_PRINT_FULL_APP_TIME
+#define MB_OPT_PRINT_FULL_APP_TIME 1
 
 // x86
 // x64
@@ -167,7 +167,7 @@ int App::Run()
 		auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(elapsedTime).count();
 				
 		Log(LogSeverity::SilentInfo, "\n");
-		Log(LogSeverity::SilentInfo, "Start to end: %.1f seconds\n", elapsedMs / 1000.0f);
+		Log(LogSeverity::SilentInfo, "Finished in %.1f seconds\n", elapsedMs / 1000.0f);
 	};
 #endif
 
