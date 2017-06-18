@@ -94,8 +94,6 @@ Toolchain_MicrosoftOutputParser::Toolchain_MicrosoftOutputParser()
 		R"(^(.*)\s+: .*(fatal error|fatal|error|warning|message) (\w+): (.*)$)",
 		{
 			EToolchainCaptureType::Origin,
-			EToolchainCaptureType::Line,
-			EToolchainCaptureType::Column,
 			EToolchainCaptureType::Type,
 			EToolchainCaptureType::Identifier,
 			EToolchainCaptureType::Message,
@@ -221,8 +219,6 @@ void Toolchain_MicrosoftOutputParser::Test()
 			"Error description"
 		}
 	);
-
-
 
 	// origin: fatal/error/warning/message ErrorNumber: Text
 	TestOutput(

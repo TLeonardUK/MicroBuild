@@ -76,7 +76,7 @@ public:
 	virtual bool Init() override;
 
 	// Links all the source files provided into a sinmgle executable.
-	virtual void GetLinkAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
+	virtual void GetLinkAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
 
 	// Parse message information from the stdout.
 	static bool ParseMessageOutput(BuilderFileInfo& file, std::string& input);

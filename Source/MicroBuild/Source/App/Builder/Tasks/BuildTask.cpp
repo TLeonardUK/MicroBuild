@@ -130,8 +130,7 @@ bool BuildTask::Execute()
 		return false;
 	}
 
-	action.Output = process.ReadToEnd();
-	Log(LogSeverity::SilentInfo, "%s\n", action.Output.c_str());
+	action.Output = process.ReadToEnd();	
 	action.ExitCode = process.GetExitCode();
 	return action.PostProcessDelegate(action);
 }

@@ -110,8 +110,8 @@ void ToolchainOutputParser::ExtractMessages(const std::string& input, std::vecto
 							}
 						case EToolchainCaptureType::Type:
 							{
-								if (captureValue == "fatal" || captureValue == "error" || 
-									captureValue == "Fatal" || captureValue == "Error")
+								if (captureValue == "fatal" || captureValue == "error" || captureValue == "fatal error" ||
+									captureValue == "Fatal" || captureValue == "Error" || captureValue == "Fatal Error")
 								{
 									message.Type = EToolchainOutputMessageType::Error;
 								}
