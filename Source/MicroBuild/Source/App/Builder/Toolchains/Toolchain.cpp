@@ -436,6 +436,8 @@ void Toolchain::GetArchiveAction(BuildAction& action, std::vector<BuilderFileInf
 {
 	GetArchiveArguments(files, action.Arguments);
 
+	outputFile.Dependencies.clear();
+
 	action.FileInfo = outputFile;
 
 	Platform::Process process;
@@ -445,8 +447,6 @@ void Toolchain::GetArchiveAction(BuildAction& action, std::vector<BuilderFileInf
 		return;
 	}
 	
-	outputFile.Dependencies.clear();
-
 	action.PostProcessDelegate = [this, files](BuildAction& action) -> bool
 	{
 		if (!ParseOutput(action.FileInfo, action.Output))
