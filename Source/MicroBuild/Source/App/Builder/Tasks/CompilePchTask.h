@@ -35,7 +35,7 @@ private:
 public:
 	CompilePchTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file);
 
-	virtual bool Execute() override;
+	virtual BuildAction GetAction() override;
 
 }; 
 

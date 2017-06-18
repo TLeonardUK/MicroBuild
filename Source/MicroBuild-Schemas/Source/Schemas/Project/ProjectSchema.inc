@@ -119,6 +119,12 @@ START_ENUM(EStandardLibrary)
 	ENUM_KEY(LibCpp)
 END_ENUM()
 
+START_ENUM(EAccelerator)
+	ENUM_KEY(Default)
+	ENUM_KEY(Sndbs)
+	ENUM_KEY(IncrediBuild)
+END_ENUM()
+
 // ---------------------------------------------------------------------------
 // Project
 // ---------------------------------------------------------------------------
@@ -371,6 +377,28 @@ START_KEY_VALUE_ARRAY_OPTION(
 	"segments in the path pattern will be exluded from the expansion."
 )
 END_KEY_VALUE_ARRAY_OPTION()
+
+// ---------------------------------------------------------------------------
+// Acceleration
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Acceleration,
+	UseAcceleration,
+	"Defines if we should use acceleration or not."
+)
+OPTION_RULE_DEFAULT(true)
+END_OPTION()
+
+START_OPTION(
+	EAccelerator,
+	Acceleration,
+	Accelerator,
+	"Defines what accelerator to use if installed."
+)
+OPTION_RULE_DEFAULT(EAccelerator::Sndbs)
+END_OPTION()
 
 // ---------------------------------------------------------------------------
 // Build

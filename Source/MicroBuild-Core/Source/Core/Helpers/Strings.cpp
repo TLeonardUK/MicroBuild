@@ -281,6 +281,7 @@ bool ReadFile(const Platform::Path& path, std::string& output)
 		int result = fseek(file, 0, SEEK_END);
 		if (result != 0)
 		{
+			fclose(file);
 			return false;
 		}
 
@@ -289,6 +290,7 @@ bool ReadFile(const Platform::Path& path, std::string& output)
 		result = fseek(file, 0, SEEK_SET);
 		if (result != 0)
 		{
+			fclose(file);
 			return false;
 		}
 
@@ -547,6 +549,21 @@ std::string Escaped(const std::string& input, bool bEscapeSequences)
 	for (char chr : input)
 	{
 		if (chr == '"' || (chr == '\\' && bEscapeSequences))
+		{
+			result.push_back('\\');
+		}
+		result.push_back(chr);
+	}
+	return result;
+}
+
+std::string EscapeSlashes(const std::string& input)
+{
+	std::string result;
+	result.reserve(input.size());
+	for (char chr : input)
+	{
+		if (chr == '\\')
 		{
 			result.push_back('\\');
 		}

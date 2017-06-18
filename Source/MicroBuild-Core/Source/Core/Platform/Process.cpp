@@ -73,5 +73,40 @@ std::string Process::ReadToEnd(bool bPrintOutput)
 	return stream.str();
 }
 
+std::string Process::ReadLine()
+{
+	std::stringstream stream;
+
+	while (!AtEnd())
+	{
+		char buffer = '\0'; 
+		size_t readBytes = Read(&buffer, 1);
+		if (readBytes == 0)
+		{
+			break;
+		}
+
+		if (buffer != '\n')
+		{
+			stream << buffer;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	std::string result = stream.str();
+
+	// If the result has a \r on the end, remove it to normalize line endings.
+	if (result[result.size() - 1] == '\r')
+	{
+		result.resize(result.size() - 1);
+	}
+
+	return result;
+}
+
+
 }; // namespace Platform
 }; // namespace MicroBuild

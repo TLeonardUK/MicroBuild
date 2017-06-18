@@ -740,8 +740,8 @@ bool Toolchain_Gcc::ParseOutput(BuilderFileInfo& file, std::string& input)
 }
 
 #if defined(MB_PLATFORM_WINDOWS)
-	
-bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
+
+void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
 {	
 	 MB_UNUSED_PARAMETER(fileInfo);
 	 MB_UNUSED_PARAMETER(versionInfo);
@@ -751,46 +751,46 @@ bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberI
 
 	if (!m_microsoftToolchain.CreateVersionInfoScript(iconPath, rcScriptPath, versionInfo))
 	{
-		return false;
+		return;
 	}
 
 	// Call mingw resource compiler to build the version info script into an object file.
-	std::vector<std::string> arguments;
-	arguments.push_back(rcScriptPath.ToString());
-	arguments.push_back("-O");
-	arguments.push_back("coff");
-	arguments.push_back("-o");
-	arguments.push_back(fileInfo.OutputPath.ToString());
+	action.Arguments.push_back(rcScriptPath.ToString());
+	action.Arguments.push_back("-O");
+	action.Arguments.push_back("coff");
+	action.Arguments.push_back("-o");
+	action.Arguments.push_back(fileInfo.OutputPath.ToString());
 	
-	Platform::Process process;	
-	if (!process.Open(m_windowsResourceCompilerPath, m_windowsResourceCompilerPath.GetDirectory(), arguments, true))
-	{
-		return false;
-	}
-	
-	std::string output = process.ReadToEnd();		
-	printf("%s", output.c_str());
-	if (process.GetExitCode() != 0)
-	{
-		return false;
-	}
-	
-	std::vector<BuilderFileInfo*> inheritsFromFiles;
+	action.Tool = m_windowsResourceCompilerPath;
+	action.WorkingDirectory = m_windowsResourceCompilerPath.GetDirectory();
+	action.FileInfo = fileInfo;
 
-	std::vector<Platform::Path> dependencies;
-	for (auto& path : m_projectFile.Get_ProductInfo_Icon())
+
+	action.PostProcessDelegate = [this](BuildAction& action) -> bool
 	{
-		dependencies.push_back(path);
-	}
+		printf("%s", action.Output.c_str());
+		if (action.ExitCode != 0)
+		{
+			return false;
+		}
 
-	UpdateDependencyManifest(fileInfo, dependencies, inheritsFromFiles);
+		std::vector<BuilderFileInfo*> inheritsFromFiles;
 
-	return true;
+		std::vector<Platform::Path> dependencies;
+		for (auto& path : m_projectFile.Get_ProductInfo_Icon())
+		{
+			dependencies.push_back(path);
+		}
+
+		UpdateDependencyManifest(action.FileInfo, dependencies, inheritsFromFiles);
+
+		return true;
+	};
 }
 
 #elif defined(MB_PLATFORM_LINUX)
-	
-bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
+
+void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) override;
 {	
 	// todo: Generate desktop entry object.	
 	return false;
@@ -798,8 +798,7 @@ bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberI
 
 #elif defined(MB_PLATFORM_MACOS)
 
-	
-bool Toolchain_Gcc::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
+void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) override;
 {	
 	// todo: Generate iconset and embed it.
 	return false;

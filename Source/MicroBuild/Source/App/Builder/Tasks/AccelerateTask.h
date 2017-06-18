@@ -20,20 +20,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Schemas/Project/ProjectFile.h"
 #include "App/Builder/Toolchains/Toolchain.h"
+#include "App/Builder/Accelerators/Accelerator.h"
 #include "App/Builder/Tasks/BuildTask.h"
 
 namespace MicroBuild {
 	
-// Executes a command line string through the default platform shell.
-class ShellCommandTask
+// Runs a list of sub-tasks through a build accelerator.
+class AccelerateTask
 	: public BuildTask
 {
 private:
-	std::string m_command;
+	Toolchain* m_toolchain;
+	Accelerator* m_accelerator;
+	std::vector<std::shared_ptr<BuildTask>> m_tasks;
+	ProjectFile& m_projectFile;
 
 public:
-	ShellCommandTask(BuildStage stage, const std::string& command);
+	AccelerateTask(ProjectFile& projectFile, std::vector<std::shared_ptr<BuildTask>>& tasks, Toolchain* toolchain, Accelerator* accelerator);
 
+	virtual bool Execute() override;
 	virtual BuildAction GetAction() override;
 
 }; 

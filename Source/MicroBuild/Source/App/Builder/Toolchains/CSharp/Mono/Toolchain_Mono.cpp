@@ -344,48 +344,68 @@ void Toolchain_Mono::GetLinkArguments(const std::vector<BuilderFileInfo>& files,
 	}
 }
 
-bool Toolchain_Mono::Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+void Toolchain_Mono::GetArchiveAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
 {
-	if (!Toolchain::Archive(files, outputFile))
-	{
-		return false;
-	}
-	
-	// Copy PDB to output.	
-	Platform::Path intPdb = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(Strings::Format("%s%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str(), ".mdb"), true);
-	Platform::Path outPdb = m_projectFile.Get_Project_OutputDirectory()
-		.AppendFragment(Strings::Format("%s%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str(), ".mdb"), true);
-		
-	if (!intPdb.Copy(outPdb))
-	{
-		Log(LogSeverity::Fatal, "Failed to copy pdb file to '%s'.", outPdb.ToString().c_str());
-		return false;
-	}
+	Toolchain::GetArchiveAction(action, files, outputFile);
 
-	return true;
+	std::function<bool(BuildAction& Action)> PreviousDelegate = action.PostProcessDelegate;
+
+	action.PostProcessDelegate = [this, PreviousDelegate](BuildAction& action) -> bool
+	{
+		if (PreviousDelegate != nullptr)
+		{
+			if (!PreviousDelegate(action))
+			{
+				return false;
+			}
+		}
+
+		// Copy PDB to output.	
+		Platform::Path intPdb = m_projectFile.Get_Project_IntermediateDirectory()
+			.AppendFragment(Strings::Format("%s%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str(), ".mdb"), true);
+		Platform::Path outPdb = m_projectFile.Get_Project_OutputDirectory()
+			.AppendFragment(Strings::Format("%s%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str(), ".mdb"), true);
+
+		if (!intPdb.Copy(outPdb))
+		{
+			Log(LogSeverity::Fatal, "Failed to copy pdb file to '%s'.", outPdb.ToString().c_str());
+			return false;
+		}
+
+		return true;
+	};
 }
 
-bool Toolchain_Mono::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+void Toolchain_Mono::GetLinkAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
 {
-	if (!Toolchain::Link(files, outputFile))
-	{
-		return false;
-	}
-	
-	// Copy PDB to output.	
-	Platform::Path intPdb = m_projectFile.Get_Project_IntermediateDirectory()
-		.AppendFragment(Strings::Format("%s%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str(), ".mdb"), true);
-	Platform::Path outPdb = m_projectFile.Get_Project_OutputDirectory()
-		.AppendFragment(Strings::Format("%s%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str(), ".mdb"), true);
-		
-	if (!intPdb.Copy(outPdb))
-	{
-		Log(LogSeverity::Fatal, "Failed to copy pdb file to '%s'.", outPdb.ToString().c_str());
-		return false;
-	}
+	Toolchain::GetLinkAction(action, files, outputFile);
 
-	return true;
+	std::function<bool(BuildAction& Action)> PreviousDelegate = action.PostProcessDelegate;
+
+	action.PostProcessDelegate = [this, PreviousDelegate](BuildAction& action) -> bool
+	{
+		if (PreviousDelegate != nullptr)
+		{
+			if (!PreviousDelegate(action))
+			{
+				return false;
+			}
+		}
+
+		// Copy PDB to output.	
+		Platform::Path intPdb = m_projectFile.Get_Project_IntermediateDirectory()
+			.AppendFragment(Strings::Format("%s%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str(), ".mdb"), true);
+		Platform::Path outPdb = m_projectFile.Get_Project_OutputDirectory()
+			.AppendFragment(Strings::Format("%s%s%s", m_projectFile.Get_Project_OutputName().c_str(), m_projectFile.Get_Project_OutputExtension().c_str(), ".mdb"), true);
+
+		if (!intPdb.Copy(outPdb))
+		{
+			Log(LogSeverity::Fatal, "Failed to copy pdb file to '%s'.", outPdb.ToString().c_str());
+			return false;
+		}
+
+		return true;
+	};
 }
 
 }; // namespace MicroBuild

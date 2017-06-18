@@ -24,18 +24,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 ShellCommandTask::ShellCommandTask(BuildStage stage, const std::string& command)
-	: BuildTask(stage, false, false)
+	: BuildTask(stage, false, false, false)
 	, m_command(command)
 {
 }
 
-bool ShellCommandTask::Execute()
+BuildAction ShellCommandTask::GetAction()
 {
 	std::vector<std::string> arguments = Strings::Crack(m_command, ' ', true);
 	std::string executable = Strings::StripQuotes(arguments[0]);
 	arguments.erase(arguments.begin());
-
-	//TaskLog(LogSeverity::SilentInfo, "Executing: %s\n", m_command.c_str());
 
 	Platform::Path rootPath = Platform::Path(executable).GetDirectory();
 	if (rootPath.IsRelative())
@@ -43,14 +41,18 @@ bool ShellCommandTask::Execute()
 		rootPath = Platform::Path::GetExecutablePath().GetDirectory();
 	}
 
-	Platform::Process process;
-	if (!process.Open(executable, rootPath, arguments, true))
-	{
-		return false;
-	}
+	BuildAction action;
+	action.StatusMessage = "";
+	action.Tool = executable;
+	action.WorkingDirectory = rootPath;
+	action.Arguments = arguments;
 
-	process.ReadToEnd(true);
-	return (process.GetExitCode() == 0);
+	action.PostProcessDelegate = [](BuildAction& action) -> bool
+	{
+		return (action.ExitCode == 0);
+	};
+
+	return action;
 }
 
 }; // namespace MicroBuild

@@ -18,23 +18,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
-#include "Schemas/Project/ProjectFile.h"
-#include "App/Builder/Toolchains/Toolchain.h"
-#include "App/Builder/Tasks/BuildTask.h"
+#include "App/Builder/Accelerators/Accelerator.h"
+
+#include "Core/Platform/Path.h"
 
 namespace MicroBuild {
-	
-// Executes a command line string through the default platform shell.
-class ShellCommandTask
-	: public BuildTask
+
+// Provides sndbs distributed compilation.
+class Accelerator_Sndbs
+	: public Accelerator
 {
-private:
-	std::string m_command;
+protected:
+	Platform::Path m_dbsBuildPath;
 
 public:
-	ShellCommandTask(BuildStage stage, const std::string& command);
 
-	virtual BuildAction GetAction() override;
+	// Constructor.
+	Accelerator_Sndbs();
+
+	// Attempts to find the accelerator install, returns true if everything is available,	
+	// otherwise false.
+	virtual bool Init() override;
+
+	// Runs all the actions in distribution.
+	virtual bool RunActions(Toolchain* toolchain, BuildTask* baseTask, ProjectFile& projectFile, std::vector<BuildAction>& actions) override;
 
 }; 
 

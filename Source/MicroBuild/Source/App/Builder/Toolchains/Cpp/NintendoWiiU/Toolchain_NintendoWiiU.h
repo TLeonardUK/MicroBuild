@@ -62,13 +62,13 @@ protected:
 	virtual bool ParseOutput(BuilderFileInfo& file, std::string& output) override;
 	
 	// Generates a def file that exports every symbol in the given object files.
-	bool RplExportAll(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile, const Platform::Path& outputDefFile);
+	bool RplExportAll(const std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile, const Platform::Path& outputDefFile);
 	
 	// Generates an rpl export object which needs to be fed to the linker when generating dynamic libraries.
-	bool PrepRPL(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
+	bool PrepRPL(const std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
 	
 	// Takes an elf file (and optionally an rpl export object) and generates a final rpx output file.
-	bool MakeRPL(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
+	bool MakeRPL(const std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
 	
 public:
 	Toolchain_NintendoWiiU(ProjectFile& file, uint64_t configurationHash);
@@ -76,7 +76,7 @@ public:
 	virtual bool Init() override;
 
 	// Links all the source files provided into a sinmgle executable.
-	virtual bool Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
+	virtual void GetLinkAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
 
 	// Parse message information from the stdout.
 	static bool ParseMessageOutput(BuilderFileInfo& file, std::string& input);

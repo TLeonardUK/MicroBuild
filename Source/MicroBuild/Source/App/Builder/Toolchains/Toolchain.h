@@ -44,6 +44,7 @@ class Toolchain
 {
 protected:
 	bool m_bAvailable;
+	bool m_bCanDistribute;
 	bool m_bRequiresCompileStep;
 	bool m_bRequiresVersionInfo;
 	bool m_bGeneratesPchObject;
@@ -92,10 +93,13 @@ protected:
 	virtual void GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFiles, std::vector<std::string>& args);
 
 	// Updates the output files dependencies based on a linking operation.
-	virtual void UpdateLinkDependencies(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
+	virtual void UpdateLinkDependencies(const std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
 
 	// Writes the arguments into a response file and starts the process using the response file.
 	bool OpenResponseFileProcess(Platform::Process& process, const Platform::Path& responseFilePath, const Platform::Path& exePath, const Platform::Path& workingDir, const std::vector<std::string>& arguments, bool bRedirectStdout = false);
+
+	// Writes the arguments into a response file and starts the process using the response file.
+	bool GetResponseFileAction(BuildAction& action, const Platform::Path& responseFilePath, const Platform::Path& exePath, const Platform::Path& workingDir, const std::vector<std::string>& arguments, bool bRedirectStdout = false);
 	
 public:
 
@@ -112,6 +116,9 @@ public:
 	// Returns true if this toolchain is available for use.
 	bool IsAvailable();
 
+	// If true the task can be distributed to other computers using a build accelerator.
+	bool CanDistribute();
+
 	// Returns true if we require an individual compile-call for each
 	// source file, if not we jump straight to the Archive/Link step.
 	bool RequiresCompileStep();
@@ -127,19 +134,19 @@ public:
 	virtual bool Init() = 0;
 
 	// Compiles the PCH described in the project file.	
-	virtual bool CompilePch(BuilderFileInfo& fileInfo);
+	virtual void GetCompilePchAction(BuildAction& action, BuilderFileInfo& fileInfo);
 
 	// Compiles the given file contained in the project.
-	virtual bool Compile(BuilderFileInfo& fileInfo, BuilderFileInfo& pchFileInfo);
+	virtual void GetCompileAction(BuildAction& action, BuilderFileInfo& fileInfo, BuilderFileInfo& pchFileInfo);
 	
 	// Compiles any files required to output version information.
-	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo);
+	virtual void GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo);
 
 	// Archives all the source files provided into a single lib.
-	virtual bool Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
+	virtual void GetArchiveAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
 
 	// Links all the source files provided into a sinmgle executable.
-	virtual bool Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
+	virtual void GetLinkAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile);
 
 	// Some general paths that most toolchains use, this just makes them a bit cleaner to access.
 	Platform::Path GetOutputPath();

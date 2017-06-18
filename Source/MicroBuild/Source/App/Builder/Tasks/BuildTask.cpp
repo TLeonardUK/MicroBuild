@@ -22,12 +22,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 	
-BuildTask::BuildTask(BuildStage stage, bool bCanRunInParallel, bool bGiveJobIndex)
+BuildTask::BuildTask(BuildStage stage, bool bCanRunInParallel, bool bGiveJobIndex, bool bCanDistribute)
 	: m_stage(stage)
 	, m_bCanRunInParallel(bCanRunInParallel)
+	, m_bCanDistribute(bCanDistribute)
 	, m_jobIndex(-1)
 	, m_totalJobs(-1)
 	, m_bGiveJobIndex(bGiveJobIndex)
+	, m_subTaskCount(1)
 {
 }
 
@@ -39,6 +41,11 @@ BuildStage BuildTask::GetBuildState()
 bool BuildTask::CanRunInParallel()
 {
 	return m_bCanRunInParallel;
+}
+
+bool BuildTask::CanDistribute()
+{
+	return m_bCanDistribute;
 }
 
 bool BuildTask::ShouldGiveJobIndex()
@@ -68,7 +75,12 @@ void BuildTask::GetTaskProgress(int& jobIndex, int& totalJobs)
 	totalJobs = m_totalJobs;
 }
 
-void BuildTask::TaskLog(LogSeverity Severity, const char* format, ...)
+int BuildTask::GetSubTaskCount()
+{
+	return m_subTaskCount;
+}
+
+void BuildTask::TaskLog(LogSeverity Severity, int subTaskIndex, const char* format, ...)
 {
 	va_list list;
 	va_start(list, format);
@@ -93,11 +105,34 @@ void BuildTask::TaskLog(LogSeverity Severity, const char* format, ...)
 	else
 	{
 		Log(Severity, "[%4i/%4i] %s", 
-			m_jobIndex,
+			m_jobIndex + subTaskIndex,
 			m_totalJobs,
 			message.c_str()
 		);
 	}
+}
+
+bool BuildTask::Execute()
+{
+	BuildAction action = GetAction();
+
+	int jobIndex = 0, totalJobs = 0;
+	GetTaskProgress(jobIndex, totalJobs);
+
+	if (!action.StatusMessage.empty())
+	{
+		TaskLog(LogSeverity::SilentInfo, 0, "%s", action.StatusMessage.c_str());
+	}
+
+	Platform::Process process;
+	if (!process.Open(action.Tool, action.Tool.GetDirectory(), action.Arguments, true))
+	{
+		return false;
+	}
+
+	action.Output = process.ReadToEnd();
+	action.ExitCode = process.GetExitCode();
+	return action.PostProcessDelegate(action);
 }
 
 }; // namespace MicroBuild

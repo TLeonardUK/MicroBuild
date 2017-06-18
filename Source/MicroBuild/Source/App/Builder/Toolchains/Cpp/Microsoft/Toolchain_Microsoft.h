@@ -80,9 +80,9 @@ public:
 	Toolchain_Microsoft(ProjectFile& file, uint64_t configurationHash, bool bUseDefaultToolchain = false);
 	
 	virtual bool Init() override;
-	virtual bool Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
-	virtual bool Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
-	virtual bool CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) override;
+	virtual void GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) override;
+	virtual void GetArchiveAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
+	virtual void GetLinkAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
 
 	bool CreateVersionInfoScript(Platform::Path iconPath, Platform::Path rcScriptPath, VersionNumberInfo versionInfo);
 

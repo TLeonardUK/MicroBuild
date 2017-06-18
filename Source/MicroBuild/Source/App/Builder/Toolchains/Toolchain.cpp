@@ -32,6 +32,7 @@ namespace MicroBuild {
 
 Toolchain::Toolchain(ProjectFile& file, uint64_t configurationHash)
 	: m_bAvailable(false)
+	, m_bCanDistribute(false)
 	, m_bRequiresCompileStep(true)
 	, m_bRequiresVersionInfo(false)
 	, m_bGeneratesPchObject(true)
@@ -51,6 +52,11 @@ void Toolchain::SetProjectInfo(ProjectFile& file, uint64_t configurationHash)
 bool Toolchain::IsAvailable()
 {
 	return m_bAvailable;
+}
+
+bool Toolchain::CanDistribute()
+{
+	return m_bCanDistribute;
 }
 
 std::string Toolchain::GetDescription()
@@ -346,168 +352,203 @@ void Toolchain::GetArchiveArguments(const std::vector<BuilderFileInfo>& sourceFi
 	MB_UNUSED_PARAMETER(args);
 }
 
-bool Toolchain::CompilePch(BuilderFileInfo& fileInfo) 
+void Toolchain::GetCompilePchAction(BuildAction& action, BuilderFileInfo& fileInfo)
 {
-	std::vector<std::string> arguments;
-	GetBaseCompileArguments(fileInfo, arguments);
-	GetPchCompileArguments(fileInfo, arguments);
+	GetBaseCompileArguments(fileInfo, action.Arguments);
+	GetPchCompileArguments(fileInfo, action.Arguments);
 
-	Platform::Process process;
-	if (!process.Open(m_compilerPath, m_compilerPath.GetDirectory(), arguments, true))
-	{
-		return false;
-	}
+	action.Tool = m_compilerPath;
+	action.WorkingDirectory = m_compilerPath.GetDirectory();
+	action.FileInfo = fileInfo;
 
-	std::string output = process.ReadToEnd();
-	if (!ParseOutput(fileInfo, output))
+	action.PostProcessDelegate = [this](BuildAction& action) -> bool
 	{
-		return false;
-	}
-	if (LogGetVerbose())
-	{
-		printf("%s", output.c_str());
-	}
-	PrintMessages(fileInfo);
-	if (fileInfo.ErrorCount > 0 || (fileInfo.WarningCount > 0 && m_projectFile.Get_Flags_CompilerWarningsFatal()))
-	{
-		return false;
-	}
-	if (process.GetExitCode() != 0)
-	{
-		return false;
-	}
+		if (!ParseOutput(action.FileInfo, action.Output))
+		{
+			return false;
+		}
+		if (LogGetVerbose())
+		{
+			printf("%s", action.Output.c_str());
+		}
+		PrintMessages(action.FileInfo);
+		if (action.FileInfo.ErrorCount > 0 || (action.FileInfo.WarningCount > 0 && m_projectFile.Get_Flags_CompilerWarningsFatal()))
+		{
+			return false;
+		}
+		if (action.ExitCode != 0)
+		{
+			return false;
+		}
 
-	std::vector<BuilderFileInfo*> inheritsFromFiles;
-	UpdateDependencyManifest(fileInfo, fileInfo.OutputDependencyPaths, inheritsFromFiles);
+		std::vector<BuilderFileInfo*> inheritsFromFiles;
+		UpdateDependencyManifest(action.FileInfo, action.FileInfo.OutputDependencyPaths, inheritsFromFiles);
 
-	return true;
+		return true;
+	};
 }
 
-bool Toolchain::Compile(BuilderFileInfo& fileInfo, BuilderFileInfo& pchFileInfo)
+void Toolchain::GetCompileAction(BuildAction& action, BuilderFileInfo& fileInfo, BuilderFileInfo& pchFileInfo)
 {
-	std::vector<std::string> arguments;
-	GetBaseCompileArguments(fileInfo, arguments);
-	GetSourceCompileArguments(fileInfo, arguments);
-//	arguments.push_back("-v");
+	GetBaseCompileArguments(fileInfo, action.Arguments);
+	GetSourceCompileArguments(fileInfo, action.Arguments);
 	
-	Platform::Process process;	
-	if (!process.Open(m_compilerPath, m_compilerPath.GetDirectory(), arguments, true))
-	{
-		return false;
-	}
-	
-	std::string output = process.ReadToEnd();
-	if (!ParseOutput(fileInfo, output))
-	{
-		return false;
-	}
-	if (LogGetVerbose())
-	{
-		printf("%s", output.c_str());
-	}
-	PrintMessages(fileInfo);
-	if (fileInfo.ErrorCount > 0 || (fileInfo.WarningCount > 0 && m_projectFile.Get_Flags_CompilerWarningsFatal()))
-	{
-		return false;
-	}
-	if (process.GetExitCode() != 0)
-	{
-		return false;
-	}
+	action.Tool = m_compilerPath;
+	action.WorkingDirectory = m_compilerPath.GetDirectory();
+	action.FileInfo = fileInfo;
 
-	std::vector<BuilderFileInfo*> inheritsFromFiles;
-	inheritsFromFiles.push_back(&pchFileInfo);
-	UpdateDependencyManifest(fileInfo, fileInfo.OutputDependencyPaths, inheritsFromFiles);
+	action.PostProcessDelegate = [this, &pchFileInfo](BuildAction& action) -> bool
+	{
+		if (!ParseOutput(action.FileInfo, action.Output))
+		{
+			return false;
+		}
+		if (LogGetVerbose())
+		{
+			printf("%s", action.Output.c_str());
+		}
+		PrintMessages(action.FileInfo);
+		if (action.FileInfo.ErrorCount > 0 || (action.FileInfo.WarningCount > 0 && m_projectFile.Get_Flags_CompilerWarningsFatal()))
+		{
+			return false;
+		}
+		if (action.ExitCode != 0)
+		{
+			return false;
+		}
 
-	return true;
+		std::vector<BuilderFileInfo*> inheritsFromFiles;
+		inheritsFromFiles.push_back(&pchFileInfo);
+		UpdateDependencyManifest(action.FileInfo, action.FileInfo.OutputDependencyPaths, inheritsFromFiles);
+
+		return true;
+	};
 }
 
-bool Toolchain::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
+void Toolchain::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
 {
+	MB_UNUSED_PARAMETER(action);
 	MB_UNUSED_PARAMETER(fileInfo);
 	MB_UNUSED_PARAMETER(versionInfo);
-
-	// Not implemented in most toolchains, mainly for windows icons/version-info.
-	return false;
 }
 
-bool Toolchain::Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+void Toolchain::GetArchiveAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
 {
-	std::vector<std::string> arguments;
-	GetArchiveArguments(files, arguments);
+	GetArchiveArguments(files, action.Arguments);
+
+	action.FileInfo = outputFile;
 
 	Platform::Process process;
 	Platform::Path responseFilePath = outputFile.ManifestPath.AppendFragment(".rsp", false);
-	if (!OpenResponseFileProcess(process, responseFilePath, m_archiverPath, m_archiverPath.GetDirectory(), arguments, true))
+	if (!GetResponseFileAction(action, responseFilePath, m_archiverPath, m_archiverPath.GetDirectory(), action.Arguments, true))
 	{
-		return false;
+		return;
 	}
 	
 	outputFile.Dependencies.clear();
-	
-	std::string output = process.ReadToEnd();
-	if (!ParseOutput(outputFile, output))
-	{
-		return false;
-	}
-	if (LogGetVerbose())
-	{
-		printf("%s", output.c_str());
-	}
 
-	PrintMessages(outputFile);
-
-	if (outputFile.ErrorCount > 0 || (outputFile.WarningCount > 0 && m_projectFile.Get_Flags_LinkerWarningsFatal()))
+	action.PostProcessDelegate = [this, files](BuildAction& action) -> bool
 	{
-		return false;
-	}
-	if (process.GetExitCode() != 0)
-	{
-		return false;
-	}
-
-	if (m_bRequiresCompileStep)
-	{
-		// Object files to link.
-		for (auto& sourceFile : files)
+		if (!ParseOutput(action.FileInfo, action.Output))
 		{
-			BuilderDependencyInfo info;
-			info.SourcePath = sourceFile.OutputPath;
-			info.Hash = BuilderFileInfo::CalculateFileHash(info.SourcePath, m_configurationHash);
-			outputFile.Dependencies.push_back(info);
+			return false;
 		}
-	
-		// Link PCH.
-		if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+		if (LogGetVerbose())
 		{
-			Platform::Path pchObjectPath = m_projectFile.Get_Project_IntermediateDirectory()
-				.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("o").GetFilename(), true);
-
-			BuilderDependencyInfo info;
-			info.SourcePath = pchObjectPath;
-			info.Hash = BuilderFileInfo::CalculateFileHash(info.SourcePath, m_configurationHash);
-			outputFile.Dependencies.push_back(info);
+			printf("%s", action.Output.c_str());
 		}
-	}
-
-	// Depndent on every input source file if no compile step.
-	else
-	{
-		for (auto& sourceFile : files)
+		PrintMessages(action.FileInfo);
+		if (action.FileInfo.ErrorCount > 0 || (action.FileInfo.WarningCount > 0 && m_projectFile.Get_Flags_LinkerWarningsFatal()))
 		{
-			BuilderDependencyInfo info;
-			info.SourcePath = sourceFile.SourcePath;
-			info.Hash = BuilderFileInfo::CalculateFileHash(info.SourcePath, m_configurationHash);
-			outputFile.Dependencies.push_back(info);
-		}	
-	}
+			return false;
+		}
+		if (action.ExitCode != 0)
+		{
+			return false;
+		}
 
-	outputFile.StoreManifest();
+		if (m_bRequiresCompileStep)
+		{
+			// Object files to link.
+			for (auto& sourceFile : files)
+			{
+				BuilderDependencyInfo info;
+				info.SourcePath = sourceFile.OutputPath;
+				info.Hash = BuilderFileInfo::CalculateFileHash(info.SourcePath, m_configurationHash);
+				action.FileInfo.Dependencies.push_back(info);
+			}
 
-	return true;
+			// Link PCH.
+			if (!m_projectFile.Get_Build_PrecompiledHeader().IsEmpty())
+			{
+				Platform::Path pchObjectPath = m_projectFile.Get_Project_IntermediateDirectory()
+					.AppendFragment(m_projectFile.Get_Build_PrecompiledHeader().ChangeExtension("o").GetFilename(), true);
+
+				BuilderDependencyInfo info;
+				info.SourcePath = pchObjectPath;
+				info.Hash = BuilderFileInfo::CalculateFileHash(info.SourcePath, m_configurationHash);
+				action.FileInfo.Dependencies.push_back(info);
+			}
+		}
+
+		// Depndent on every input source file if no compile step.
+		else
+		{
+			for (auto& sourceFile : files)
+			{
+				BuilderDependencyInfo info;
+				info.SourcePath = sourceFile.SourcePath;
+				info.Hash = BuilderFileInfo::CalculateFileHash(info.SourcePath, m_configurationHash);
+				action.FileInfo.Dependencies.push_back(info);
+			}
+		}
+
+		action.FileInfo.StoreManifest();
+		return true;
+	};
 }
 
-void Toolchain::UpdateLinkDependencies(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+void Toolchain::GetLinkAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+{
+	GetLinkArguments(files, action.Arguments);
+
+	action.FileInfo = outputFile;
+
+	Platform::Process process;
+	Platform::Path responseFilePath = outputFile.ManifestPath.AppendFragment(".rsp", false);
+	if (!GetResponseFileAction(action, responseFilePath, m_linkerPath, m_linkerPath.GetDirectory(), action.Arguments, true))
+	{
+		return;
+	}
+
+	action.PostProcessDelegate = [this, files](BuildAction& action) -> bool
+	{
+		if (!ParseOutput(action.FileInfo, action.Output))
+		{
+			return false;
+		}
+		if (LogGetVerbose())
+		{
+			printf("%s", action.Output.c_str());
+		}
+		PrintMessages(action.FileInfo);
+		if (action.FileInfo.ErrorCount > 0 || (action.FileInfo.WarningCount > 0 && m_projectFile.Get_Flags_LinkerWarningsFatal()))
+		{
+			return false;
+		}
+		if (action.ExitCode != 0)
+		{
+			return false;
+		}
+
+		UpdateLinkDependencies(files, action.FileInfo);
+		action.FileInfo.StoreManifest();
+
+		return true;
+	};
+}
+
+void Toolchain::UpdateLinkDependencies(const std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
 {
 	outputFile.Dependencies.clear();
 
@@ -579,43 +620,6 @@ void Toolchain::UpdateLinkDependencies(std::vector<BuilderFileInfo>& files, Buil
 	}	
 }
 
-bool Toolchain::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
-{
-	std::vector<std::string> arguments;
-	GetLinkArguments(files, arguments);
-
-	Platform::Process process;
-	Platform::Path responseFilePath = outputFile.ManifestPath.AppendFragment(".rsp", false);
-	if (!OpenResponseFileProcess(process, responseFilePath, m_linkerPath, m_linkerPath.GetDirectory(), arguments, true))
-	{
-		return false;
-	}
-	
-	std::string output = process.ReadToEnd();
-	if (!ParseOutput(outputFile, output))
-	{
-		return false;
-	}
-	if (LogGetVerbose())
-	{
-		printf("%s", output.c_str());
-	}
-	PrintMessages(outputFile);
-	if (outputFile.ErrorCount > 0 || (outputFile.WarningCount > 0 && m_projectFile.Get_Flags_LinkerWarningsFatal()))
-	{
-		return false;
-	}
-	if (process.GetExitCode() != 0)
-	{
-		return false;
-	}
-	
-	UpdateLinkDependencies(files, outputFile);
-	outputFile.StoreManifest();
-
-	return true;
-}
-
 bool Toolchain::OpenResponseFileProcess(Platform::Process& process, const Platform::Path& responseFilePath, const Platform::Path& exePath, const Platform::Path& workingDir, const std::vector<std::string>& arguments, bool bRedirectStdout)
 {
 	// Look for a @ symbol in the argument list, this denotes that everything that follows goes in 
@@ -625,7 +629,7 @@ bool Toolchain::OpenResponseFileProcess(Platform::Process& process, const Platfo
 	{
 		std::vector<std::string> commandLine(arguments.begin(), atSymbolIndex);
 		std::vector<std::string> responseArguments(atSymbolIndex + 1, arguments.end());
-		
+
 		std::string responseData = Strings::Join(responseArguments, "\n");
 
 		if (!Strings::WriteFile(responseFilePath, responseData))
@@ -647,7 +651,49 @@ bool Toolchain::OpenResponseFileProcess(Platform::Process& process, const Platfo
 		}
 
 		return process.Open(exePath, workingDir, { "@" + responseFilePath.ToString() }, bRedirectStdout);
+	}	
+}
+
+bool Toolchain::GetResponseFileAction(BuildAction& action, const Platform::Path& responseFilePath, const Platform::Path& exePath, const Platform::Path& workingDir, const std::vector<std::string>& arguments, bool bRedirectStdout)
+{
+	MB_UNUSED_PARAMETER(bRedirectStdout);
+
+	// Look for a @ symbol in the argument list, this denotes that everything that follows goes in 
+	// a response file and the @ symbol is replaced with the response filename.
+	auto atSymbolIndex = std::find(arguments.begin(), arguments.end(), "@");
+	if (atSymbolIndex != arguments.end())
+	{
+		std::vector<std::string> commandLine(arguments.begin(), atSymbolIndex);
+		std::vector<std::string> responseArguments(atSymbolIndex + 1, arguments.end());
+		
+		std::string responseData = Strings::Join(responseArguments, "\n");
+
+		if (!Strings::WriteFile(responseFilePath, responseData))
+		{
+			return false;
+		}
+
+		commandLine.push_back(responseFilePath.ToString());
+
+		action.Tool = exePath;
+		action.WorkingDirectory = workingDir;
+		action.Arguments = commandLine;
 	}
+	else
+	{
+		std::string data = Strings::Join(arguments, "\n");
+
+		if (!Strings::WriteFile(responseFilePath, data))
+		{
+			return false;
+		}
+
+		action.Tool = exePath;
+		action.WorkingDirectory = workingDir;
+		action.Arguments = { "@" + responseFilePath.ToString() };
+	}
+
+	return true;
 }
 
 Platform::Path Toolchain::GetOutputPath()

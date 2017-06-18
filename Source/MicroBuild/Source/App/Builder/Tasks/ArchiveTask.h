@@ -36,7 +36,7 @@ private:
 public:
 	ArchiveTask(std::vector<BuilderFileInfo>& sourceFiles, Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& outputFile);
 
-	virtual bool Execute() override;
+	virtual BuildAction GetAction() override;
 
 }; 
 

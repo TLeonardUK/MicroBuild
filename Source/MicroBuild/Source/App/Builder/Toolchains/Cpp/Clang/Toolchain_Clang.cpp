@@ -94,18 +94,15 @@ bool Toolchain_Clang::FindToolchain()
 	return true;
 }
 
-bool Toolchain_Clang::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
+void Toolchain_Clang::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) 
 {	
 	 MB_UNUSED_PARAMETER(fileInfo);
 
 #if defined(MB_PLATFORM_WINDOWS)
 	
 	// Use microsoft toolchain to generate the version info file which we can link in to the exe.
-	if (!m_microsoftToolchain.CompileVersionInfo(fileInfo, versionInfo))
-	{
-		return false;
-	}
-
+	 m_microsoftToolchain.GetCompileVersionInfoAction(action, fileInfo, versionInfo);
+	
 #elif defined(MB_PLATFORM_LINUX)
 
 	// We could generate a desktop entry file here, but this
@@ -119,8 +116,6 @@ bool Toolchain_Clang::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumbe
 	// rather than during compilation.
 
 #endif
-
-	return true;
 }
 
 }; // namespace MicroBuild

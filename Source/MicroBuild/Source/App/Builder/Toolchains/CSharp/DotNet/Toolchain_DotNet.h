@@ -54,8 +54,8 @@ public:
 	Toolchain_DotNet(ProjectFile& file, uint64_t configurationHash);
 	
 	virtual bool Init() override;
-	virtual bool Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
-	virtual bool Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
+	virtual void GetArchiveAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
+	virtual void GetLinkAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) override;
 
 }; 
 

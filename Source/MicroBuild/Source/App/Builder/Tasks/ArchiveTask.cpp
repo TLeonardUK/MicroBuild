@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 ArchiveTask::ArchiveTask(std::vector<BuilderFileInfo>& sourceFiles, Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& outputFile)
-	: BuildTask(BuildStage::Link, true, true)
+	: BuildTask(BuildStage::Link, true, true, false)
 	, m_toolchain(toolchain)
 	, m_sourceFiles(sourceFiles)
 	, m_outputFile(outputFile)
@@ -32,14 +32,14 @@ ArchiveTask::ArchiveTask(std::vector<BuilderFileInfo>& sourceFiles, Toolchain* t
 	MB_UNUSED_PARAMETER(project);
 }
 
-bool ArchiveTask::Execute()
+BuildAction ArchiveTask::GetAction()
 {	
-	int jobIndex = 0, totalJobs = 0;
-	GetTaskProgress(jobIndex, totalJobs);
-
-	TaskLog(LogSeverity::SilentInfo, "Archiving: %s\n", m_outputFile.OutputPath.GetFilename().c_str());
+	BuildAction action;
+	action.StatusMessage = Strings::Format("Archiving: %s\n", m_outputFile.OutputPath.GetFilename().c_str());
 	
-	return m_toolchain->Archive(m_sourceFiles, m_outputFile);
+	m_toolchain->GetArchiveAction(action, m_sourceFiles, m_outputFile);
+
+	return action;
 }
 
 }; // namespace MicroBuild

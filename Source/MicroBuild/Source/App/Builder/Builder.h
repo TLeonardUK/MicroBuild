@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+class Accelerator;
+
 // Internal builder. Takes a project configuration and builds the file as it specifies.
 class Builder
 {
@@ -43,6 +45,9 @@ protected:
 
 	// Gets the toolchain required to build the project.
 	Toolchain* GetToolchain(ProjectFile& project, uint64_t configurationHash);
+
+	// Gets the build accelerator.
+	Accelerator* GetAccelerator(ProjectFile& project);
 
 	// Queues the task with the given scheduler and parent job and sets
 	// a given flag on failure.

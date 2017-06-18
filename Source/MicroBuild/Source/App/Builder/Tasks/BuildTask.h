@@ -76,14 +76,18 @@ private:
 
 	BuildStage m_stage;
 	bool m_bCanRunInParallel;
+	bool m_bCanDistribute;
 
 	int m_threadId;
 	int m_jobIndex;
 	int m_totalJobs;
 	bool m_bGiveJobIndex;
 
+protected:
+	int m_subTaskCount;
+
 public:
-	BuildTask(BuildStage stage, bool bCanRunInParallel, bool bGiveJobIndex);
+	BuildTask(BuildStage stage, bool bCanRunInParallel, bool bGiveJobIndex, bool bCanDistribute);
 
 	// Gets the state during which this task is executed.
 	BuildStage GetBuildState();
@@ -92,14 +96,17 @@ public:
 	// it will get queued up with all other synchronous tasks and executed one
 	// at a time at the end of the phase.
 	bool CanRunInParallel();
-	
+
+	// If true the task can be distributed to other computers using a build accelerator.
+	bool CanDistribute();
+
 	// If we should assing this task a job index for progression tracking, 
 	// only false for tasks we explicitly do not want to log to the user,
 	// such as shell commands.
 	bool ShouldGiveJobIndex();
 
 	// Entrey point for the task, returns true on success, false on failure.
-	virtual bool Execute() = 0;
+	virtual bool Execute();
 
 	// Gets or sets the index of the thread we are executing on.
 	int GetTaskThreadId();
@@ -110,7 +117,14 @@ public:
 	void GetTaskProgress(int& jobIndex, int& totalJobs);
 
 	// Logs a progress messages prefixed with some progress information.
-	void TaskLog(LogSeverity Severity, const char* format, ...);
+	void TaskLog(LogSeverity Severity, int subTaskIndex, const char* format, ...);
+
+	// Gets total number of tasks this toolchain is made out of. This means the progress index
+	// of the task is given + this count above it for printing sub task details.
+	int GetSubTaskCount();
+
+	// Gets the action that this build task performs.
+	virtual BuildAction GetAction() = 0;
 
 }; 
 

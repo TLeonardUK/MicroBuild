@@ -16,26 +16,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
-
-#include "Schemas/Project/ProjectFile.h"
-#include "App/Builder/Toolchains/Toolchain.h"
-#include "App/Builder/Tasks/BuildTask.h"
+#include "PCH.h"
+#include "App/Builder/Accelerators/Accelerator.h"
 
 namespace MicroBuild {
-	
-// Executes a command line string through the default platform shell.
-class ShellCommandTask
-	: public BuildTask
+
+Accelerator::Accelerator()
+	: m_bAvailable(false)
+	, m_description("")
 {
-private:
-	std::string m_command;
+}
 
-public:
-	ShellCommandTask(BuildStage stage, const std::string& command);
+bool Accelerator::IsAvailable()
+{
+	return m_bAvailable;
+}
 
-	virtual BuildAction GetAction() override;
-
-}; 
+std::string Accelerator::GetDescription()
+{
+	return m_description;
+}
 
 }; // namespace MicroBuild

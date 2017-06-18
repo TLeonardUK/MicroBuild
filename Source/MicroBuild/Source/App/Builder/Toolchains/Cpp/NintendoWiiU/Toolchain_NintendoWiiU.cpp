@@ -581,7 +581,7 @@ bool Toolchain_NintendoWiiU::ParseOutput(BuilderFileInfo& file, std::string& inp
 	return true;
 }
 
-bool Toolchain_NintendoWiiU::RplExportAll(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile, const Platform::Path& outputDefFile)
+bool Toolchain_NintendoWiiU::RplExportAll(const std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile, const Platform::Path& outputDefFile)
 {
 	MB_UNUSED_PARAMETER(files);
 	MB_UNUSED_PARAMETER(outputFile);
@@ -653,7 +653,7 @@ bool Toolchain_NintendoWiiU::RplExportAll(std::vector<BuilderFileInfo>& files, B
 	return true;
 }
 
-bool Toolchain_NintendoWiiU::PrepRPL(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+bool Toolchain_NintendoWiiU::PrepRPL(const std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
 {
 	MB_UNUSED_PARAMETER(files);
 	MB_UNUSED_PARAMETER(outputFile);
@@ -716,7 +716,7 @@ bool Toolchain_NintendoWiiU::PrepRPL(std::vector<BuilderFileInfo>& files, Builde
 	return true;
 }
 
-bool Toolchain_NintendoWiiU::MakeRPL(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+bool Toolchain_NintendoWiiU::MakeRPL(const std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
 {	
 	MB_UNUSED_PARAMETER(files);
 	MB_UNUSED_PARAMETER(outputFile);
@@ -772,8 +772,8 @@ bool Toolchain_NintendoWiiU::MakeRPL(std::vector<BuilderFileInfo>& files, Builde
 
 	return true;
 }
-	
-bool Toolchain_NintendoWiiU::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile) 
+
+void Toolchain_NintendoWiiU::GetLinkAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
 {
 	// Welcome to the world of superfluous build steps ...
 
@@ -783,40 +783,39 @@ bool Toolchain_NintendoWiiU::Link(std::vector<BuilderFileInfo>& files, BuilderFi
 	{
 		if (!PrepRPL(files, outputFile))
 		{
-			return false;
+			return;
 		}
 	}
 	
 	// Step two - Call linker to generate elf.	
-	std::vector<std::string> arguments;
-	GetLinkArguments(files, arguments);
+	GetLinkArguments(files, action.Arguments);
+
 
 	Platform::Process process;
 	Platform::Path responseFilePath = outputFile.ManifestPath.AppendFragment(".rsp", false);
-	if (!OpenResponseFileProcess(process, responseFilePath, m_linkerPath, m_linkerPath.GetDirectory(), arguments, true))
+	if (!GetResponseFileAction(action, responseFilePath, m_linkerPath, m_linkerPath.GetDirectory(), action.Arguments, true))
 	{
-		return false;
-	}
-	
-	std::string output = process.ReadToEnd();
-	printf("%s", output.c_str());
+		return;
+	}	
 
-	if (process.GetExitCode() != 0)
+	action.PostProcessDelegate = [this, files](BuildAction& action) -> bool
 	{
-		return false;
-	}
-	
-	// Step three - Call MakeRPL to generate our .rpx/.rpl output file (depending if we are making exe or dynamic lib).	
-	if (!MakeRPL(files, outputFile))
-	{
-		return false;
-	}
+		printf("%s", action.Output.c_str());
+		if (action.ExitCode != 0)
+		{
+			return false;
+		}
 
-	// Finally update dependencies
-	UpdateLinkDependencies(files, outputFile);
-	outputFile.StoreManifest();
+		// Step three - Call MakeRPL to generate our .rpx/.rpl output file (depending if we are making exe or dynamic lib).	
+		if (!MakeRPL(files, action.FileInfo))
+		{
+			return false;
+		}
+		UpdateLinkDependencies(files, action.FileInfo);
+		action.FileInfo.StoreManifest();
 
-	return true;
+		return true;
+	};
 }
 
 

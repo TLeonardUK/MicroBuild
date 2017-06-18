@@ -88,6 +88,9 @@ public:
 	// Reads all stdout out until the process ends and then returns it.
 	std::string ReadToEnd(bool bPrintOutput = false);
 
+	// Reads a single line from stdout and then returns it.
+	std::string ReadLine();
+
 };
 
 };

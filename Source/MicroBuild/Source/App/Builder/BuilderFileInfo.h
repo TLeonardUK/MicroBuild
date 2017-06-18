@@ -117,4 +117,22 @@ public:
 	static bool GetCachedPathExists(const Platform::Path& path);
 };
 
+// Individual command line execution for a build step.
+struct BuildAction
+{
+	Platform::Path Tool;
+	Platform::Path WorkingDirectory;
+	std::vector<std::string> Arguments;
+	BuilderFileInfo FileInfo;
+	std::string Output;
+	std::string StatusMessage;
+	int ExitCode;
+
+	std::function<bool(BuildAction& Action)> PostProcessDelegate;
+
+	BuildAction()
+	{
+	}
+};
+
 }; // namespace MicroBuild

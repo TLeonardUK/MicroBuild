@@ -39,6 +39,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "App/Builder/Toolchains/CSharp/DotNet/Toolchain_DotNet.h"
 #include "App/Builder/Toolchains/CSharp/Mono/Toolchain_Mono.h"
 
+#include "App/Builder/Accelerators/Accelerator.h"
+#include "App/Builder/Accelerators/Sndbs/Accelerator_Sndbs.h"
+#include "App/Builder/Accelerators/IncrediBuild/Accelerator_IncrediBuild.h"
+
+#include "App/Builder/Tasks/AccelerateTask.h"
 #include "App/Builder/Tasks/ArchiveTask.h"
 #include "App/Builder/Tasks/CompileTask.h"
 #include "App/Builder/Tasks/CompilePchTask.h"
@@ -115,7 +120,7 @@ JobHandle Builder::QueueTask(
 {
 	if (totalJobs != nullptr)
 	{
-		(*totalJobs)++;
+		(*totalJobs) += task->GetSubTaskCount();
 	}
 
 	JobHandle handle = scheduler.CreateJob([&scheduler, &bFailureFlag, task, totalJobs, currentJobIndex]() {
@@ -129,10 +134,10 @@ JobHandle Builder::QueueTask(
 			int totalJobCount = -1;
 			if (currentJobIndex != nullptr)
 			{
-				jobIndex = ((*currentJobIndex)++);
+				jobIndex = ((*currentJobIndex) += task->GetSubTaskCount());
 				totalJobCount = *totalJobs;
 			}
-			task->SetTaskProgress(jobIndex + 1, totalJobCount);
+			task->SetTaskProgress(jobIndex - task->GetSubTaskCount() + 1, totalJobCount);
 		}
 		task->GetTaskThreadId(scheduler.GetThreadId());
 		if (!task->Execute())
@@ -544,6 +549,7 @@ bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> proj
 		std::vector<ProjectFile*> processedList;
 		BuildDependencyList(workspaceFile, projectFileInstances, project, dependencyList, processedList);
 		
+		// todo: run in parallel?
 		for (auto& depProject : dependencyList)
 		{
 			if (!Build(workspaceFile, projectFileInstances, *depProject, bRebuild, false, bBuildPackageFiles))
@@ -698,7 +704,19 @@ bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> proj
 		return false;
 	}
 
+	// Find build accelerator.
+	Accelerator* accelerator = GetAccelerator(project);	
+	if (!toolchain->CanDistribute())
+	{
+		accelerator = nullptr;
+	}
+
 	Log(LogSeverity::Info, "Toolchain: %s\n", toolchain->GetDescription().c_str());
+	if (accelerator)
+	{
+		Log(LogSeverity::Info, "Accelerator: %s\n", accelerator->GetDescription().c_str());
+	}
+
 	Log(LogSeverity::Info, "\n");
 
 	// Setup scheduler and create main task to parent all build tasks to.
@@ -815,13 +833,19 @@ bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> proj
 			JobHandle stageJob = buildStageHostJobs[i];
 
 			std::vector<std::shared_ptr<BuildTask>> parallelTasks;
+			std::vector<std::shared_ptr<BuildTask>> distributableTasks;
 			std::vector<std::shared_ptr<BuildTask>> sequentialTasks;
 
 			for (auto& task : tasks)
 			{
 				if (task->GetBuildState() == (BuildStage)i)
 				{
-					if (task->CanRunInParallel())
+					if (task->CanDistribute() && accelerator)
+					{
+						assert(task->CanRunInParallel()); // Distributed tasks are by nature parallel.
+						distributableTasks.push_back(task);
+					}
+					else if (task->CanRunInParallel())
 					{
 						parallelTasks.push_back(task);
 					}
@@ -831,7 +855,7 @@ bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> proj
 					}
 				}
 			}
-
+			
 			// Register parallel tasks first.
 			JobHandle parallelGorupJob = scheduler.CreateJob();
 			if (i > 0)
@@ -847,7 +871,6 @@ bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> proj
 				{
 					parentJob = &buildStageHostJobs[i - 1];
 				}
-
 				QueueTask(
 					scheduler, 
 					parallelGorupJob, 
@@ -855,6 +878,28 @@ bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> proj
 					task, 
 					bBuildFailed, 
 					&totalJobs, 
+					&currentJobIndex
+				);
+			}
+
+			// Queue accelerator tasks.
+			if (accelerator && distributableTasks.size() > 0)
+			{
+				std::shared_ptr<AccelerateTask> task = std::make_shared<AccelerateTask>(project, distributableTasks, toolchain, accelerator);
+
+				JobHandle* parentJob = nullptr;
+				if (i > 0)
+				{
+					parentJob = &buildStageHostJobs[i - 1];
+				}
+
+				QueueTask(
+					scheduler,
+					parallelGorupJob,
+					parentJob,
+					task,
+					bBuildFailed,
+					&totalJobs,
 					&currentJobIndex
 				);
 			}
@@ -920,6 +965,73 @@ bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> proj
 	return true;
 }
 
+template <typename AcceleratorType>
+AcceleratorType* GetCachedAccelerator(ProjectFile& project)
+{
+	MB_UNUSED_PARAMETER(project);
+
+	static AcceleratorType* s_CachedAccelerator = nullptr;
+	if (s_CachedAccelerator == nullptr)
+	{
+		s_CachedAccelerator = new AcceleratorType();
+		s_CachedAccelerator->Init();
+	}
+
+	return s_CachedAccelerator;
+}
+
+Accelerator* Builder::GetAccelerator(ProjectFile& project)
+{
+	if (!project.Get_Acceleration_UseAcceleration())
+	{
+		return nullptr;
+	}
+
+	Accelerator_Sndbs* sndbsAccelerator = GetCachedAccelerator<Accelerator_Sndbs>(project);
+	Accelerator_IncrediBuild* incrediBuildAccelerator = GetCachedAccelerator<Accelerator_IncrediBuild>(project);
+
+	switch (project.Get_Acceleration_Accelerator())
+	{
+	case EAccelerator::Sndbs:
+		{
+			if (sndbsAccelerator->IsAvailable())
+			{
+				return sndbsAccelerator;
+			}
+			else
+			{
+				return nullptr;
+			}
+			break;
+		}
+	case EAccelerator::IncrediBuild:
+		{
+			if (incrediBuildAccelerator->IsAvailable())
+			{
+				return incrediBuildAccelerator;
+			}
+			else
+			{
+				return nullptr;
+			}
+			break;
+		}
+	case EAccelerator::Default:
+		{
+			if (sndbsAccelerator->IsAvailable())
+			{
+				return sndbsAccelerator;
+			}
+			else if (incrediBuildAccelerator->IsAvailable())
+			{
+				return incrediBuildAccelerator;
+			}
+			break;
+		}
+	}
+
+	return nullptr;
+}
 
 template <typename ToolchainType>
 Toolchain* GetCachedToolchain(ProjectFile& project, uint64_t configurationHash)

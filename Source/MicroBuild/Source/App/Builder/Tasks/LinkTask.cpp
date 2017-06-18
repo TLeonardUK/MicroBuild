@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 LinkTask::LinkTask(std::vector<BuilderFileInfo>& sourceFiles, Toolchain* toolchain, ProjectFile& project, BuilderFileInfo& outputFile)
-	: BuildTask(BuildStage::Link, true, true) 
+	: BuildTask(BuildStage::Link, true, true, false)
 	, m_toolchain(toolchain)
 	, m_sourceFiles(sourceFiles)
 	, m_outputFile(outputFile)
@@ -32,20 +32,14 @@ LinkTask::LinkTask(std::vector<BuilderFileInfo>& sourceFiles, Toolchain* toolcha
 	MB_UNUSED_PARAMETER(project);
 }
 
-bool LinkTask::Execute()
+BuildAction LinkTask::GetAction()
 {
-	int jobIndex = 0, totalJobs = 0;
-	GetTaskProgress(jobIndex, totalJobs);
-	
-	TaskLog(LogSeverity::SilentInfo, "Linking: %s\n", m_outputFile.OutputPath.GetFilename().c_str());
+	BuildAction action;
+	action.StatusMessage = Strings::Format("Linking: %s\n", m_outputFile.OutputPath.GetFilename().c_str());
 
-	bool bResult = m_toolchain->Link(m_sourceFiles, m_outputFile);	
-	if (bResult)
-	{
-		assert(m_outputFile.OutputPath.Exists());
-	}
+	m_toolchain->GetLinkAction(action, m_sourceFiles, m_outputFile);
 
-	return bResult;
+	return action;
 }
 
 }; // namespace MicroBuild

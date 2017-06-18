@@ -124,7 +124,8 @@ std::string XmlNode::ToString(int indentLevel)
 			stream << node->m_name;
 			stream << "=";
 			stream << "\"";
-			stream << Strings::Escaped(node->m_value);
+			//stream << Strings::Escaped(node->m_value);
+			stream << Strings::Replace(node->m_value, "\"", "&quot;");
 			stream << "\"";
 		}
 

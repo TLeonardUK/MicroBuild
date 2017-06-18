@@ -36,7 +36,7 @@ private:
 public:
 	CompileVersionInfoTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file, VersionNumberInfo versionInfo);
 
-	virtual bool Execute() override;
+	virtual BuildAction GetAction() override;
 
 }; 
 

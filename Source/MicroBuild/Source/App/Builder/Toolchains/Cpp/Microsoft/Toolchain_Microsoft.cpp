@@ -37,6 +37,7 @@ Toolchain_Microsoft::Toolchain_Microsoft(ProjectFile& file, uint64_t configurati
 	, m_bUseDefaultToolchain(bUseDefaultToolchain)
 {
 	m_toolchainFound = false;
+	m_bCanDistribute = true;
 }
 
 bool Toolchain_Microsoft::Init() 
@@ -951,44 +952,64 @@ bool Toolchain_Microsoft::ParseOutput(BuilderFileInfo& file, std::string& input)
 	return true;
 }
 
-bool Toolchain_Microsoft::Archive(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+void Toolchain_Microsoft::GetArchiveAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
 {
-	if (!Toolchain::Archive(files, outputFile))
-	{
-		return false;
-	}
+	Toolchain::GetArchiveAction(action, files, outputFile);
 	
-	// Copy PDB to output.	
-	Platform::Path intPdb = GetPdbPath();
-	Platform::Path outPdb = GetOutputPdbPath();
-		
-	if (!intPdb.Copy(outPdb))
-	{
-		Log(LogSeverity::Fatal, "Failed to copy pdb file to '%s'.", outPdb.ToString().c_str());
-		return false;
-	}
+	std::function<bool(BuildAction& Action)> PreviousDelegate = action.PostProcessDelegate;
 
-	return true;
+	action.PostProcessDelegate = [this, PreviousDelegate](BuildAction& action) -> bool
+	{
+		if (PreviousDelegate != nullptr)
+		{
+			if (!PreviousDelegate(action))
+			{
+				return false;
+			}
+		}
+
+		// Copy PDB to output.	
+		Platform::Path intPdb = GetPdbPath();
+		Platform::Path outPdb = GetOutputPdbPath();
+
+		if (!intPdb.Copy(outPdb))
+		{
+			Log(LogSeverity::Fatal, "Failed to copy pdb file to '%s'.", outPdb.ToString().c_str());
+			return false;
+		}
+
+		return true;
+	};
 }
 
-bool Toolchain_Microsoft::Link(std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
+void Toolchain_Microsoft::GetLinkAction(BuildAction& action, std::vector<BuilderFileInfo>& files, BuilderFileInfo& outputFile)
 {
-	if (!Toolchain::Link(files, outputFile))
-	{
-		return false;
-	}
-	
-	// Copy PDB to output.	
-	Platform::Path intPdb = GetPdbPath();
-	Platform::Path outPdb = GetOutputPdbPath();
-		
-	if (!intPdb.Copy(outPdb))
-	{
-		Log(LogSeverity::Fatal, "Failed to copy pdb file to '%s'.", outPdb.ToString().c_str());
-		return false;
-	}
+	Toolchain::GetLinkAction(action, files, outputFile);
 
-	return true;
+	std::function<bool(BuildAction& Action)> PreviousDelegate = action.PostProcessDelegate;
+
+	action.PostProcessDelegate = [this, PreviousDelegate](BuildAction& action) -> bool
+	{
+		if (PreviousDelegate != nullptr)
+		{
+			if (!PreviousDelegate(action))
+			{
+				return false;
+			}
+		}
+
+		// Copy PDB to output.	
+		Platform::Path intPdb = GetPdbPath();
+		Platform::Path outPdb = GetOutputPdbPath();
+
+		if (!intPdb.Copy(outPdb))
+		{
+			Log(LogSeverity::Fatal, "Failed to copy pdb file to '%s'.", outPdb.ToString().c_str());
+			return false;
+		}
+
+		return true;
+	};
 }
 
 bool Toolchain_Microsoft::CreateVersionInfoScript(Platform::Path iconPath, Platform::Path rcScriptPath, VersionNumberInfo versionInfo)
@@ -1061,48 +1082,47 @@ bool Toolchain_Microsoft::CreateVersionInfoScript(Platform::Path iconPath, Platf
 	return true;
 }
 
-bool Toolchain_Microsoft::CompileVersionInfo(BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
+void Toolchain_Microsoft::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo)
 {	
 	Platform::Path iconPath = fileInfo.OutputPath.ChangeExtension("ico");
 	Platform::Path rcScriptPath = fileInfo.OutputPath.ChangeExtension("rc");
 
 	if (!CreateVersionInfoScript(iconPath, rcScriptPath, versionInfo))
 	{
-		return false;
+		return;
 	}
 
 	// Call resource compiler to build the version info script into an object file.
-	std::vector<std::string> arguments;
-	arguments.push_back("/nologo");
-	arguments.push_back("/r");
-	arguments.push_back("/fo");
-	arguments.push_back(fileInfo.OutputPath.ToString());
-	arguments.push_back(rcScriptPath.ToString());
+	action.Arguments.push_back("/nologo");
+	action.Arguments.push_back("/r");
+	action.Arguments.push_back("/fo");
+	action.Arguments.push_back(fileInfo.OutputPath.ToString());
+	action.Arguments.push_back(rcScriptPath.ToString());
 	
-	Platform::Process process;	
-	if (!process.Open(m_resourceCompilerPath, m_resourceCompilerPath.GetDirectory(), arguments, true))
-	{
-		return false;
-	}
-	
-	std::string output = process.ReadToEnd();		
-	printf("%s", output.c_str());
-	if (process.GetExitCode() != 0)
-	{
-		return false;
-	}
-	
-	std::vector<BuilderFileInfo*> inheritsFromFiles;
+	action.Tool = m_resourceCompilerPath;
+	action.WorkingDirectory = m_resourceCompilerPath.GetDirectory();
+	action.FileInfo = fileInfo;
 
-	std::vector<Platform::Path> dependencies;
-	for (auto& path : m_projectFile.Get_ProductInfo_Icon())
+	action.PostProcessDelegate = [this](BuildAction& action) -> bool
 	{
-		dependencies.push_back(path);
-	}
+		printf("%s", action.Output.c_str());
+		if (action.ExitCode != 0)
+		{
+			return false;
+		}
 
-	UpdateDependencyManifest(fileInfo, dependencies, inheritsFromFiles);
+		std::vector<BuilderFileInfo*> inheritsFromFiles;
 
-	return true;
+		std::vector<Platform::Path> dependencies;
+		for (auto& path : m_projectFile.Get_ProductInfo_Icon())
+		{
+			dependencies.push_back(path);
+		}
+
+		UpdateDependencyManifest(action.FileInfo, dependencies, inheritsFromFiles);
+
+		return true;
+	};
 }
 
 }; // namespace MicroBuild

@@ -18,23 +18,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
+#include "App/Builder/BuilderFileInfo.h"
 #include "Schemas/Project/ProjectFile.h"
-#include "App/Builder/Toolchains/Toolchain.h"
-#include "App/Builder/Tasks/BuildTask.h"
 
 namespace MicroBuild {
-	
-// Executes a command line string through the default platform shell.
-class ShellCommandTask
-	: public BuildTask
+
+class BuildTask;
+class Toolchain;
+
+// Base class for all accelerator providers.
+class Accelerator
 {
-private:
-	std::string m_command;
+protected:
+	bool m_bAvailable;
+	std::string m_description;
 
 public:
-	ShellCommandTask(BuildStage stage, const std::string& command);
 
-	virtual BuildAction GetAction() override;
+	// Constructor.
+	Accelerator();
+
+	// Returns a description that describes this toolchain and its version.
+	std::string GetDescription();
+
+	// Returns true if this accelerator is available for use.
+	bool IsAvailable();
+
+	// Attempts to find the accelerator install, returns true if everything is available,	
+	// otherwise false.
+	virtual bool Init() = 0;
+
+	// Runs all the actions in distribution.
+	virtual bool RunActions(Toolchain* toolchain, BuildTask* baseTask, ProjectFile& projectFile, std::vector<BuildAction>& actions) = 0;
 
 }; 
 

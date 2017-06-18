@@ -25,35 +25,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 CompilePchTask::CompilePchTask(Toolchain* toolchain, ProjectFile& project, BuilderFileInfo file)
-	: BuildTask(BuildStage::PchCompile, true, true)
+	: BuildTask(BuildStage::PchCompile, true, true, false)
 	, m_toolchain(toolchain)
 	, m_file(file)
 {
 	MB_UNUSED_PARAMETER(project);
 }
 
-bool CompilePchTask::Execute()
+BuildAction CompilePchTask::GetAction()
 {
-	int jobIndex = 0, totalJobs = 0;
-	GetTaskProgress(jobIndex, totalJobs);
+	BuildAction action;
+	action.StatusMessage = Strings::Format("Generating PCH: %s\n", m_file.SourcePath.GetFilename().c_str());
 
-	TaskLog(LogSeverity::SilentInfo, "Generating PCH: %s\n", m_file.SourcePath.GetFilename().c_str());
+	m_toolchain->GetCompilePchAction(action, m_file);
 
-	bool bResult = false;
-	{
-		//Time::TimedScope scope("PCH Compile", false);
-		//Log(LogSeverity::Warning, "PchFile=%s Exists=%i\n", m_file.OutputPath.ToString().c_str(), m_file.OutputPath.Exists());
-		bResult = m_toolchain->CompilePch(m_file);
-	}
-
-	if (bResult)
-	{
-		// Our output path is not the same as the pch/gch path (confusingly), because
-		// a pch compile can produce a pch/gch file and (optionally) and object file.
-		// The m_file.OutputPath is set to the ObjectPath, so just use the toolchain gch path for checking.
-		assert(m_toolchain->GetPchPath().Exists());
-	}
-	return bResult;
+	return action;
 }
 
 }; // namespace MicroBuild
