@@ -81,6 +81,15 @@ We currently support packaging projects for the following targets:
 | Xbox 360 ISO               | In Progress                                  |
 | Xbox One ISO               | In Progress                                  |
 
+## Build Accelerator Support
+We currently support the following distributed build accelerators:
+
+| Target IDE                 | Status                                       |
+| -------------------------- | -------------------------------------------- |
+| IncrediBuild               | Supported                                    |
+| SN-DBS                     | Supported                                    |
+| Distcc                     | In Progress                                  |
+
 ## Documentation
 Extensive documentation is available on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
 
