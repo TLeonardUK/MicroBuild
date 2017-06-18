@@ -131,6 +131,7 @@ bool BuildTask::Execute()
 	}
 
 	action.Output = process.ReadToEnd();
+	Log(LogSeverity::SilentInfo, "%s\n", action.Output.c_str());
 	action.ExitCode = process.GetExitCode();
 	return action.PostProcessDelegate(action);
 }

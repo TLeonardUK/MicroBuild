@@ -184,6 +184,9 @@ bool Accelerator_IncrediBuild::RunActions(Toolchain* toolchain, BuildTask* baseT
 	while (!process.AtEnd())
 	{
 		std::string line = process.ReadLine();
+
+		//Log(LogSeverity::SilentInfo, "%s\n", line.c_str());
+
 		if (line.size() >= deliminator.size() && line.substr(0, deliminator.size()) == deliminator)
 		{
 			consumeCurrentInput();

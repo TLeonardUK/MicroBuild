@@ -88,6 +88,19 @@ Toolchain_MicrosoftOutputParser::Toolchain_MicrosoftOutputParser()
 			EToolchainCaptureType::Message,
 		}
 	);
+
+	// origin: fatal/error/warning/message ErrorNumber: Text
+	RegisterOutput(
+		R"(^(.*)\s+: .*(fatal error|fatal|error|warning|message) (\w+): (.*)$)",
+		{
+			EToolchainCaptureType::Origin,
+			EToolchainCaptureType::Line,
+			EToolchainCaptureType::Column,
+			EToolchainCaptureType::Type,
+			EToolchainCaptureType::Identifier,
+			EToolchainCaptureType::Message,
+		}
+	);
 }
 
 void Toolchain_MicrosoftOutputParser::Test()
@@ -205,6 +218,28 @@ void Toolchain_MicrosoftOutputParser::Test()
 			"200",
 			"warning",
 			"C4267",
+			"Error description"
+		}
+	);
+
+
+
+	// origin: fatal/error/warning/message ErrorNumber: Text
+	TestOutput(
+		R"(LINK : fatal error LNK1104: Error description)",
+		{
+			"LINK",
+			"fatal error",
+			"LNK1104",
+			"Error description"
+		}
+	);
+	TestOutput(
+		R"(LINK: fatal error LNK1104: Error description)",
+		{
+			"LINK",
+			"fatal error",
+			"LNK1104",
 			"Error description"
 		}
 	);

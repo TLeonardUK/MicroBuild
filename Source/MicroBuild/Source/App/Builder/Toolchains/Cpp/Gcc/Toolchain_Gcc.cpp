@@ -793,7 +793,6 @@ void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFile
 void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) 
 {	
 	// todo: Generate desktop entry object.	
-	return false;
 }
 
 #elif defined(MB_PLATFORM_MACOS)
@@ -801,7 +800,6 @@ void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFile
 void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) 
 {	
 	// todo: Generate iconset and embed it.
-	return false;
 }
 
 #endif

@@ -74,13 +74,15 @@ void ToolchainOutputParser::ExtractMessages(const std::string& input, std::vecto
 			line.find("warning")	!= std::string::npos ||
 			line.find("info")		!= std::string::npos ||
 			line.find("message")	!= std::string::npos ||
-			line.find("note")		!= std::string::npos || 
+			line.find("note")		!= std::string::npos ||
+			line.find("fatal error") != std::string::npos ||
 			line.find("Error")		!= std::string::npos ||
 			line.find("Fatal")		!= std::string::npos ||
 			line.find("Warning")	!= std::string::npos ||
 			line.find("Info")		!= std::string::npos ||
 			line.find("Message")	!= std::string::npos ||
-			line.find("Note")		!= std::string::npos)
+			line.find("Note")		!= std::string::npos ||
+			line.find("Fatal Error") != std::string::npos)
 		{
 			for (MatchType& matchType : m_matchTypes)
 			{
