@@ -790,7 +790,7 @@ void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFile
 
 #elif defined(MB_PLATFORM_LINUX)
 
-void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) override;
+void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) 
 {	
 	// todo: Generate desktop entry object.	
 	return false;
@@ -798,7 +798,7 @@ void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFile
 
 #elif defined(MB_PLATFORM_MACOS)
 
-void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) override;
+void Toolchain_Gcc::GetCompileVersionInfoAction(BuildAction& action, BuilderFileInfo& fileInfo, VersionNumberInfo versionInfo) 
 {	
 	// todo: Generate iconset and embed it.
 	return false;
