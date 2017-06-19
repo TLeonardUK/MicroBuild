@@ -86,6 +86,7 @@ bool Accelerator_Sndbs::RunActions(Toolchain* toolchain, BuildTask* baseTask, Pr
 {
 	MB_UNUSED_PARAMETER(toolchain);
 
+#if 0
 	// Write all action command lines to bat script.
 	Platform::Path scriptPath = projectFile.Get_Project_IntermediateDirectory()
 		.AppendFragment(Strings::Format("%s.sndbs.json", projectFile.Get_Project_Name().c_str()), true);
@@ -108,7 +109,31 @@ bool Accelerator_Sndbs::RunActions(Toolchain* toolchain, BuildTask* baseTask, Pr
 		jobIndex++;
 	}
 
-	std::string scriptData = root.ToString(); 
+	std::string scriptData = root.ToString();
+#else
+	// Write all action command lines to bat script.
+	Platform::Path scriptPath = projectFile.Get_Project_IntermediateDirectory()
+		.AppendFragment(Strings::Format("%s.sndbs.bat", projectFile.Get_Project_Name().c_str()), true);
+
+	std::string deliminator = Strings::Format("[sndbs-output-%s] job=", Strings::Guid({ projectFile.Get_Project_Name() }).c_str());
+	std::string dbsOutputPrefix = "dbsbuild:";
+
+	std::string scriptData = "";
+
+	int jobIndex = 0;
+	for (BuildAction& action : actions)
+	{
+		// Add command.
+		std::string command = Strings::Format("\"%s\" %s", action.Tool.ToString().c_str(), Strings::Join(action.Arguments, " ").c_str());
+
+		scriptData += Strings::Format("echo %s%i", deliminator.c_str(), jobIndex);
+		scriptData += "\n";
+		scriptData += command;
+		scriptData += "\n";
+
+		jobIndex++;
+	}
+#endif
 
 	// Write file.
 	if (!Strings::WriteFile(scriptPath, scriptData))
@@ -121,8 +146,8 @@ bool Accelerator_Sndbs::RunActions(Toolchain* toolchain, BuildTask* baseTask, Pr
 	Platform::Process process;
 
 	std::vector<std::string> buildArguments;
-	//buildArguments.push_back("-v");
-	buildArguments.push_back("-q");
+	buildArguments.push_back("-v");
+	//buildArguments.push_back("-q");
 	buildArguments.push_back("-p");
 	buildArguments.push_back(projectFile.Get_Project_Name());
 	buildArguments.push_back("-s");
@@ -169,7 +194,7 @@ bool Accelerator_Sndbs::RunActions(Toolchain* toolchain, BuildTask* baseTask, Pr
 		if (line.size() >= deliminator.size() && line.substr(0, deliminator.size()) == deliminator)
 		{
 			consumeCurrentInput();
-			
+
 			currentOutputIndex = CastFromString<int>(line.substr(deliminator.size()));
 
 			// Try and show progress by printing out the action who's output we recieved last.
