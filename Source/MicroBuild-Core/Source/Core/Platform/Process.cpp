@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <cstdlib>
 #include <sstream>
+#include <cstring>
 
 namespace MicroBuild {
 namespace Platform {
@@ -42,6 +43,8 @@ std::string GetEnvironmentVariable(const std::string& tag)
 std::string Process::ReadToEnd(bool bPrintOutput)
 {
 	//Time::TimedScope scope("ReadToEnd:%s", false);
+
+	//MB_UNUSED_PARAMETER(bPrintOutput);
 
 	std::stringstream stream;
 
@@ -75,7 +78,8 @@ std::string Process::ReadToEnd(bool bPrintOutput)
 
 std::string Process::ReadLine()
 {
-	std::stringstream stream;
+	std::string stream;
+	stream.reserve(128);
 
 	while (!AtEnd())
 	{
@@ -88,7 +92,7 @@ std::string Process::ReadLine()
 
 		if (buffer != '\n')
 		{
-			stream << buffer;
+			stream.push_back(buffer);
 		}
 		else
 		{
@@ -96,17 +100,72 @@ std::string Process::ReadLine()
 		}
 	}
 
-	std::string result = stream.str();
-
 	// If the result has a \r on the end, remove it to normalize line endings.
-	if (result[result.size() - 1] == '\r')
+	if (stream[stream.size() - 1] == '\r')
 	{
-		result.resize(result.size() - 1);
+		stream.resize(stream.size() - 1);
 	}
 
-	return result;
+	return stream;
 }
 
+size_t Process::Write(void* buffer, uint64_t bufferLength)
+{
+	return Internal_Write(buffer, bufferLength);
+}
+
+size_t Process::Read(void* buffer, uint64_t bufferLength)
+{
+	uint8_t* ptr = (uint8_t*)buffer;
+	uint64_t leftToRead = bufferLength;
+
+	while (leftToRead > 0 && !AtEnd())
+	{
+		// Try and fulfill from buffer.
+		if (m_readBuffer.size() > 0)
+		{
+			size_t amountToRead = MB_MIN(m_readBuffer.size(), leftToRead);
+			memcpy(ptr, m_readBuffer.data(), amountToRead);
+
+			if (amountToRead >= m_readBuffer.size())
+			{
+				m_readBuffer.clear();
+			}
+			else
+			{
+				size_t finalSize = m_readBuffer.size() - amountToRead;
+				
+				memcpy(m_readBuffer.data(), m_readBuffer.data() + amountToRead, finalSize);
+
+				m_readBuffer.resize(finalSize);
+			}
+
+			leftToRead -= amountToRead;
+			ptr += amountToRead;
+		}
+
+		// If more is required, read the next chunk.
+		if (leftToRead > 0 && m_readBuffer.size() <= 0)
+		{
+			m_readBuffer.resize(BufferChunkSize);
+			size_t totalRead = Internal_Read(m_readBuffer.data(), BufferChunkSize);
+			m_readBuffer.resize(totalRead);
+		}
+	}
+
+	return (bufferLength - leftToRead);
+}
+
+uint64_t Process::BytesLeft()
+{
+	return Internal_BytesLeft() + m_readBuffer.size();
+}
+
+bool Process::AtEnd()
+{
+	// Early out if we have anything in the read buffer.
+	return m_readBuffer.size() <= 0 && !IsRunning() && BytesLeft() <= 0;
+}
 
 }; // namespace Platform
 }; // namespace MicroBuild

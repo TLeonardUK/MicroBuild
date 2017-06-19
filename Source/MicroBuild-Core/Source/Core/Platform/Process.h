@@ -32,6 +32,24 @@ class Process
 protected:
 	void* m_impl; // Semi-pimpl idiom, contains any platform specific data.
 
+	enum
+	{
+		BufferChunkSize = 128,
+	};
+
+	std::vector<uint8_t> m_readBuffer;
+
+	// Does a blocking write from the process's stdint, blocks until entire
+	// buffer has been confumed or the process ends
+	size_t Internal_Write(void* buffer, uint64_t bufferLength);
+
+	// Does a blocking read from the process's stdout, blocks until entire
+	// buffer has been read or process ends.
+	size_t Internal_Read(void* buffer, uint64_t bufferLength);
+
+	// Returns the number of bytes left that can be read.
+	uint64_t Internal_BytesLeft();
+
 public:
 
 	// No copy construction please.

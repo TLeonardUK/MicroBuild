@@ -76,6 +76,17 @@ START_OPTION(
 END_OPTION()
 
 // ---------------------------------------------------------------------------
+
+START_OPTION(
+	bool,
+	Workspace,
+	BuildProjectsInParallel,
+	"If set to true, non-dependent projects will be compiled in parallel. Typically this will only "
+	"give a performance benefit if a build accelerator is used."
+)
+END_OPTION()
+
+// ---------------------------------------------------------------------------
 // Configuration
 // ---------------------------------------------------------------------------
 START_ARRAY_OPTION(

@@ -69,6 +69,17 @@ protected:
 		std::vector<ProjectFile*>& dependencyList, 
 		std::vector<ProjectFile*>& processedList);
 
+	void BuildDependencyTree(
+		bool& bFailed, 
+		JobScheduler& scheduler, 
+		JobHandle& rootHandle, 
+		WorkspaceFile& workspaceFile, 
+		std::vector<ProjectFile*> projectFiles, 
+		ProjectFile& project, 
+		bool bRebuild,
+		bool bBuildPackageFiles,
+		std::vector<ProjectFile*>& processedList);
+
 	// Attempts to generate a changelog file from source control commit messages.
 	bool BuildChangelog(
 		ProjectFile& project,

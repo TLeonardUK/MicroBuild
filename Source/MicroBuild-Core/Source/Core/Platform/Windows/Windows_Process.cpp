@@ -329,7 +329,7 @@ int Process::GetExitCode()
 	return exitCode;
 }
 
-size_t Process::Write(void* buffer, uint64_t bufferLength)
+size_t Process::Internal_Write(void* buffer, uint64_t bufferLength)
 {
 	Windows_Process* data = reinterpret_cast<Windows_Process*>(m_impl);
 
@@ -354,7 +354,7 @@ size_t Process::Write(void* buffer, uint64_t bufferLength)
 	return bytesOutput;
 }
 
-size_t Process::Read(void* buffer, uint64_t bufferLength)
+size_t Process::Internal_Read(void* buffer, uint64_t bufferLength)
 {
 	Windows_Process* data = reinterpret_cast<Windows_Process*>(m_impl);
 
@@ -379,12 +379,6 @@ size_t Process::Read(void* buffer, uint64_t bufferLength)
 	return bytesOutput;
 }
 
-bool Process::AtEnd()
-{
-	// No bytes left and process no longer running, sounds like we're done to me.
-	return BytesLeft() <= 0 && !IsRunning();
-}
-
 void Process::Flush()
 {
 	Windows_Process* data = reinterpret_cast<Windows_Process*>(m_impl);
@@ -395,7 +389,7 @@ void Process::Flush()
 	FlushFileBuffers(data->m_stdInWrite);
 }
 
-uint64_t Process::BytesLeft()
+uint64_t Process::Internal_BytesLeft()
 {
 	Windows_Process* data = reinterpret_cast<Windows_Process*>(m_impl);
 

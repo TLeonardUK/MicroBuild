@@ -179,6 +179,42 @@ void Builder::BuildDependencyList(WorkspaceFile& workspaceFile, std::vector<Proj
 	dependencyList.push_back(&project);
 }
 
+void Builder::BuildDependencyTree(bool& bFailed, JobScheduler& scheduler, JobHandle& rootHandle, WorkspaceFile& workspaceFile, std::vector<ProjectFile*> projectFiles, ProjectFile& project, bool bRebuild, bool bBuildPackageFiles, std::vector<ProjectFile*>& processedList)
+{
+	if (std::find(processedList.begin(), processedList.end(), &project) != processedList.end())
+	{
+		return;
+	}
+	processedList.push_back(&project);
+
+	std::vector<std::string> deps = project.Get_Dependencies_Dependency();
+
+	JobHandle job = scheduler.CreateJob([=, &bFailed]() {
+		if (bFailed)
+		{
+			return;
+		}
+		WorkspaceFile wks = workspaceFile;
+		ProjectFile prj = project;
+		if (!Build(wks, projectFiles, prj, bRebuild, false, bBuildPackageFiles))
+		{
+			bFailed = true;
+		}
+	});
+	scheduler.AddDependency(rootHandle, job);
+
+	for (auto& depName : deps)
+	{
+		for (auto& depProject : projectFiles)
+		{
+			if (depProject->Get_Project_Name() == depName)
+			{
+				BuildDependencyTree(bFailed, scheduler, job, workspaceFile, projectFiles, *depProject, bRebuild, bBuildPackageFiles, processedList);
+			}
+		}
+	}
+}
+
 
 bool Builder::GetSourceControlProvider(ProjectFile& project, std::shared_ptr<ISourceControlProvider>& provider)
 {
@@ -540,25 +576,43 @@ bool Builder::BuildChangelog(
 	return true;
 }
 
-
 bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> projectFileInstances, ProjectFile& project, bool bRebuild, bool bBuildDependencies, bool bBuildPackageFiles)
 {
 	if (bBuildDependencies)
-	{
-		std::vector<ProjectFile*> dependencyList;
-		std::vector<ProjectFile*> processedList;
-		BuildDependencyList(workspaceFile, projectFileInstances, project, dependencyList, processedList);
-		
-		// todo: run in parallel?
-		for (auto& depProject : dependencyList)
+	{		
+		if (workspaceFile.Get_Workspace_BuildProjectsInParallel())
 		{
-			if (!Build(workspaceFile, projectFileInstances, *depProject, bRebuild, false, bBuildPackageFiles))
-			{
-				return false;
-			}
-		}
+			// Run each dependency in parallel.
+			bool bFailed = false;
 
-		return true;
+			JobScheduler scheduler((int)projectFileInstances.size());
+
+			JobHandle hostJob = scheduler.CreateJob();
+
+			std::vector<ProjectFile*> processedList;
+			BuildDependencyTree(bFailed, scheduler, hostJob, workspaceFile, projectFileInstances, project, bRebuild, bBuildPackageFiles, processedList);
+
+			scheduler.Enqueue(hostJob);
+			scheduler.Wait(hostJob);
+
+			return !bFailed;
+		}
+		else
+		{
+			std::vector<ProjectFile*> dependencyList;
+			std::vector<ProjectFile*> processedList;
+			BuildDependencyList(workspaceFile, projectFileInstances, project, dependencyList, processedList);
+
+			for (auto& depProject : dependencyList)
+			{
+				if (!Build(workspaceFile, projectFileInstances, *depProject, bRebuild, false, bBuildPackageFiles))
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
 	}
 
 	if (bRebuild)
@@ -970,6 +1024,7 @@ AcceleratorType* GetCachedAccelerator(ProjectFile& project)
 {
 	MB_UNUSED_PARAMETER(project);
 
+	/*
 	static AcceleratorType* s_CachedAccelerator = nullptr;
 	if (s_CachedAccelerator == nullptr)
 	{
@@ -977,7 +1032,11 @@ AcceleratorType* GetCachedAccelerator(ProjectFile& project)
 		s_CachedAccelerator->Init();
 	}
 
-	return s_CachedAccelerator;
+	return s_CachedAccelerator;*/
+
+	AcceleratorType* acc = new AcceleratorType();
+	acc->Init();
+	return acc;
 }
 
 Accelerator* Builder::GetAccelerator(ProjectFile& project)
@@ -1036,6 +1095,7 @@ Accelerator* Builder::GetAccelerator(ProjectFile& project)
 template <typename ToolchainType>
 Toolchain* GetCachedToolchain(ProjectFile& project, uint64_t configurationHash)
 {
+	/*
 	static ToolchainType* s_CachedToolchain = nullptr;
 	if (s_CachedToolchain == nullptr)
 	{
@@ -1043,6 +1103,11 @@ Toolchain* GetCachedToolchain(ProjectFile& project, uint64_t configurationHash)
 	}
 	s_CachedToolchain->SetProjectInfo(project, configurationHash);
 	return s_CachedToolchain;
+	*/
+	ToolchainType* acc = nullptr;
+	acc = new ToolchainType(project, configurationHash);
+	acc->SetProjectInfo(project, configurationHash);
+	return acc;
 }
 
 Toolchain* Builder::GetToolchain(ProjectFile& project, uint64_t configurationHash)

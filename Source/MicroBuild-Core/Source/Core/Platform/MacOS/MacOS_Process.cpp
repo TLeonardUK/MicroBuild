@@ -199,7 +199,7 @@ int Process::GetExitCode()
 	return resultCode;
 }
 
-size_t Process::Write(void* buffer, uint64_t bufferLength)
+size_t Process::Internal_Write(void* buffer, uint64_t bufferLength)
 {	
 	MacOS_Process* data = reinterpret_cast<MacOS_Process*>(m_impl);
 	assert(IsAttached());
@@ -208,7 +208,7 @@ size_t Process::Write(void* buffer, uint64_t bufferLength)
 	return count < 0 ? 0 : (size_t)count;
 }
 
-size_t Process::Read(void* buffer, uint64_t bufferLength)
+size_t Process::Internal_Read(void* buffer, uint64_t bufferLength)
 {
 	MacOS_Process* data = reinterpret_cast<MacOS_Process*>(m_impl);
 	assert(IsAttached());
@@ -217,17 +217,12 @@ size_t Process::Read(void* buffer, uint64_t bufferLength)
 	return count < 0 ? 0 : (size_t)count;
 }
 
-bool Process::AtEnd()
-{
-	return !IsRunning() && BytesLeft() <= 0;
-}
-
 void Process::Flush()
 {
 	// I don't think there is a way to explicitly flush pipes? 
 }
 
-uint64_t Process::BytesLeft()
+uint64_t Process::Internal_BytesLeft()
 {	
 	MacOS_Process* data = reinterpret_cast<MacOS_Process*>(m_impl);
 	assert(IsAttached());
