@@ -89,6 +89,7 @@ We currently support the following distributed build accelerators:
 | IncrediBuild               | Supported                                    |
 | SN-DBS                     | Supported                                    |
 | Distcc                     | In Progress                                  |
+| Electric-Accelerator       | In Progress                                  |
 
 ## Documentation
 Extensive documentation is available on our wiki page <a href="https://github.com/TLeonardUK/MicroBuild/wiki">Here</a>.
