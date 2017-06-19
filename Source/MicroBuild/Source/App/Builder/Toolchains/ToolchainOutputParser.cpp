@@ -84,44 +84,46 @@ void ToolchainOutputParser::ExtractMessages(const std::string& input, std::vecto
 			line.find("Note")		!= std::string::npos ||
 			line.find("Fatal Error") != std::string::npos)
 		{
-			for (MatchType& matchType : m_matchTypes)
+			if (line.find("Note: including file:") == std::string::npos)
 			{
-				std::smatch match;
-				if (std::regex_search(line, match, matchType.Pattern))
+				for (MatchType& matchType : m_matchTypes)
 				{
-					ToolchainOutputMessage message;
-					message.Origin = "";
-					message.Line = 1;
-					message.Column = 1;
-					message.Identifier = "";
-					message.Type = EToolchainOutputMessageType::Info;
-					message.Text = "";
-
-					for (size_t i = 1; i < match.size() && i - 1 < matchType.CaptureTypes.size(); i++)
+					std::smatch match;
+					if (std::regex_search(line, match, matchType.Pattern))
 					{
-						std::string captureValue = match[i];
+						ToolchainOutputMessage message;
+						message.Origin = "";
+						message.Line = 1;
+						message.Column = 1;
+						message.Identifier = "";
+						message.Type = EToolchainOutputMessageType::Info;
+						message.Text = "";
 
-						switch (matchType.CaptureTypes[i - 1])
+						for (size_t i = 1; i < match.size() && i - 1 < matchType.CaptureTypes.size(); i++)
 						{
-						case EToolchainCaptureType::Origin:
+							std::string captureValue = match[i];
+
+							switch (matchType.CaptureTypes[i - 1])
+							{
+							case EToolchainCaptureType::Origin:
 							{
 								message.Origin = captureValue;
 								break;
 							}
-						case EToolchainCaptureType::Type:
+							case EToolchainCaptureType::Type:
 							{
 								if (captureValue == "fatal" || captureValue == "error" || captureValue == "fatal error" ||
 									captureValue == "Fatal" || captureValue == "Error" || captureValue == "Fatal Error")
 								{
 									message.Type = EToolchainOutputMessageType::Error;
 								}
-								else if (captureValue == "warning" || 
-										 captureValue == "Warning")
+								else if (captureValue == "warning" ||
+									captureValue == "Warning")
 								{
 									message.Type = EToolchainOutputMessageType::Warning;
 								}
 								else if (captureValue == "info" || captureValue == "message" || captureValue == "note" ||
-										 captureValue == "Info" || captureValue == "Message" || captureValue == "Note")
+									captureValue == "Info" || captureValue == "Message" || captureValue == "Note")
 								{
 									message.Type = EToolchainOutputMessageType::Info;
 								}
@@ -132,37 +134,38 @@ void ToolchainOutputParser::ExtractMessages(const std::string& input, std::vecto
 								}
 								break;
 							}
-						case EToolchainCaptureType::Identifier:
+							case EToolchainCaptureType::Identifier:
 							{
 								message.Identifier = captureValue;
 								break;
 							}
-						case EToolchainCaptureType::Line:
+							case EToolchainCaptureType::Line:
 							{
 								message.Line = CastFromString<int>(captureValue);
 								break;
-							}	
-						case EToolchainCaptureType::Column:
+							}
+							case EToolchainCaptureType::Column:
 							{
 								message.Column = CastFromString<int>(captureValue);
 								break;
-							}	
-						case EToolchainCaptureType::Message:
+							}
+							case EToolchainCaptureType::Message:
 							{
 								message.Text = captureValue;
 								break;
 							}
-						default:
+							default:
 							{
 								// We should never get here unless someone fucked up.
 								assert(false);
 								break;
 							}
+							}
 						}
-					}
 
-					extractedOutput.push_back(message);
-					break;
+						extractedOutput.push_back(message);
+						break;
+					}
 				}
 			}
 		}
