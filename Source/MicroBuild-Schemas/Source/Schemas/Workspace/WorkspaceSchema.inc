@@ -84,6 +84,7 @@ START_OPTION(
 	"If set to true, non-dependent projects will be compiled in parallel. Typically this will only "
 	"give a performance benefit if a build accelerator is used."
 )
+OPTION_RULE_DEFAULT(false)
 END_OPTION()
 
 // ---------------------------------------------------------------------------
