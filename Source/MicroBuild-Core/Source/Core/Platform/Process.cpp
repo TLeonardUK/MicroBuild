@@ -123,7 +123,7 @@ size_t Process::Read(void* buffer, uint64_t bufferLength)
 	int iterations = 0;
 #endif
 
-	Log(LogSeverity::Verbose, "Trying to read %i bytes. m_readBuffer.size()=%i leftToRead=%i internalBytesLeft=%i IsRunning=%i\n",
+	Log(LogSeverity::SilentInfo, "Trying to read %i bytes. m_readBuffer.size()=%i leftToRead=%i internalBytesLeft=%i IsRunning=%i\n",
 		(int)bufferLength,
 		(int)m_readBuffer.size(),
 		(int)leftToRead,
@@ -134,7 +134,7 @@ size_t Process::Read(void* buffer, uint64_t bufferLength)
 	while (leftToRead > 0 && !AtEnd())
 	{
 #if 1 
-		Log(LogSeverity::Verbose, "We appear to be stuck trying to read %i bytes. m_readBuffer.size()=%i leftToRead=%i internalBytesLeft=%i IsRunning=%i\n", 
+		Log(LogSeverity::SilentInfo, "We appear to be stuck trying to read %i bytes. m_readBuffer.size()=%i leftToRead=%i internalBytesLeft=%i IsRunning=%i\n", 
 			(int)bufferLength,
 			(int)m_readBuffer.size(),
 			(int)leftToRead,
@@ -176,7 +176,7 @@ size_t Process::Read(void* buffer, uint64_t bufferLength)
 	}
 
 #if 1 
-	Log(LogSeverity::Verbose, "Finished reading.\n");
+	Log(LogSeverity::SilentInfo, "Finished reading.\n");
 #endif
 
 	return (bufferLength - leftToRead);
