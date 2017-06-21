@@ -120,27 +120,36 @@ size_t Process::Read(void* buffer, uint64_t bufferLength)
 	uint64_t leftToRead = bufferLength;
 
 #if 1 
-	int iterations = 0;
-#endif
-
-	Log(LogSeverity::SilentInfo, "Trying to read %i bytes. m_readBuffer.size()=%i leftToRead=%i internalBytesLeft=%i IsRunning=%i\n",
+	/*Log(LogSeverity::SilentInfo, "Trying to read %i bytes. m_readBuffer.size()=%i leftToRead=%i internalBytesLeft=%i IsRunning=%i\n",
 		(int)bufferLength,
 		(int)m_readBuffer.size(),
 		(int)leftToRead,
 		(int)Internal_BytesLeft(),
 		IsRunning() ? 1 : 0
-	);
+	);*/
+
+	std::chrono::high_resolution_clock::time_point timer 
+		= std::chrono::high_resolution_clock::now();
+#endif
 
 	while (leftToRead > 0 && !AtEnd())
 	{
-#if 1 
-		Log(LogSeverity::SilentInfo, "We appear to be stuck trying to read %i bytes. m_readBuffer.size()=%i leftToRead=%i internalBytesLeft=%i IsRunning=%i\n", 
-			(int)bufferLength,
-			(int)m_readBuffer.size(),
-			(int)leftToRead,
-			(int)Internal_BytesLeft(),
-			IsRunning() ? 1 : 0
-		);
+#if 1
+		std::chrono::duration<long long, std::nano> elapsed =
+			std::chrono::high_resolution_clock::now() - timer;
+		float elapsedMs = elapsed.count() / 1000000.0f;
+		if (elapsedMs > 200.0f)
+		{
+			Log(LogSeverity::SilentInfo, "We appear to be stuck trying to read %i bytes. m_readBuffer.size()=%i leftToRead=%i internalBytesLeft=%i IsRunning=%i\n",
+				(int)bufferLength,
+				(int)m_readBuffer.size(),
+				(int)leftToRead,
+				(int)Internal_BytesLeft(),
+				IsRunning() ? 1 : 0
+			);
+
+			timer = std::chrono::high_resolution_clock::now();
+		}
 #endif
 
 		// Try and fulfill from buffer.
@@ -176,7 +185,7 @@ size_t Process::Read(void* buffer, uint64_t bufferLength)
 	}
 
 #if 1 
-	Log(LogSeverity::SilentInfo, "Finished reading.\n");
+	//Log(LogSeverity::SilentInfo, "Finished reading.\n");
 #endif
 
 	return (bufferLength - leftToRead);
