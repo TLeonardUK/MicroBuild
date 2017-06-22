@@ -125,7 +125,7 @@ size_t Process::Read(void* buffer, uint64_t bufferLength)
 		// Try and fulfill from buffer.
 		if (m_readBuffer.size() > 0)
 		{
-			size_t amountToRead = MB_MIN(m_readBuffer.size(), leftToRead);
+			size_t amountToRead = (size_t)MB_MIN(m_readBuffer.size(), leftToRead);
 			memcpy(ptr, m_readBuffer.data(), amountToRead);
 
 			if (amountToRead >= m_readBuffer.size())
@@ -149,7 +149,7 @@ size_t Process::Read(void* buffer, uint64_t bufferLength)
 		if (leftToRead > 0 && m_readBuffer.size() <= 0)
 		{
 			m_readBuffer.resize(BufferChunkSize);
-			size_t totalRead = Internal_Read(m_readBuffer.data(), BufferChunkSize);
+			size_t totalRead = (size_t)Internal_Read(m_readBuffer.data(), BufferChunkSize);
 			m_readBuffer.resize(totalRead);
 
 			// Nothing more to read at this time.
@@ -160,12 +160,12 @@ size_t Process::Read(void* buffer, uint64_t bufferLength)
 		}
 	}
 
-	return (bufferLength - leftToRead);
+	return (size_t)(bufferLength - leftToRead);
 }
 
 uint64_t Process::BytesLeft()
 {
-	return Internal_BytesLeft() + m_readBuffer.size();
+	return (uint64_t)(Internal_BytesLeft() + m_readBuffer.size());
 }
 
 bool Process::AtEnd()

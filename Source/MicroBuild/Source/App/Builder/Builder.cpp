@@ -754,7 +754,7 @@ bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> proj
 
 	if (!toolchain->Init())
 	{
-		Log(LogSeverity::Fatal, "Toolchain not available to compile '%s', are you sure its installed?\nIf it is installed and in a non-default dictionary, please make sure its findable through the PATH environment variable.", project.Get_Project_Name().c_str());
+		Log(LogSeverity::Fatal, "Toolchain '%s' not available to compile '%s', are you sure its installed?\nIf it is installed and in a non-default dictionary, please make sure its findable through the PATH environment variable.", toolchain->GetDescription().c_str(), project.Get_Project_Name().c_str());
 		return false;
 	}
 

@@ -157,6 +157,7 @@ void ConfigTokenizer::ExpectedToken(const Token& token, TokenType type)
 
 void ConfigTokenizer::UnexpectedToken(const Token& token, TokenType type)
 {
+	__debugbreak();
 	Error(token, "Unexpected token '%s', expected '%s'.", 
 		TokenTypeLiteral[(int)type],
 		token.Literal.c_str());
@@ -412,7 +413,14 @@ bool ConfigTokenizer::ReadToken()
 		// If this line contains an equal sign, then parse it as an assignment rather than just a literal.
 		size_t equalOffset = m_data.find('=', m_offset + 1);
 		size_t newlineOffset = m_data.find('\n', m_offset + 1);
-		bool bIsAssignment = (equalOffset < newlineOffset && m_data[equalOffset + 1] != '=');
+		bool bIsAssignment = (
+			equalOffset < newlineOffset && 
+			m_data[equalOffset + 1] != '=' && 
+			m_data[equalOffset - 1] != '~' &&
+			m_data[equalOffset - 1] != '!' &&
+			m_data[equalOffset - 1] != '>' &&
+			m_data[equalOffset - 1] != '<'
+		);
 
 		// Read in the literal value.
 		std::string lit(1, chr);

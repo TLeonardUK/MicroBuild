@@ -176,6 +176,7 @@ void ConfigFile::UnexpectedEndOfTokens(const Token& tok)
 
 void ConfigFile::UnexpectedToken(const Token& tok)
 {
+	__debugbreak();
 	Error(tok, "Unexpected token '%s'.", tok.Literal.c_str());
 }
 
@@ -311,7 +312,6 @@ bool ConfigFile::ParseExpression(ConfigFileExpression& expression)
 
 bool ConfigFile::ParseExpressionComparison(ConfigFileExpression& expression)
 {
-
 	ConfigFileExpression lValue;
 	if (!ParseExpressionUnary(lValue))
 	{
