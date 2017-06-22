@@ -109,7 +109,7 @@ bool Process::Open(
 		if (!Result)
 		{
 			Log(LogSeverity::Warning, 
-				"CreatePipe failed with 0x%08x.\n", GetLastError());
+				"CreatePipe '%s' failed with 0x%08x.\n", command.ToString().c_str(), GetLastError());
 			return false;
 		}
 
@@ -121,7 +121,7 @@ bool Process::Open(
 		if (!Result)
 		{
 			Log(LogSeverity::Warning, 
-				"SetHandleInformation failed with 0x%08x.\n", GetLastError());
+				"SetHandleInformation '%s' failed with 0x%08x.\n", command.ToString().c_str(), GetLastError());
 			return false;
 		}
 
@@ -134,7 +134,7 @@ bool Process::Open(
 		if (!Result)
 		{
 			Log(LogSeverity::Warning, 
-				"CreatePipe failed with 0x%08x.\n", GetLastError());
+				"CreatePipe '%s' failed with 0x%08x.\n", command.ToString().c_str(), GetLastError());
 			return false;
 		}
 
@@ -146,7 +146,7 @@ bool Process::Open(
 		if (!Result)
 		{
 			Log(LogSeverity::Warning, 
-				"SetHandleInformation failed with 0x%08x.\n", GetLastError());
+				"SetHandleInformation '%s' failed with 0x%08x.\n", command.ToString().c_str(), GetLastError());
 			return false;
 		}
 	}
@@ -195,7 +195,7 @@ bool Process::Open(
 	if (!result)
 	{
 		Log(LogSeverity::Warning, 
-			"CreateProcess failed with 0x%08x.\n", GetLastError());
+			"CreateProcess '%s' failed with 0x%08x.\n", command.ToString().c_str(), GetLastError());
 
 		Detach();
 		return false;
