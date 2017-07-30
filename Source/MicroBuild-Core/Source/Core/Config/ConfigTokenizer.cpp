@@ -157,7 +157,6 @@ void ConfigTokenizer::ExpectedToken(const Token& token, TokenType type)
 
 void ConfigTokenizer::UnexpectedToken(const Token& token, TokenType type)
 {
-	__debugbreak();
 	Error(token, "Unexpected token '%s', expected '%s'.", 
 		TokenTypeLiteral[(int)type],
 		token.Literal.c_str());
