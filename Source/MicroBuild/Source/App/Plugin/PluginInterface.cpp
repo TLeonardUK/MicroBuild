@@ -42,6 +42,7 @@ public:
 		m_file.Set_Target_Platform(platform);
 		m_file.Set_Target_PlatformName(IdeHelper::ResolvePlatformName(platform));
 		m_file.Set_Target_MicroBuildExecutable(Platform::Path::GetExecutablePath());
+		m_file.Set_Target_MicroBuildDirectory(Platform::Path::GetExecutablePath().GetDirectory());
 
 		m_file.Resolve();
 		if (!m_file.Validate())
@@ -115,6 +116,8 @@ public:
 		{
 			m_file.Merge(workspaceFile);
 			m_file.Set_Target_IDE(targetIde);
+			m_file.Set_Target_MicroBuildExecutable(Platform::Path::GetExecutablePath());
+			m_file.Set_Target_MicroBuildDirectory(Platform::Path::GetExecutablePath().GetDirectory());
 
 			m_file.Resolve();
 			if (!m_file.Validate())

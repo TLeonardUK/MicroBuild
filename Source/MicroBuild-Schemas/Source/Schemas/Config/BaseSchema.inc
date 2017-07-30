@@ -261,3 +261,13 @@ START_OPTION(
 	"Automatically defined to the path of the microbuild executable building this."
 )
 END_OPTION()
+
+// ---------------------------------------------------------------------------
+
+START_OPTION(
+	Platform::Path,
+	Target,
+	MicroBuildDirectory,
+	"Automatically defined to the directory of the microbuild executable building this."
+)
+END_OPTION()

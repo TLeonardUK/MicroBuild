@@ -252,6 +252,7 @@ bool BuildCommand::Invoke(CommandLineParser* parser)
 						projectFiles[i].Set_Target_Platform(platformId);
 						projectFiles[i].Set_Target_PlatformName(IdeHelper::ResolvePlatformName(platformId));
 						projectFiles[i].Set_Target_MicroBuildExecutable(Platform::Path::GetExecutablePath());
+						projectFiles[i].Set_Target_MicroBuildDirectory(Platform::Path::GetExecutablePath().GetDirectory());
 						projectFiles[i].Set_Target_IDE(databaseFile.Get_Target_IDE());
 
 						projectFiles[i].Resolve();

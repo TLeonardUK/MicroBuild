@@ -28,6 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
+// Plugin_AddWorkspace();
+
 // The different kind of events that can be fired and passed to 
 // individual plugins.
 enum EPluginEvent

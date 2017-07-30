@@ -151,6 +151,8 @@ bool GenerateCommand::Invoke(CommandLineParser* parser)
 
 				// Base configuration.
 				m_projectFiles[i].Set_Target_IDE(m_targetIde);
+				m_projectFiles[i].Set_Target_MicroBuildExecutable(Platform::Path::GetExecutablePath());
+				m_projectFiles[i].Set_Target_MicroBuildDirectory(Platform::Path::GetExecutablePath().GetDirectory());
 
 				m_projectFiles[i].Resolve();
 				if (!m_projectFiles[i].Validate())
