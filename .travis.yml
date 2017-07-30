@@ -12,7 +12,7 @@ sudo: required
 addons:
   apt:
     sources:
-    - llvm-toolchain-trusty-5.0
+    - llvm-toolchain-trusty
     - ubuntu-toolchain-r-test
     packages:
     - build-essential
