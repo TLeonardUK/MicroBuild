@@ -27,19 +27,6 @@ namespace MicroBuild {
 PluginManager::PluginManager(App* app)
 	: m_app(app)
 {
-}
-
-PluginManager::~PluginManager()
-{
-	for (Plugin* plugin : m_plugins)
-	{
-		delete plugin;
-	}
-	m_plugins.clear();
-}
-
-bool PluginManager::FindAndLoadAll()
-{
 	std::string extension = "";
 	std::string architecture = "";
 	std::string configuration = "";
@@ -66,102 +53,63 @@ bool PluginManager::FindAndLoadAll()
 	configuration = "Shipping";
 #endif
 
-	std::string recursiveFilter = 
+	m_fileFormat =
 		Strings::Format(
-			"**.plugin.%s.%s.%s",
+			".plugin.%s.%s.%s",
 			architecture.c_str(),
 			configuration.c_str(),
 			extension.c_str()
 		);
-	std::string filter = 
+	m_recursiveFilter =
 		Strings::Format(
-			"*.plugin.%s.%s.%s",
-			architecture.c_str(),
-			configuration.c_str(),
-			extension.c_str()
+			"**%s",
+			m_fileFormat.c_str()
+		);
+	m_filter =
+		Strings::Format(
+			"*%s",
+			m_fileFormat.c_str()
 		);
 
-	Platform::Path recursivePathFilter = 
-		Platform::Path::GetExecutablePath().GetDirectory().AppendFragment(recursiveFilter, true);
+	Platform::Path exeDirectory = Platform::Path::GetExecutablePath().GetDirectory();
+	m_recursivePathFilter = exeDirectory.AppendFragment(m_recursiveFilter, true);
+	m_pluginDirectory = exeDirectory;// .AppendFragment("Plugins", true);
+}
 
-	Platform::Path pluginDirectory = 
-		Platform::Path::GetExecutablePath().GetDirectory().AppendFragment("Plugins", true);
+PluginManager::~PluginManager()
+{
+	UnloadAll();
+}
 
-	Platform::Path pluginPathFilter = 
-		pluginDirectory.AppendFragment(recursiveFilter, true);
-
-	if (!pluginDirectory.Exists())
+void PluginManager::UnloadAll()
+{
+	for (Plugin* plugin : m_plugins)
 	{
-		pluginDirectory.CreateAsDirectory();
+		delete plugin;
+	}
+	m_plugins.clear();
+}
+
+bool PluginManager::FindAndLoadAll()
+{
+	Platform::Path pluginPathFilter = 
+		m_pluginDirectory.AppendFragment(m_recursiveFilter, true);
+
+	if (!m_pluginDirectory.Exists())
+	{
+		m_pluginDirectory.CreateAsDirectory();
 	}
 
 	std::vector<Platform::Path> matchingPaths =
-		Platform::Path::MatchFilter(recursivePathFilter);
+		Platform::Path::MatchFilter(m_recursivePathFilter);
 
-	for (auto path : matchingPaths)
-	{
-		Platform::Path loadPath = path;
-
-		// If plugin is in plugin directory, load as normal. Otherwise
-		// check timestamp if its more recent than the one in the plugin directory copy it
-		// in and load that one. This allows us to rebuild plugins using microbuild itself without
-		// having the issue of trying to write to files that are in use.
-		if (path.GetDirectory() != pluginDirectory)
-		{
-			loadPath = pluginDirectory.AppendFragment(path.GetFilename(), true);
-			
-			Platform::Path pdbPath = path.ChangeExtension("pdb");
-
-			bool bCopy = false;
-			if (!loadPath.Exists())
-			{
-				bCopy = true;			
-			}
-			else
-			{
-				if (path.GetModifiedTime() >  loadPath.GetModifiedTime())
-				{
-					bCopy = true;
-				}
-			}
-
-			if (bCopy)
-			{
-				Log(LogSeverity::Info, "Plugin is new or updated, copying to plugin directory: %s\n", path.GetFilename().c_str());				
-				path.Copy(loadPath);
-
-				if (pdbPath.Exists())
-				{
-					pdbPath.Copy(loadPath.ChangeExtension("pdb"));
-				}
-			}
-
-/*			path.Delete();
-			if (pdbPath.Exists())
-			{
-				pdbPath.Delete();
-			} */
-		}
-	}
-	
 	matchingPaths =
 		Platform::Path::MatchFilter(pluginPathFilter);
 	
 	for (auto path : matchingPaths)
 	{
-		Platform::Path loadPath = path;
-	
-		Log(LogSeverity::Info, "Loading plugin: %s\n", path.GetFilename().c_str());	
-			
-		Plugin* plugin = new Plugin(this);
-		if (!plugin->Load(loadPath))
-		{
-			Log(LogSeverity::Info, "\tPlugin load failed.\n");
-		}
-		else
-		{
-			m_plugins.push_back(plugin);
-		}
+		Platform::Path loadPath = path;	
+		LoadPluginByName(loadPath.GetBaseName());
 	}
 
 	if (matchingPaths.size() > 0)
@@ -191,6 +139,67 @@ bool PluginManager::OnEvent(EPluginEvent Event, PluginEventData* Data)
 			return false;
 		}
 	}
+	return true;
+}
+
+Plugin* PluginManager::GetPluginByName(const std::string& fileName)
+{
+	for (Plugin* plugin : m_plugins)
+	{
+		if (plugin->GetFileName() == fileName)
+		{
+			return plugin;
+		}
+	}
+	return nullptr;
+}
+
+bool PluginManager::IsPluginLoaded(const std::string& fileName)
+{
+	return GetPluginByName(fileName) != nullptr;
+}
+
+bool PluginManager::UnloadPluginByName(const std::string& fileName)
+{
+	Log(LogSeverity::Info, "Unloading plugin: %s\n", fileName.c_str());
+
+	Plugin* plugin = GetPluginByName(fileName);
+	if (plugin == nullptr)
+	{
+		return false;
+	}
+
+	m_plugins.erase(std::find(m_plugins.begin(), m_plugins.end(), plugin));
+
+	delete plugin;
+
+	return true;
+}
+
+bool PluginManager::LoadPluginByName(const std::string& fileName)
+{
+	Log(LogSeverity::Info, "Loading plugin: %s\n", fileName.c_str());
+
+	Platform::Path path = m_pluginDirectory.AppendFragment(
+		Strings::Format(
+			"%s%s",
+			fileName.c_str(),
+			m_fileFormat.c_str()
+		),
+		true
+	);
+
+	Plugin* plugin = new Plugin(this);
+	if (!plugin->Load(path))
+	{
+		Log(LogSeverity::Info, "\tPlugin load failed.\n");
+		return false;
+	}
+	else
+	{
+		m_plugins.push_back(plugin);
+	}
+
 	return true;
 }
 

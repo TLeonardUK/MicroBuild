@@ -39,6 +39,9 @@ public:
 	// Gets the name of this plugin.
 	std::string GetName();
 
+	// Gets the file name of this plugin.
+	std::string GetFileName();
+
 	// Loads the plugin.
 	bool Load(Platform::Path& path);
 
@@ -55,9 +58,11 @@ private:
 		PluginCallbackSignature Callback;
 	};
 
-	typedef bool  (*InitializePlugin_t)(IPluginInterface* pluginInterface);
+	typedef bool (*InitializePlugin_t)(IPluginInterface* pluginInterface);
+	typedef bool (*TerminatePlugin_t)(IPluginInterface* pluginInterface);
 
 	InitializePlugin_t InitializePlugin;
+	TerminatePlugin_t TerminatePlugin;
 
 	std::vector<PluginCallback> m_callbacks;
 	
@@ -65,6 +70,8 @@ private:
 	Platform::Module m_module;
 	IPluginInterface* m_pluginInterface;
 	PluginManager* m_manager;
+
+	std::string m_fileName;
 
 };
 

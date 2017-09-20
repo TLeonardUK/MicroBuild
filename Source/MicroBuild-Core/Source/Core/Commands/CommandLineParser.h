@@ -69,6 +69,11 @@ public:
 	// is passed to the parser which will delete the command on destruction.
 	void RegisterCommand(Command* command);
 
+	// Unregisters a command that was previously registered with RegisterCommand,
+	// this should only be used where manually unregistering commands is neccessary, otherwise
+	// this parser will just clean them up on destruction.
+	void UnregisterCommand(Command* command);
+
 protected:
 
 	// Finds a registered command given its name.

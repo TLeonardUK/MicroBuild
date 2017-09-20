@@ -52,6 +52,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "App/Builder/SourceControl/Providers/GitSourceControlProvider.h"
 
+#include "App/Plugin/PluginManager.h"
+#include "App/Plugin/Plugin.h"
+
 #include "Schemas/BuildManifest/BuildManifestFile.h"
 #include "Schemas/Plugin/PluginInterface.h"
 
@@ -98,12 +101,16 @@ bool Builder::Clean(WorkspaceFile& workspaceFile, ProjectFile& project)
 	}
 
 	// todo: abstract into ToolChain::Clean method
-	Platform::Path pdbPath = project.Get_Project_OutputDirectory()
-		.AppendFragment(Strings::Format("%s.pdb", project.Get_Project_OutputName().c_str()), true);
-
-	if (pdbPath.Exists())
+	std::vector<std::string> cleanExtensions = { "exp", "lib", "pdb", "dll", "exe", "ilk" };	
+	for (std::string& ext : cleanExtensions)
 	{
-		pdbPath.Delete();
+		Platform::Path pdbPath = project.Get_Project_OutputDirectory()
+			.AppendFragment(Strings::Format("%s.%s", project.Get_Project_OutputName().c_str(), ext.c_str()), true);
+
+		if (pdbPath.Exists())
+		{
+			pdbPath.Delete();
+		}
 	}
 
 	return true;
@@ -615,6 +622,29 @@ bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> proj
 		}
 	}
 
+	// Check we have required plugins.
+	PluginManager* pluginManager = m_app->GetPluginManager();
+
+	std::vector<std::string> requiredPlugins = project.Get_MicroBuild_RequiredPlugin();
+	for (std::string pluginName : requiredPlugins)
+	{
+		if (!pluginManager->IsPluginLoaded(pluginName))
+		{
+			if (!pluginManager->LoadPluginByName(pluginName))
+			{
+				Log(LogSeverity::Fatal, "Required plugin '%s' is not loaded, are you sure it is built for the current configuration?\n", pluginName.c_str());
+				return false;
+			}
+		}
+	}
+
+	// Unload any excluded plugins.
+	std::vector<std::string> excludedPlugins = project.Get_MicroBuild_ExcludedPlugin();
+	for (std::string pluginName : excludedPlugins)
+	{
+		pluginManager->UnloadPluginByName(pluginName);
+	}
+
 	if (bRebuild)
 	{
 		if (!Clean(workspaceFile, project))
@@ -781,7 +811,7 @@ bool Builder::Build(WorkspaceFile& workspaceFile, std::vector<ProjectFile*> proj
 	// Run the pre-build commands syncronously in case they update plugin source state.
 	for (auto& command : project.Get_PreBuildCommands_Command())
 	{
-		std::shared_ptr<ShellCommandTask> task = std::make_shared<ShellCommandTask>(BuildStage::PreBuildUser, command);
+		std::shared_ptr<ShellCommandTask> task = std::make_shared<ShellCommandTask>(BuildStage::PreBuildUser, command, toolchain);
 		if (!task->Execute())
 		{
 			bBuildFailed = true;

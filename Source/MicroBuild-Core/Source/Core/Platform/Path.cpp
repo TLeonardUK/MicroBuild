@@ -91,7 +91,7 @@ std::string Path::GetBaseName() const
 		result.erase(result.begin(), result.begin() + lastDirOffset + 1);
 	}
 
-	size_t lastDotOffset = result.find_last_of('.');
+	size_t lastDotOffset = result.find_first_of('.');
 	if (lastDotOffset != std::string::npos)
 	{
 		result.erase(result.begin() + lastDotOffset, result.end());

@@ -39,6 +39,7 @@ bool LogGetVerbose();
 
 // Toggles silent logging, all but errors will be supressed.
 void LogSetSilent(bool bSilent);
+bool LogGetSilent();
 
 // Writes a log to stdout in the same style as printf. Seveirty determines
 // if it will be printed (based on -verbose flag) and what color it will be

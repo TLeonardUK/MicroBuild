@@ -63,7 +63,10 @@ struct ToolchainOutputMessage
 	EToolchainOutputMessageType	Type;
 
 	// The main text of this message.
-	std::string					Text;
+    std::string					Text;
+
+    // Extended multi-line error message.
+    std::vector<std::string>    Details;
 };
 
 // This class is used as a generic parser to extract warning/message/error's from build output.
@@ -85,6 +88,8 @@ protected:
 	void TestOutput(const std::string& input, const std::vector<std::string>& expectedCaptures);
 
 public:
+
+    ToolchainOutputParser();
 
 	// Registers a new regex used to extract messages.
 	// The capture types define what information each capture group in the regex is extracting (filename/line-number/etc).

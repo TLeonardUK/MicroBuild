@@ -154,7 +154,7 @@ std::vector<std::shared_ptr<BuildTask>> Toolchain::GetTasks(std::vector<BuilderF
 	
 	for (auto& command : m_projectFile.Get_PreLinkCommands_Command())
 	{
-		std::shared_ptr<ShellCommandTask> task = std::make_shared<ShellCommandTask>(BuildStage::PreLinkUser, command);
+		std::shared_ptr<ShellCommandTask> task = std::make_shared<ShellCommandTask>(BuildStage::PreLinkUser, command, this);
 		tasks.push_back(task);
 	}
 
@@ -173,7 +173,7 @@ std::vector<std::shared_ptr<BuildTask>> Toolchain::GetTasks(std::vector<BuilderF
 	// Queue any postbuild commands.
 	for (auto& command : m_projectFile.Get_PostBuildCommands_Command())
 	{
-		std::shared_ptr<ShellCommandTask> task = std::make_shared<ShellCommandTask>(BuildStage::PostBuildUser, command);
+		std::shared_ptr<ShellCommandTask> task = std::make_shared<ShellCommandTask>(BuildStage::PostBuildUser, command, this);
 		tasks.push_back(task);
 	}
 
@@ -308,6 +308,12 @@ void Toolchain::PrintMessages(BuilderFileInfo& file)
 		message += msg.Text.c_str();
 
 		Log(LogSeverity::SilentInfo, "%s\n", message.c_str());
+
+        for (std::string& line : msg.Details)
+        {
+            Log(LogSeverity::SilentInfo, "%s\n", line.c_str());
+        }
+
 		//printf("%s\n", message.c_str());
 	}
 }

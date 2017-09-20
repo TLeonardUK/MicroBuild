@@ -280,6 +280,15 @@ void CommandLineParser::RegisterCommand(Command* command)
 	m_commands.push_back(command);
 }
 
+void CommandLineParser::UnregisterCommand(Command* command)
+{
+	auto iter = std::find(m_commands.begin(), m_commands.end(), command);
+	if (iter != m_commands.end())
+	{
+		m_commands.erase(iter);
+	}
+}
+
 Command* CommandLineParser::FindCommand(const char* name)
 {
 	for (Command* cmd : m_commands)

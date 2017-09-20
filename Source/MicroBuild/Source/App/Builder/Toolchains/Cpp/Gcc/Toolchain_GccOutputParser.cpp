@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 Toolchain_GccOutputParser::Toolchain_GccOutputParser()
+    : ToolchainOutputParser()
 {
 	// MyFile.cpp:100:100: error: variable or field 'f' declared void
 	RegisterOutput(

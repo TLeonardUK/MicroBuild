@@ -68,15 +68,6 @@ protected:
 	// Tries to find the fuill path to the library by searching project then system library folders.
 	Platform::Path FindLibraryPath(const Platform::Path& path);
 	
-	// Writes out all messages that were emitted while building this file.
-	void PrintMessages(BuilderFileInfo& file);
-
-	// Parses the output of a compilation stage, extracting dependencies/errors and anything else of use. 
-	// Output may be modified to remove redundent information.
-	// All extracted information will be stored in the fileInfo passed in.
-	// Returns true if output is invalid and we need to abort asap.
-	virtual bool ParseOutput(BuilderFileInfo& file, std::string& output);
-	
 	// Gets all the generic arguments required to compile a file.
 	virtual void GetBaseCompileArguments(const BuilderFileInfo& file, std::vector<std::string>& args);
 	
@@ -155,6 +146,15 @@ public:
 	Platform::Path GetVersionInfoObjectPath();
 	Platform::Path GetPdbPath();
 	Platform::Path GetOutputPdbPath();
+
+    // Writes out all messages that were emitted while building this file.
+    void PrintMessages(BuilderFileInfo& file);
+
+    // Parses the output of a compilation stage, extracting dependencies/errors and anything else of use. 
+    // Output may be modified to remove redundent information.
+    // All extracted information will be stored in the fileInfo passed in.
+    // Returns true if output is invalid and we need to abort asap.
+    virtual bool ParseOutput(BuilderFileInfo& file, std::string& output);
 
 }; 
 

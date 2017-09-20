@@ -35,6 +35,8 @@ Plugin::Plugin(PluginManager* manager)
 
 Plugin::~Plugin()
 {
+	TerminatePlugin(m_pluginInterface);
+	
 	m_callbacks.clear();
 
 	if (m_pluginInterface)
@@ -52,6 +54,11 @@ Plugin::~Plugin()
 std::string Plugin::GetName()
 {
 	return m_name;
+}
+
+std::string Plugin::GetFileName()
+{
+	return m_fileName;
 }
 
 void Plugin::RegisterCallback(EPluginEvent Event, PluginCallbackSignature FuncPtr)
@@ -83,8 +90,10 @@ bool Plugin::Load(Platform::Path& path)
 	if (m_module.Open(path))
 	{
 		InitializePlugin = m_module.GetFunction<InitializePlugin_t>("InitializePlugin");
-
-		if (InitializePlugin == nullptr)
+		TerminatePlugin = m_module.GetFunction<TerminatePlugin_t>("TerminatePlugin");
+		 
+		if (InitializePlugin == nullptr ||
+			TerminatePlugin == nullptr)
 		{
 			Log(LogSeverity::Warning,
 				"Failed to load plugin, missing symbol exports.\n");
@@ -100,6 +109,8 @@ bool Plugin::Load(Platform::Path& path)
 				"Failed to initialize plugin.\n");
 			return false;
 		}
+
+		m_fileName = path.GetBaseName();
 
 		//Log(LogSeverity::Info, "\tName: %s\n", m_pluginInterface->GetName().c_str());
 		//Log(LogSeverity::Info, "\tDescription: %s\n", m_pluginInterface->GetDescription().c_str());

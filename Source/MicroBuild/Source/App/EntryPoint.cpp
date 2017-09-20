@@ -19,9 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PCH.h"
 
 #include "App/App.h"
+#include "Core/Platform/Path.h"
 
 int main(int argc, char* argv[])
 {
+	MicroBuild::Platform::Path::SetExecutablePath(argv[0]);
 	MicroBuild::App app(argc, argv);
 	return app.Run();
 }                                                                                                               

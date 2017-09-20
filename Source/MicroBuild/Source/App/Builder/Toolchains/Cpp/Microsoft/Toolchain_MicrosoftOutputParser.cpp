@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 Toolchain_MicrosoftOutputParser::Toolchain_MicrosoftOutputParser()
+    : ToolchainOutputParser()
 {	
 	// https://blogs.msdn.microsoft.com/msbuild/2006/11/02/msbuild-visual-studio-aware-error-messages-and-message-formats/
 

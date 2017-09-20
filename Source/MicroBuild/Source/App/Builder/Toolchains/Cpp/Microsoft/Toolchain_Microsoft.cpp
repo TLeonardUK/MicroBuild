@@ -974,6 +974,7 @@ void Toolchain_Microsoft::GetArchiveAction(BuildAction& action, std::vector<Buil
 
 		if (!intPdb.Copy(outPdb))
 		{
+			__debugbreak();
 			Log(LogSeverity::Fatal, "Failed to copy pdb file to '%s'.", outPdb.ToString().c_str());
 			return false;
 		}
@@ -1004,6 +1005,7 @@ void Toolchain_Microsoft::GetLinkAction(BuildAction& action, std::vector<Builder
 
 		if (!intPdb.Copy(outPdb))
 		{
+			__debugbreak();
 			Log(LogSeverity::Fatal, "Failed to copy pdb file to '%s'.", outPdb.ToString().c_str());
 			return false;
 		}

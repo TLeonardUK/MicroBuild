@@ -36,6 +36,9 @@ public:
 	// catastophic failure.
 	bool FindAndLoadAll();
 
+	// Unloads all plugins that are currently loaded.
+	void UnloadAll();
+
 	// Gets a list of all plugins that are currently loaded.
 	std::vector<Plugin*> GetPlugins();
 
@@ -45,9 +48,30 @@ public:
 	// Gets the app instance this plugin manager was created for.
 	App* GetApp();
 
+	// Returns true if a plugin with the given name is loaded.
+	bool IsPluginLoaded(const std::string& fileName);
+
+	// Gets a plugin based on its filename.
+	Plugin* GetPluginByName(const std::string& fileName);
+
+	// Attempts to unload the plugin with the given name, if the plugin
+	// is not currently loaded this returns false.
+	bool UnloadPluginByName(const std::string& fileName);
+
+	// Attempts to load the plugin with the given name, if the plugin
+	// could not be found, it returns false.
+	bool LoadPluginByName(const std::string& fileName);
+
 private:
 	std::vector<Plugin*> m_plugins;
 	App* m_app;
+
+	Platform::Path m_recursivePathFilter;
+	Platform::Path m_pluginDirectory;
+
+	std::string m_recursiveFilter;
+	std::string m_filter;
+	std::string m_fileFormat;
 
 };
 

@@ -135,6 +135,9 @@ public:
 	// Registers a new command that can be called from the command line.
 	virtual void RegisterCommand(Command* command) = 0;
 
+	// Unregisters a command thats been registered.
+	virtual void UnregisterCommand(Command* command) = 0;
+
 	// Registers all callback for a specific event.
 	virtual void RegisterCallback(EPluginEvent Event, PluginCallbackSignature FuncPtr) = 0;
 
@@ -160,10 +163,15 @@ public:
 
 #define MicroBuildPlugin() \
 	namespace MicroBuild { \
-		bool PluginMain(IPluginInterface* pluginInterface); \
+		bool OnPluginLoad(IPluginInterface* pluginInterface); \
+		bool OnPluginUnload(IPluginInterface* pluginInterface); \
 	} \
 	DLL_EXPORT bool InitializePlugin(MicroBuild::IPluginInterface* pluginInterface) \
 	{ \
-		return MicroBuild::PluginMain(pluginInterface); \
+		return MicroBuild::OnPluginLoad(pluginInterface); \
+	} \
+	DLL_EXPORT bool TerminatePlugin(MicroBuild::IPluginInterface* pluginInterface) \
+	{ \
+		return MicroBuild::OnPluginUnload(pluginInterface); \
 	} \
 

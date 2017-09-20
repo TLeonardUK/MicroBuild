@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace MicroBuild {
 
 Toolchain_Nintendo3dsOutputParser::Toolchain_Nintendo3dsOutputParser()
+    : ToolchainOutputParser()
 {
 	// "Path\To\File", line 34: Error:  #20: identifier "zyx" is undefined
 	RegisterOutput(

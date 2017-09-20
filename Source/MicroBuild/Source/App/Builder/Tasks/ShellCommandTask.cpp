@@ -23,9 +23,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace MicroBuild {
 
-ShellCommandTask::ShellCommandTask(BuildStage stage, const std::string& command)
+ShellCommandTask::ShellCommandTask(BuildStage stage, const std::string& command, Toolchain* toolchain)
 	: BuildTask(stage, false, false, false)
 	, m_command(command)
+    , m_toolchain(toolchain)
 {
 }
 
@@ -47,8 +48,17 @@ BuildAction ShellCommandTask::GetAction()
 	action.WorkingDirectory = rootPath;
 	action.Arguments = arguments;
 
-	action.PostProcessDelegate = [](BuildAction& action) -> bool
+	action.PostProcessDelegate = [=](BuildAction& action) -> bool
 	{
+        if (!m_toolchain->ParseOutput(action.FileInfo, action.Output))
+        {
+            return false;
+        } 
+        if (LogGetVerbose())
+        {
+            printf("%s", action.Output.c_str());
+        }        
+        m_toolchain->PrintMessages(action.FileInfo);
 		return (action.ExitCode == 0);
 	};
 

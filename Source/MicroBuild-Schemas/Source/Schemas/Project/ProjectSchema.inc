@@ -388,7 +388,7 @@ START_OPTION(
 	UseAcceleration,
 	"Defines if we should use acceleration or not."
 )
-OPTION_RULE_DEFAULT(true)
+OPTION_RULE_DEFAULT(false)
 END_OPTION()
 
 START_OPTION(

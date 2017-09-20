@@ -110,6 +110,22 @@ OPTION_RULE_DEFAULT(MB_VERSION)
 OPTION_RULE_VALIDATOR(ValidateVersion)
 END_OPTION()
 
+START_ARRAY_OPTION(
+	std::string,
+	MicroBuild,
+	RequiredPlugin,
+	"Required plugins to build this project."
+)
+END_ARRAY_OPTION()
+
+START_ARRAY_OPTION(
+	std::string,
+	MicroBuild,
+	ExcludedPlugin,
+	"Plugins that must be unloaded before building this project."
+)
+END_ARRAY_OPTION()
+
 // ---------------------------------------------------------------------------
 // Host
 // ---------------------------------------------------------------------------

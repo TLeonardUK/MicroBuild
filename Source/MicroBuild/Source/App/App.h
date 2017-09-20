@@ -52,8 +52,11 @@ public:
 	// Gets the plugin manager the app is currently being used.
 	PluginManager* GetPluginManager();
 
-	// Registers a new command that can be called onm the command line.
+	// Registers a new command that can be called from the command line.
 	void RegisterCommand(Command* command);
+
+	// Unregisters a command previously registered with RegisterCommand
+	void UnregisterCommand(Command* command);
 
 protected:
 	void PrintLicense();

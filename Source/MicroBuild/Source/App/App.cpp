@@ -81,8 +81,6 @@ App::App(int argc, char* argv[])
 	, m_commandLineParser(MB_NAME, MB_COPYRIGHT)
 	, m_pluginManager(this)
 {
-	Platform::Path::SetExecutablePath(argv[0]);
-
 	FreeImage_Initialise(false);
 
 	m_ides.push_back(new Ide_VisualStudio_2015());
@@ -102,6 +100,8 @@ App::App(int argc, char* argv[])
 
 App::~App()
 {
+	m_pluginManager.UnloadAll();
+
 	m_commandLineParser.DisposeCommands();
 
 	for (IdeType* type : m_ides)
@@ -113,10 +113,14 @@ App::~App()
 	FreeImage_DeInitialise();
 }
 
-
 void App::RegisterCommand(Command* command)
 {
 	m_commandLineParser.RegisterCommand(command);
+}
+
+void App::UnregisterCommand(Command* command)
+{
+	m_commandLineParser.UnregisterCommand(command);
 }
 
 std::vector<IdeType*> App::GetIdes() const
@@ -162,12 +166,12 @@ int App::Run()
 {
 #if MB_OPT_PRINT_FULL_APP_TIME
 	auto startTime = std::chrono::high_resolution_clock::now();
-	auto printTime = [startTime](){	
+	auto printTime = [startTime]() {	
 		auto elapsedTime = std::chrono::high_resolution_clock::now() - startTime;
 		auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(elapsedTime).count();
-				
-		Log(LogSeverity::SilentInfo, "\n");
-		Log(LogSeverity::SilentInfo, "Finished in %.1f seconds\n", elapsedMs / 1000.0f);
+
+		Log(LogSeverity::Info, "\n");
+		Log(LogSeverity::Info, "Finished in %.1f seconds\n", elapsedMs / 1000.0f);
 	};
 #endif
 

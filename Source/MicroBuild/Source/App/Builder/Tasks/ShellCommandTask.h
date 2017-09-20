@@ -29,10 +29,11 @@ class ShellCommandTask
 	: public BuildTask
 {
 private:
+    Toolchain* m_toolchain;
 	std::string m_command;
 
 public:
-	ShellCommandTask(BuildStage stage, const std::string& command);
+	ShellCommandTask(BuildStage stage, const std::string& command, Toolchain* toolchain);
 
 	virtual BuildAction GetAction() override;
 

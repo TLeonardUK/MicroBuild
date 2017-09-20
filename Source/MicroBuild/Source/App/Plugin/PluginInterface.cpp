@@ -306,6 +306,11 @@ public:
 		m_manager->GetApp()->RegisterCommand(cmd);
 	}
 
+	virtual void UnregisterCommand(Command* cmd) override
+	{
+		m_manager->GetApp()->UnregisterCommand(cmd);
+	}
+
 	virtual void RegisterCallback(EPluginEvent Event, PluginCallbackSignature FuncPtr) override
 	{
 		m_plugin->RegisterCallback(Event, FuncPtr);

@@ -43,6 +43,11 @@ void LogSetSilent(bool bSilent)
 	g_logSilentOn = bSilent;
 }
 
+bool LogGetSilent()
+{
+	return g_logSilentOn;
+}
+
 void Log(LogSeverity severity, const char* format, ...)
 {
 	if (severity == LogSeverity::Verbose && !g_logVerboseOn)
