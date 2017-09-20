@@ -12,9 +12,11 @@ sudo: required
 addons:
   apt:
     sources:
-    - llvm-toolchain-trusty
     - ubuntu-toolchain-r-test
+    - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-5.0 main'
+      key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'
     packages:
+    - build-essential
     - gcc-6
     - g++-6
     - gcc-multilib
